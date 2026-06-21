@@ -1287,21 +1287,7 @@ function ProposalDetailPage() {
                             {/* Title & Status */}
                             <Card>
                               <CardHeader
-                                title="Book Metadata"
-                                subtitle="Editorial & cataloguing record"
-                                right={
-                                  <div className="flex items-center gap-3">
-                                    {metadata?.current_version != null && (
-                                      <Stat label="Version" value={`v${metadata.current_version}`} />
-                                    )}
-                                    {metadata?.metadata_status && (
-                                      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 font-sans text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
-                                        <Check className="h-3.5 w-3.5" />
-                                        {metadata.metadata_status.replace(/_/g, " ")}
-                                      </span>
-                                    )}
-                                  </div>
-                                }
+                                title="Metadata"
                               />
                               <div className="divide-y divide-stone-200">
                                 <div className="px-7 py-6">
