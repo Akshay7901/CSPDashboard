@@ -1231,7 +1231,7 @@ function ProposalDetailPage() {
               </div>
             </section>
                 {isContractSigned && (
-                  <Card className="overflow-hidden border-stone-200">
+                  <Card className="mt-6 overflow-hidden border-stone-200">
                     {/* Header */}
                     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 bg-gradient-to-r from-emerald-50 via-emerald-50/60 to-white px-6 py-4">
                       <div className="flex min-w-0 items-center gap-3">
@@ -1240,25 +1240,9 @@ function ProposalDetailPage() {
                         </div>
                         <div className="min-w-0">
                           <h2 className="font-serif text-base font-bold text-stone-900">
-                            Book Metadata
+                            Metadata
                           </h2>
-                          <p className="mt-0.5 font-sans text-xs text-stone-500">
-                            Editorial &amp; cataloguing record
-                          </p>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {metadata?.current_version != null && (
-                          <span className="inline-flex items-center rounded-full bg-white px-2.5 py-1 font-sans text-[11px] font-medium text-stone-600 ring-1 ring-stone-200">
-                            v{metadata.current_version}
-                          </span>
-                        )}
-                        {metadata?.metadata_status && (
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1 font-sans text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm">
-                            <span className="h-1.5 w-1.5 rounded-full bg-white/90" />
-                            {metadata.metadata_status.replace(/_/g, " ")}
-                          </span>
-                        )}
                       </div>
                     </div>
 
@@ -1303,21 +1287,7 @@ function ProposalDetailPage() {
                             {/* Title & Status */}
                             <Card>
                               <CardHeader
-                                title="Book Metadata"
-                                subtitle="Editorial & cataloguing record"
-                                right={
-                                  <div className="flex items-center gap-3">
-                                    {metadata?.current_version != null && (
-                                      <Stat label="Version" value={`v${metadata.current_version}`} />
-                                    )}
-                                    {metadata?.metadata_status && (
-                                      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 font-sans text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
-                                        <Check className="h-3.5 w-3.5" />
-                                        {metadata.metadata_status.replace(/_/g, " ")}
-                                      </span>
-                                    )}
-                                  </div>
-                                }
+                                title="Metadata"
                               />
                               <div className="divide-y divide-stone-200">
                                 <div className="px-7 py-6">
