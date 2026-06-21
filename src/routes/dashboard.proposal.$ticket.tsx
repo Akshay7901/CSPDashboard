@@ -1054,6 +1054,111 @@ function ProposalDetailPage() {
     };
   }, [isContractSigned, ticket]);
 
+  useEffect(() => {
+    if (!metadata) {
+      setMetaForm(emptyMetaForm);
+      return;
+    }
+    const md = metadata.metadata || {};
+    setMetaForm({
+      full_title: md.full_title || "",
+      title: md.title || "",
+      subtitle: md.subtitle || "",
+      category: md.category || "",
+      display_names: md.display_names || "",
+      display_bios: md.display_bios || "",
+      book_description: md.book_description || "",
+      keywords: md.keywords || "",
+      website_classification: md.website_classification || "",
+      bic: md.bic || "",
+      authors: (md.authors || []).map((a) => ({ ...a })),
+    });
+    setMetaSaveError(null);
+    setMetaSaveSuccess(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [metadata]);
+
+  const updateMetaField = <K extends keyof MetaForm>(key: K, value: MetaForm[K]) => {
+    setMetaForm((prev) => ({ ...prev, [key]: value }));
+    setMetaSaveSuccess(null);
+  };
+  const updateMetaAuthor = (index: number, key: keyof MetadataAuthor, value: string) => {
+    setMetaForm((prev) => {
+      const next = prev.authors.map((a, i) => (i === index ? { ...a, [key]: value } : a));
+      return { ...prev, authors: next };
+    });
+    setMetaSaveSuccess(null);
+  };
+
+  const saveMetadataDraft = async () => {
+    if (!ticket) return;
+    setMetaSaving(true);
+    setMetaSaveError(null);
+    setMetaSaveSuccess(null);
+    try {
+      const token = getPortalToken();
+      const session = getPortalSession();
+      const payload: Record<string, unknown> = {
+        full_title: metaForm.full_title,
+        title: metaForm.title,
+        subtitle: metaForm.subtitle,
+        category: metaForm.category,
+        display_names: metaForm.display_names,
+        display_bios: metaForm.display_bios,
+        book_description: metaForm.book_description,
+        keywords: metaForm.keywords,
+        website_classification: metaForm.website_classification,
+        bic: metaForm.bic,
+        authors: metaForm.authors,
+      };
+      if (session?.email) payload.updated_by = session.email;
+      const res = await proposalApiFetch(`/${encodeURIComponent(ticket)}/metadata`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(payload),
+      });
+      const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+      if (!res.ok) {
+        setMetaSaveError((body.error as string) || `Failed to save (${res.status}).`);
+        return;
+      }
+      // Optimistically update local metadata snapshot
+      setMetadata((prev) =>
+        prev
+          ? {
+              ...prev,
+              metadata_status: "draft",
+              current_version:
+                (body.current_version as number) ?? prev.current_version,
+              updated_at: new Date().toISOString(),
+              metadata: {
+                ...(prev.metadata || {}),
+                full_title: metaForm.full_title,
+                title: metaForm.title,
+                subtitle: metaForm.subtitle,
+                category: metaForm.category,
+                display_names: metaForm.display_names,
+                display_bios: metaForm.display_bios,
+                book_description: metaForm.book_description,
+                keywords: metaForm.keywords,
+                website_classification: metaForm.website_classification,
+                bic: metaForm.bic,
+                authors: metaForm.authors,
+              },
+            }
+          : prev,
+      );
+      setMetaSaveSuccess("Draft saved.");
+    } catch {
+      setMetaSaveError("Network error. Please try again.");
+    } finally {
+      setMetaSaving(false);
+    }
+  };
+
   const primaryReview = reviews[0];
   const recommendationKey = (primaryReview?.review_data?.recommendation as string) || "";
   const recommendationLabel = RECOMMENDATION_LABELS[recommendationKey] || recommendationKey;
