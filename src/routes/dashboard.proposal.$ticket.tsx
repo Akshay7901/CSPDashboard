@@ -939,6 +939,49 @@ function ProposalDetailPage() {
     return cs === "signed";
   }, [latestContract]);
 
+  useEffect(() => {
+    if (!isContractSigned || !ticket) return;
+    let cancelled = false;
+    const load = async () => {
+      setMetadataLoading(true);
+      setMetadataError(null);
+      try {
+        const token = getPortalToken();
+        const res = await proposalApiFetch(
+          `/${encodeURIComponent(ticket)}/metadata`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+          },
+        );
+        const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+        if (cancelled) return;
+        if (!res.ok) {
+          if (res.status === 404) {
+            setMetadata(null);
+            setMetadataError(null);
+          } else {
+            setMetadataError(
+              (body.error as string) || `Failed to load metadata (${res.status}).`,
+            );
+          }
+        } else {
+          setMetadata(body as ProposalMetadata);
+        }
+      } catch {
+        if (!cancelled) setMetadataError("Network error. Please try again.");
+      } finally {
+        if (!cancelled) setMetadataLoading(false);
+      }
+    };
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [isContractSigned, ticket]);
+
   const primaryReview = reviews[0];
   const recommendationKey = (primaryReview?.review_data?.recommendation as string) || "";
   const recommendationLabel = RECOMMENDATION_LABELS[recommendationKey] || recommendationKey;
