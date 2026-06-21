@@ -9,6 +9,8 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import { Toaster } from "@/components/ui/sonner";
+import { ButtonClickToaster } from "@/components/button-click-toaster";
 
 function NotFoundComponent() {
   return (
@@ -124,6 +126,8 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
+      <ButtonClickToaster />
+      <Toaster position="bottom-right" />
     </QueryClientProvider>
   );
 }
