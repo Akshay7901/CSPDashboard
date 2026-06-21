@@ -21,6 +21,14 @@ import {
   SquarePen,
   Trash2,
   X as XIcon,
+  BookOpen,
+  Tag,
+  Globe,
+  Hash,
+  Mail,
+  Building2,
+  CalendarCheck,
+  User as UserIcon,
 } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
 import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
@@ -1223,25 +1231,38 @@ function ProposalDetailPage() {
               </div>
             </section>
                 {isContractSigned && (
-                  <Card className="overflow-hidden">
+                  <Card className="overflow-hidden border-stone-200">
                     {/* Header */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-emerald-50/60 px-6 py-4">
-                      <div className="min-w-0">
-                        <h2 className="font-serif text-base font-bold text-stone-900">
-                          Metadata
-                        </h2>
-                        <p className="mt-0.5 font-sans text-sm text-stone-500">
-                          Editorial / cataloguing metadata for this proposal
-                        </p>
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 bg-gradient-to-r from-emerald-50 via-emerald-50/60 to-white px-6 py-4">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white shadow-sm">
+                          <BookOpen className="h-4 w-4" strokeWidth={2.2} />
+                        </div>
+                        <div className="min-w-0">
+                          <h2 className="font-serif text-base font-bold text-stone-900">
+                            Book Metadata
+                          </h2>
+                          <p className="mt-0.5 font-sans text-xs text-stone-500">
+                            Editorial &amp; cataloguing record
+                          </p>
+                        </div>
                       </div>
-                      {metadata?.metadata_status && (
-                        <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 font-sans text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200">
-                          {metadata.metadata_status.replace(/_/g, " ")}
-                        </span>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {metadata?.current_version != null && (
+                          <span className="inline-flex items-center rounded-full bg-white px-2.5 py-1 font-sans text-[11px] font-medium text-stone-600 ring-1 ring-stone-200">
+                            v{metadata.current_version}
+                          </span>
+                        )}
+                        {metadata?.metadata_status && (
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1 font-sans text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm">
+                            <span className="h-1.5 w-1.5 rounded-full bg-white/90" />
+                            {metadata.metadata_status.replace(/_/g, " ")}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
-                    <div className="px-6 py-6">
+                    <div className="p-6">
                       {metadataLoading && (
                         <p className="font-sans text-sm text-stone-500">Loading metadata…</p>
                       )}
@@ -1251,179 +1272,253 @@ function ProposalDetailPage() {
                         </p>
                       )}
                       {!metadataLoading && !metadataError && !metadata && (
-                        <p className="font-sans text-sm text-stone-500">
-                          No metadata has been recorded for this proposal yet.
-                        </p>
+                        <div className="flex flex-col items-center justify-center py-10 text-center">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-stone-100">
+                            <BookOpen className="h-5 w-5 text-stone-400" />
+                          </div>
+                          <p className="mt-3 font-sans text-sm text-stone-500">
+                            No metadata has been recorded for this proposal yet.
+                          </p>
+                        </div>
                       )}
 
-                      {!metadataLoading && !metadataError && metadata && (
-                        <div className="space-y-8">
-                          {/* Hero row: cover + title block */}
-                          <div className="flex flex-col gap-6 sm:flex-row">
-                            {metadata.cover_image?.s3_url ? (
-                              <div className="shrink-0">
+                      {!metadataLoading && !metadataError && metadata && (() => {
+                        const md = metadata.metadata || {};
+                        const authorsList = md.authors || [];
+                        const keywords = (md.keywords || "")
+                          .split(/[,;]/)
+                          .map((s) => s.trim())
+                          .filter(Boolean);
+                        const websiteTags = (md.website_classification || "")
+                          .split(/[,|]/)
+                          .map((s) => s.trim())
+                          .filter(Boolean);
+                        const bicCodes = (md.bic || "")
+                          .split(/[\s,]+/)
+                          .map((s) => s.trim())
+                          .filter(Boolean);
+                        const coverUrl = metadata.cover_image?.s3_url;
+                        return (
+                          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_1fr]">
+                            {/* Sidebar — cover + quick facts */}
+                            <aside className="space-y-4">
+                              {coverUrl ? (
                                 <img
-                                  src={metadata.cover_image.s3_url}
-                                  alt={metadata.cover_image.filename || "Cover"}
-                                  className="h-56 w-auto rounded-lg border border-stone-200 object-cover shadow-sm"
+                                  src={coverUrl}
+                                  alt="Cover"
+                                  className="w-full rounded-lg border border-stone-200 object-cover shadow-sm"
                                 />
-                              </div>
-                            ) : null}
-                            <div className="min-w-0 flex-1">
-                              <h3 className="font-serif text-2xl font-bold leading-tight text-stone-900">
-                                {metadata.metadata?.full_title ||
-                                  metadata.metadata?.title ||
-                                  "—"}
-                              </h3>
-                              {metadata.metadata?.subtitle && (
-                                <p className="mt-1.5 font-serif text-lg italic text-stone-600">
-                                  {metadata.metadata.subtitle}
-                                </p>
+                              ) : (
+                                <div className="flex aspect-[3/4] w-full flex-col items-center justify-center rounded-lg border border-dashed border-stone-300 bg-gradient-to-br from-stone-50 to-stone-100 p-4 text-center">
+                                  <BookOpen className="h-8 w-8 text-stone-400" />
+                                  <p className="mt-2 font-serif text-xs text-stone-500">
+                                    No cover image
+                                  </p>
+                                </div>
                               )}
-                              <div className="mt-4 flex flex-wrap items-center gap-2">
-                                {metadata.metadata?.category && (
-                                  <span className="inline-flex items-center rounded-md bg-stone-100 px-2.5 py-1 font-sans text-xs font-medium text-stone-700">
-                                    {metadata.metadata.category}
-                                  </span>
+                              <dl className="space-y-2.5 rounded-lg bg-stone-50/70 p-3 ring-1 ring-stone-200/60">
+                                {md.category && (
+                                  <div>
+                                    <dt className="font-sans text-[10px] font-semibold uppercase tracking-wider text-stone-400">
+                                      Category
+                                    </dt>
+                                    <dd className="mt-0.5 font-sans text-xs font-medium text-stone-800">
+                                      {md.category}
+                                    </dd>
+                                  </div>
                                 )}
-                                <span className="font-sans text-xs text-stone-400">
-                                  Version {metadata.current_version ?? "—"}
-                                </span>
                                 {metadata.updated_at && (
-                                  <span className="font-sans text-xs text-stone-400">
-                                    Updated {formatDate(metadata.updated_at)}
-                                  </span>
-                                )}
-                              </div>
-                              {metadata.metadata?.display_names && (
-                                <p className="mt-3 font-sans text-sm font-medium text-stone-700">
-                                  {metadata.metadata.display_names}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Description */}
-                          {metadata.metadata?.book_description && (
-                            <div className="border-t border-stone-100 pt-6">
-                              <h4 className="mb-2 font-sans text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-400">
-                                Description
-                              </h4>
-                              <p className="max-w-prose font-sans text-sm leading-relaxed text-stone-700">
-                                {metadata.metadata.book_description}
-                              </p>
-                            </div>
-                          )}
-
-                          {/* Two-column: Classification + Bios */}
-                          <div className="grid grid-cols-1 gap-8 border-t border-stone-100 pt-6 lg:grid-cols-2">
-                            <div>
-                              <h4 className="mb-3 font-sans text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-400">
-                                Classification
-                              </h4>
-                              <dl className="space-y-0">
-                                {metadata.metadata?.keywords && (
-                                  <div className="flex items-start gap-4 py-2">
-                                    <dt className="w-28 shrink-0 font-sans text-xs font-medium text-stone-400">
-                                      Keywords
+                                  <div>
+                                    <dt className="font-sans text-[10px] font-semibold uppercase tracking-wider text-stone-400">
+                                      Last updated
                                     </dt>
-                                    <dd className="font-sans text-sm text-stone-800">
-                                      {metadata.metadata.keywords}
-                                    </dd>
-                                  </div>
-                                )}
-                                {metadata.metadata?.website_classification && (
-                                  <div className="flex items-start gap-4 py-2">
-                                    <dt className="w-28 shrink-0 font-sans text-xs font-medium text-stone-400">
-                                      Website
-                                    </dt>
-                                    <dd className="font-sans text-sm text-stone-800">
-                                      {metadata.metadata.website_classification}
-                                    </dd>
-                                  </div>
-                                )}
-                                {metadata.metadata?.bic && (
-                                  <div className="flex items-start gap-4 py-2">
-                                    <dt className="w-28 shrink-0 font-sans text-xs font-medium text-stone-400">
-                                      BIC
-                                    </dt>
-                                    <dd className="font-sans text-sm font-medium text-stone-800">
-                                      {metadata.metadata.bic}
+                                    <dd className="mt-0.5 font-sans text-xs text-stone-700">
+                                      {formatDate(metadata.updated_at)}
                                     </dd>
                                   </div>
                                 )}
                                 {metadata.approved_at && (
-                                  <div className="flex items-start gap-4 py-2">
-                                    <dt className="w-28 shrink-0 font-sans text-xs font-medium text-stone-400">
-                                      Approved
+                                  <div>
+                                    <dt className="flex items-center gap-1 font-sans text-[10px] font-semibold uppercase tracking-wider text-emerald-700">
+                                      <CalendarCheck className="h-3 w-3" /> Approved
                                     </dt>
-                                    <dd className="font-sans text-sm text-stone-800">
+                                    <dd className="mt-0.5 font-sans text-xs font-medium text-emerald-800">
                                       {formatDate(metadata.approved_at)}
                                     </dd>
                                   </div>
                                 )}
                               </dl>
-                            </div>
+                            </aside>
 
-                            {metadata.metadata?.display_bios && (
+                            {/* Main column */}
+                            <div className="min-w-0 space-y-6">
+                              {/* Title */}
                               <div>
-                                <h4 className="mb-2 font-sans text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-400">
-                                  Author Bios
-                                </h4>
-                                <p className="max-w-prose font-sans text-sm leading-relaxed text-stone-700">
-                                  {metadata.metadata.display_bios}
-                                </p>
+                                <h3 className="font-serif text-2xl font-bold leading-tight text-stone-900">
+                                  {md.full_title || md.title || "Untitled"}
+                                </h3>
+                                {md.subtitle && (
+                                  <p className="mt-1.5 font-serif text-base italic text-stone-600">
+                                    {md.subtitle}
+                                  </p>
+                                )}
+                                {md.display_names && (
+                                  <p className="mt-3 font-sans text-sm text-stone-700">
+                                    <span className="text-stone-400">by </span>
+                                    <span className="font-medium">{md.display_names}</span>
+                                  </p>
+                                )}
                               </div>
-                            )}
-                          </div>
 
-                          {/* Authors */}
-                          {metadata.metadata?.authors && metadata.metadata.authors.length > 0 && (
-                            <div className="border-t border-stone-100 pt-6">
-                              <h4 className="mb-3 font-sans text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-400">
-                                Authors ({metadata.metadata.authors.length})
-                              </h4>
-                              <div className="divide-y divide-stone-100">
-                                {metadata.metadata.authors.map((a, i) => {
-                                  const name = [a.title, a.first_name, a.last_name]
-                                    .filter(Boolean)
-                                    .join(" ");
-                                  const initials = initialsFromName(name);
-                                  return (
-                                    <div
-                                      key={`${a.email || i}`}
-                                      className="flex items-start gap-3 py-3"
-                                    >
-                                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-stone-100 font-sans text-xs font-bold text-stone-600">
-                                        {initials || "—"}
-                                      </div>
-                                      <div className="min-w-0 flex-1">
-                                        <p className="font-serif text-sm font-semibold text-stone-900">
-                                          {name || "—"}
-                                        </p>
-                                        <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 font-sans text-xs text-stone-500">
-                                          {a.institution && (
-                                            <span>
-                                              {a.institution}
-                                              {a.country ? `, ${a.country}` : ""}
-                                            </span>
-                                          )}
-                                          {a.email && (
-                                            <span className="text-stone-400">{a.email}</span>
-                                          )}
-                                          {a.email_2 && (
-                                            <span className="text-stone-400">{a.email_2}</span>
-                                          )}
-                                        </div>
+                              {/* Description */}
+                              {md.book_description && (
+                                <div className="rounded-lg border border-stone-200 bg-white p-4">
+                                  <h4 className="mb-2 flex items-center gap-1.5 font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-500">
+                                    <FileText className="h-3.5 w-3.5" /> Description
+                                  </h4>
+                                  <p className="whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
+                                    {md.book_description}
+                                  </p>
+                                </div>
+                              )}
+
+                              {/* Classification chips */}
+                              {(keywords.length > 0 || websiteTags.length > 0 || bicCodes.length > 0) && (
+                                <div className="space-y-4">
+                                  {keywords.length > 0 && (
+                                    <div>
+                                      <h4 className="mb-2 flex items-center gap-1.5 font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-500">
+                                        <Tag className="h-3.5 w-3.5" /> Keywords
+                                      </h4>
+                                      <div className="flex flex-wrap gap-1.5">
+                                        {keywords.map((k) => (
+                                          <span
+                                            key={k}
+                                            className="inline-flex items-center rounded-full bg-stone-100 px-2.5 py-1 font-sans text-xs text-stone-700 ring-1 ring-stone-200/70"
+                                          >
+                                            {k}
+                                          </span>
+                                        ))}
                                       </div>
                                     </div>
-                                  );
-                                })}
-                              </div>
+                                  )}
+                                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                    {websiteTags.length > 0 && (
+                                      <div>
+                                        <h4 className="mb-2 flex items-center gap-1.5 font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-500">
+                                          <Globe className="h-3.5 w-3.5" /> Website Classification
+                                        </h4>
+                                        <div className="flex flex-wrap gap-1.5">
+                                          {websiteTags.map((t) => (
+                                            <span
+                                              key={t}
+                                              className="inline-flex items-center rounded-md bg-sky-50 px-2 py-0.5 font-sans text-xs font-medium text-sky-800 ring-1 ring-sky-200"
+                                            >
+                                              {t}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                    {bicCodes.length > 0 && (
+                                      <div>
+                                        <h4 className="mb-2 flex items-center gap-1.5 font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-500">
+                                          <Hash className="h-3.5 w-3.5" /> BIC Codes
+                                        </h4>
+                                        <div className="flex flex-wrap gap-1.5">
+                                          {bicCodes.map((c) => (
+                                            <span
+                                              key={c}
+                                              className="inline-flex items-center rounded-md bg-violet-50 px-2 py-0.5 font-mono text-xs font-semibold text-violet-800 ring-1 ring-violet-200"
+                                            >
+                                              {c}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Bios */}
+                              {md.display_bios && (
+                                <div className="rounded-lg border border-stone-200 bg-stone-50/40 p-4">
+                                  <h4 className="mb-2 flex items-center gap-1.5 font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-500">
+                                    <UserIcon className="h-3.5 w-3.5" /> Author Bios
+                                  </h4>
+                                  <p className="whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
+                                    {md.display_bios}
+                                  </p>
+                                </div>
+                              )}
+
+                              {/* Authors */}
+                              {authorsList.length > 0 && (
+                                <div>
+                                  <h4 className="mb-3 flex items-center gap-1.5 font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-500">
+                                    <UserIcon className="h-3.5 w-3.5" /> Authors
+                                    <span className="ml-1 rounded-full bg-stone-100 px-1.5 py-0.5 text-[10px] font-bold text-stone-600">
+                                      {authorsList.length}
+                                    </span>
+                                  </h4>
+                                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                    {authorsList.map((a, i) => {
+                                      const fullName = [a.title, a.first_name, a.last_name]
+                                        .filter(Boolean)
+                                        .join(" ");
+                                      const displayName =
+                                        fullName ||
+                                        (a.email
+                                          ? displayNameFromEmail(a.email)
+                                          : `Author ${i + 1}`);
+                                      const initials =
+                                        initialsFromName(displayName) ||
+                                        (a.email ? a.email[0]?.toUpperCase() : "A");
+                                      return (
+                                        <div
+                                          key={`${a.email || i}`}
+                                          className="group flex gap-3 rounded-lg border border-stone-200 bg-white p-3 transition-all hover:border-emerald-300 hover:shadow-sm"
+                                        >
+                                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-100 to-emerald-200 font-sans text-xs font-bold text-emerald-800">
+                                            {initials}
+                                          </div>
+                                          <div className="min-w-0 flex-1 space-y-1">
+                                            <p className="truncate font-serif text-sm font-semibold text-stone-900">
+                                              {displayName}
+                                            </p>
+                                            {a.institution && (
+                                              <p className="flex items-center gap-1 truncate font-sans text-xs text-stone-600">
+                                                <Building2 className="h-3 w-3 shrink-0 text-stone-400" />
+                                                <span className="truncate">
+                                                  {a.institution}
+                                                  {a.country ? `, ${a.country}` : ""}
+                                                </span>
+                                              </p>
+                                            )}
+                                            {a.email && (
+                                              <p className="flex items-center gap-1 truncate font-sans text-xs text-stone-500">
+                                                <Mail className="h-3 w-3 shrink-0 text-stone-400" />
+                                                <span className="truncate">{a.email}</span>
+                                              </p>
+                                            )}
+                                            {a.email_2 && (
+                                              <p className="flex items-center gap-1 truncate font-sans text-xs text-stone-400">
+                                                <Mail className="h-3 w-3 shrink-0" />
+                                                <span className="truncate">{a.email_2}</span>
+                                              </p>
+                                            )}
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      )}
+                          </div>
+                        );
+                      })()}
                     </div>
                   </Card>
                 )}
