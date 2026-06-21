@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
 import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
+import { ChangePasswordButton } from "@/components/change-password-dialog";
 import { initialsFromName, displayNameFromEmail } from "@/lib/proposals";
 import { proposalApiFetch } from "@/lib/proposalApi";
 
@@ -302,6 +303,10 @@ function ReviewerDashboard() {
             <span className="font-sans text-sm text-[#2C1A0E]">
               {displayName}
             </span>
+            <span className="text-stone-300">|</span>
+            <ChangePasswordButton
+              triggerClassName="inline-flex items-center gap-1.5 font-sans text-sm text-[#7A6A5A] hover:text-stone-900 transition-colors"
+            />
             <span className="text-stone-300">|</span>
             <button
               type="button"
