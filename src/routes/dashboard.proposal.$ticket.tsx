@@ -1484,6 +1484,7 @@ function ProposalDetailPage() {
                         const coverUrl = metadata.cover_image?.s3_url;
                         const authorsList = metaForm.authors;
                         const isMetaLocked = metadata.metadata_status === "sent_to_author";
+                        const isMetaApproved = metadata.metadata_status === "approved" || !!metadata.approved_at;
                         return (
                           <div className="space-y-4">
                             {isMetaLocked && (
@@ -1558,14 +1559,16 @@ function ProposalDetailPage() {
                                     >
                                       {metaSaving ? "Saving…" : "Save Draft"}
                                     </button>
-                                    <button
-                                      type="button"
-                                      onClick={sendMetadataToAuthor}
-                                      disabled={metaSendLoading || metaSaving}
-                                      className="inline-flex items-center gap-2 rounded-lg bg-stone-800 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm transition hover:bg-stone-900 disabled:cursor-not-allowed disabled:opacity-60"
-                                    >
-                                      {metaSendLoading ? "Sending…" : "Send to Author"}
-                                    </button>
+                                    {!isMetaApproved && (
+                                      <button
+                                        type="button"
+                                        onClick={sendMetadataToAuthor}
+                                        disabled={metaSendLoading || metaSaving}
+                                        className="inline-flex items-center gap-2 rounded-lg bg-stone-800 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm transition hover:bg-stone-900 disabled:cursor-not-allowed disabled:opacity-60"
+                                      >
+                                        {metaSendLoading ? "Sending…" : "Send to Author"}
+                                      </button>
+                                    )}
                                   </>
                                 )}
                               </div>
