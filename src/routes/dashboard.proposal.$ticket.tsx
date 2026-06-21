@@ -1299,102 +1299,81 @@ function ProposalDetailPage() {
                           .filter(Boolean);
                         const coverUrl = metadata.cover_image?.s3_url;
                         return (
-                          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_1fr]">
-                            {/* Sidebar — cover + quick facts */}
-                            <aside className="space-y-4">
-                              {coverUrl ? (
-                                <img
-                                  src={coverUrl}
-                                  alt="Cover"
-                                  className="w-full rounded-lg border border-stone-200 object-cover shadow-sm"
-                                />
-                              ) : (
-                                <div className="flex aspect-[3/4] w-full flex-col items-center justify-center rounded-lg border border-dashed border-stone-300 bg-gradient-to-br from-stone-50 to-stone-100 p-4 text-center">
-                                  <BookOpen className="h-8 w-8 text-stone-400" />
-                                  <p className="mt-2 font-serif text-xs text-stone-500">
-                                    No cover image
-                                  </p>
+                          <div className="space-y-6">
+                            {/* Title & Status */}
+                            <Card>
+                              <CardHeader
+                                title="Book Metadata"
+                                subtitle="Editorial & cataloguing record"
+                                right={
+                                  <div className="flex items-center gap-3">
+                                    {metadata?.current_version != null && (
+                                      <Stat label="Version" value={`v${metadata.current_version}`} />
+                                    )}
+                                    {metadata?.metadata_status && (
+                                      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 font-sans text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
+                                        <Check className="h-3.5 w-3.5" />
+                                        {metadata.metadata_status.replace(/_/g, " ")}
+                                      </span>
+                                    )}
+                                  </div>
+                                }
+                              />
+                              <div className="divide-y divide-stone-200">
+                                <div className="px-7 py-6">
+                                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                                    <DataField label="Full Title" value={md.full_title || md.title} />
+                                    <DataField label="Subtitle" value={md.subtitle} />
+                                    <DataField label="Display Names" value={md.display_names} />
+                                    <DataField label="Category" value={md.category} />
+                                    <DataField label="Last Updated" value={metadata.updated_at ? formatDate(metadata.updated_at) : undefined} />
+                                    <DataField label="Approved" value={metadata.approved_at ? formatDate(metadata.approved_at) : undefined} />
+                                  </div>
                                 </div>
-                              )}
-                              <dl className="space-y-2.5 rounded-lg bg-stone-50/70 p-3 ring-1 ring-stone-200/60">
-                                {md.category && (
-                                  <div>
-                                    <dt className="font-sans text-[10px] font-semibold uppercase tracking-wider text-stone-400">
-                                      Category
-                                    </dt>
-                                    <dd className="mt-0.5 font-sans text-xs font-medium text-stone-800">
-                                      {md.category}
-                                    </dd>
+                                {coverUrl && (
+                                  <div className="px-7 py-6">
+                                    <SectionLabel>Cover Image</SectionLabel>
+                                    <img
+                                      src={coverUrl}
+                                      alt="Cover"
+                                      className="mt-2 h-48 rounded-lg border border-stone-200 object-cover shadow-sm"
+                                    />
                                   </div>
-                                )}
-                                {metadata.updated_at && (
-                                  <div>
-                                    <dt className="font-sans text-[10px] font-semibold uppercase tracking-wider text-stone-400">
-                                      Last updated
-                                    </dt>
-                                    <dd className="mt-0.5 font-sans text-xs text-stone-700">
-                                      {formatDate(metadata.updated_at)}
-                                    </dd>
-                                  </div>
-                                )}
-                                {metadata.approved_at && (
-                                  <div>
-                                    <dt className="flex items-center gap-1 font-sans text-[10px] font-semibold uppercase tracking-wider text-emerald-700">
-                                      <CalendarCheck className="h-3 w-3" /> Approved
-                                    </dt>
-                                    <dd className="mt-0.5 font-sans text-xs font-medium text-emerald-800">
-                                      {formatDate(metadata.approved_at)}
-                                    </dd>
-                                  </div>
-                                )}
-                              </dl>
-                            </aside>
-
-                            {/* Main column */}
-                            <div className="min-w-0 space-y-6">
-                              {/* Title */}
-                              <div>
-                                <h3 className="font-serif text-2xl font-bold leading-tight text-stone-900">
-                                  {md.full_title || md.title || "Untitled"}
-                                </h3>
-                                {md.subtitle && (
-                                  <p className="mt-1.5 font-serif text-base italic text-stone-600">
-                                    {md.subtitle}
-                                  </p>
-                                )}
-                                {md.display_names && (
-                                  <p className="mt-3 font-sans text-sm text-stone-700">
-                                    <span className="text-stone-400">by </span>
-                                    <span className="font-medium">{md.display_names}</span>
-                                  </p>
                                 )}
                               </div>
+                            </Card>
 
-                              {/* Description */}
-                              {md.book_description && (
-                                <div className="rounded-lg border border-stone-200 bg-white p-4">
-                                  <h4 className="mb-2 flex items-center gap-1.5 font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-500">
-                                    <FileText className="h-3.5 w-3.5" /> Description
-                                  </h4>
+                            {/* Description */}
+                            {md.book_description && (
+                              <Card>
+                                <CardHeader
+                                  title="Description"
+                                  subtitle="Book overview and synopsis"
+                                />
+                                <div className="px-7 py-6">
                                   <p className="whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
                                     {md.book_description}
                                   </p>
                                 </div>
-                              )}
+                              </Card>
+                            )}
 
-                              {/* Classification chips */}
-                              {(keywords.length > 0 || websiteTags.length > 0 || bicCodes.length > 0) && (
-                                <div className="space-y-4">
+                            {/* Classification */}
+                            {(keywords.length > 0 || websiteTags.length > 0 || bicCodes.length > 0) && (
+                              <Card>
+                                <CardHeader
+                                  title="Classification"
+                                  subtitle="Keywords, website classification and BIC codes"
+                                />
+                                <div className="space-y-6 px-7 py-6">
                                   {keywords.length > 0 && (
                                     <div>
-                                      <h4 className="mb-2 flex items-center gap-1.5 font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-500">
-                                        <Tag className="h-3.5 w-3.5" /> Keywords
-                                      </h4>
-                                      <div className="flex flex-wrap gap-1.5">
+                                      <SectionLabel>Keywords</SectionLabel>
+                                      <div className="mt-2 flex flex-wrap gap-2">
                                         {keywords.map((k) => (
                                           <span
                                             key={k}
-                                            className="inline-flex items-center rounded-full bg-stone-100 px-2.5 py-1 font-sans text-xs text-stone-700 ring-1 ring-stone-200/70"
+                                            className="inline-flex rounded-full bg-amber-50 px-3 py-1 font-sans text-xs font-medium text-amber-800 ring-1 ring-amber-200"
                                           >
                                             {k}
                                           </span>
@@ -1402,120 +1381,71 @@ function ProposalDetailPage() {
                                       </div>
                                     </div>
                                   )}
-                                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                                     {websiteTags.length > 0 && (
-                                      <div>
-                                        <h4 className="mb-2 flex items-center gap-1.5 font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-500">
-                                          <Globe className="h-3.5 w-3.5" /> Website Classification
-                                        </h4>
-                                        <div className="flex flex-wrap gap-1.5">
-                                          {websiteTags.map((t) => (
-                                            <span
-                                              key={t}
-                                              className="inline-flex items-center rounded-md bg-sky-50 px-2 py-0.5 font-sans text-xs font-medium text-sky-800 ring-1 ring-sky-200"
-                                            >
-                                              {t}
-                                            </span>
-                                          ))}
-                                        </div>
-                                      </div>
+                                      <DataField
+                                        label="Website Classification"
+                                        value={websiteTags.join(", ")}
+                                      />
                                     )}
                                     {bicCodes.length > 0 && (
-                                      <div>
-                                        <h4 className="mb-2 flex items-center gap-1.5 font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-500">
-                                          <Hash className="h-3.5 w-3.5" /> BIC Codes
-                                        </h4>
-                                        <div className="flex flex-wrap gap-1.5">
-                                          {bicCodes.map((c) => (
-                                            <span
-                                              key={c}
-                                              className="inline-flex items-center rounded-md bg-violet-50 px-2 py-0.5 font-mono text-xs font-semibold text-violet-800 ring-1 ring-violet-200"
-                                            >
-                                              {c}
-                                            </span>
-                                          ))}
-                                        </div>
-                                      </div>
+                                      <DataField
+                                        label="BIC Codes"
+                                        value={bicCodes.join(", ")}
+                                      />
                                     )}
                                   </div>
                                 </div>
-                              )}
+                              </Card>
+                            )}
 
-                              {/* Bios */}
-                              {md.display_bios && (
-                                <div className="rounded-lg border border-stone-200 bg-stone-50/40 p-4">
-                                  <h4 className="mb-2 flex items-center gap-1.5 font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-500">
-                                    <UserIcon className="h-3.5 w-3.5" /> Author Bios
-                                  </h4>
+                            {/* Author Bios */}
+                            {md.display_bios && (
+                              <Card>
+                                <CardHeader
+                                  title="Author Bios"
+                                  subtitle="Contributor biographical information"
+                                />
+                                <div className="px-7 py-6">
                                   <p className="whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
                                     {md.display_bios}
                                   </p>
                                 </div>
-                              )}
+                              </Card>
+                            )}
 
-                              {/* Authors */}
-                              {authorsList.length > 0 && (
-                                <div>
-                                  <h4 className="mb-3 flex items-center gap-1.5 font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-500">
-                                    <UserIcon className="h-3.5 w-3.5" /> Authors
-                                    <span className="ml-1 rounded-full bg-stone-100 px-1.5 py-0.5 text-[10px] font-bold text-stone-600">
-                                      {authorsList.length}
-                                    </span>
-                                  </h4>
-                                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                                    {authorsList.map((a, i) => {
-                                      const fullName = [a.title, a.first_name, a.last_name]
-                                        .filter(Boolean)
-                                        .join(" ");
-                                      const displayName =
-                                        fullName ||
-                                        (a.email
-                                          ? displayNameFromEmail(a.email)
-                                          : `Author ${i + 1}`);
-                                      const initials =
-                                        initialsFromName(displayName) ||
-                                        (a.email ? a.email[0]?.toUpperCase() : "A");
-                                      return (
-                                        <div
-                                          key={`${a.email || i}`}
-                                          className="group flex gap-3 rounded-lg border border-stone-200 bg-white p-3 transition-all hover:border-emerald-300 hover:shadow-sm"
-                                        >
-                                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-100 to-emerald-200 font-sans text-xs font-bold text-emerald-800">
-                                            {initials}
-                                          </div>
-                                          <div className="min-w-0 flex-1 space-y-1">
-                                            <p className="truncate font-serif text-sm font-semibold text-stone-900">
-                                              {displayName}
-                                            </p>
-                                            {a.institution && (
-                                              <p className="flex items-center gap-1 truncate font-sans text-xs text-stone-600">
-                                                <Building2 className="h-3 w-3 shrink-0 text-stone-400" />
-                                                <span className="truncate">
-                                                  {a.institution}
-                                                  {a.country ? `, ${a.country}` : ""}
-                                                </span>
-                                              </p>
-                                            )}
-                                            {a.email && (
-                                              <p className="flex items-center gap-1 truncate font-sans text-xs text-stone-500">
-                                                <Mail className="h-3 w-3 shrink-0 text-stone-400" />
-                                                <span className="truncate">{a.email}</span>
-                                              </p>
-                                            )}
-                                            {a.email_2 && (
-                                              <p className="flex items-center gap-1 truncate font-sans text-xs text-stone-400">
-                                                <Mail className="h-3 w-3 shrink-0" />
-                                                <span className="truncate">{a.email_2}</span>
-                                              </p>
-                                            )}
-                                          </div>
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
+                            {/* Authors */}
+                            {authorsList.length > 0 && (
+                              <Card>
+                                <CardHeader
+                                  title="Authors"
+                                  subtitle={`${authorsList.length} contributor${authorsList.length === 1 ? "" : "s"}`}
+                                />
+                                <div className="divide-y divide-stone-200">
+                                  {authorsList.map((a, i) => {
+                                    const fullName = [a.title, a.first_name, a.last_name]
+                                      .filter(Boolean)
+                                      .join(" ");
+                                    const displayName =
+                                      fullName ||
+                                      (a.email
+                                        ? displayNameFromEmail(a.email)
+                                        : `Author ${i + 1}`);
+                                    return (
+                                      <div key={`${a.email || i}`} className="grid grid-cols-1 gap-5 px-7 py-6 sm:grid-cols-3">
+                                        <DataField label="Name" value={displayName} />
+                                        <DataField label="Email" value={a.email} />
+                                        <DataField label="Secondary Email" value={a.email_2} />
+                                        <DataField
+                                          label="Institution"
+                                          value={a.institution ? `${a.institution}${a.country ? `, ${a.country}` : ""}` : undefined}
+                                        />
+                                      </div>
+                                    );
+                                  })}
                                 </div>
-                              )}
-                            </div>
+                              </Card>
+                            )}
                           </div>
                         );
                       })()}
