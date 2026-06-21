@@ -21,6 +21,14 @@ import {
   SquarePen,
   Trash2,
   X as XIcon,
+  BookOpen,
+  Tag,
+  Globe,
+  Hash,
+  Mail,
+  Building2,
+  CalendarCheck,
+  User as UserIcon,
 } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
 import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
