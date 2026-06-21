@@ -753,6 +753,8 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
 
       <ContractIssuedView ticket={proposal.ticket} proposal={proposal} authorFullName={authorFullName} />
 
+      <AuthorMetadataPanel ticket={proposal.ticket} proposalStatus={proposal.status} />
+
       {isContractView && (
         <div className="mt-6 overflow-hidden rounded-xl border border-stone-200">
           <button
