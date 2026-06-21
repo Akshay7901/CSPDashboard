@@ -4,6 +4,7 @@ import {
   Check,
   CheckCircle2,
   Image as ImageIcon,
+  MessageSquarePlus,
   Trash2,
   Upload,
   Loader2,
@@ -64,6 +65,7 @@ export function AuthorMetadataPanel({
   const [sourceText, setSourceText] = useState("");
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [showQueries, setShowQueries] = useState(false);
 
   const reload = async () => {
     setLoading(true);
@@ -381,7 +383,7 @@ export function AuthorMetadataPanel({
               )}
             </div>
 
-            {/* Approve */}
+            {/* Actions */}
             {canApprove && (
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50/60 px-5 py-4">
                 <div className="min-w-0">
@@ -389,7 +391,7 @@ export function AuthorMetadataPanel({
                     Happy with the metadata?
                   </p>
                   <p className="font-sans text-xs text-emerald-800/80">
-                    Approving will finalise your record. Raise a query below if anything needs changing.
+                    Approve to finalise your record, or raise a query if anything needs changing.
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -401,24 +403,34 @@ export function AuthorMetadataPanel({
                   )}
                   <button
                     type="button"
+                    onClick={() => setShowQueries((v) => !v)}
+                    className="inline-flex items-center gap-2 rounded-lg border border-amber-300 bg-white px-4 py-2 font-sans text-sm font-semibold text-amber-800 shadow-sm hover:bg-amber-50"
+                  >
+                    <MessageSquarePlus className="h-4 w-4" />
+                    {showQueries ? "Hide queries" : "Raise query"}
+                  </button>
+                  <button
+                    type="button"
                     onClick={onApprove}
                     disabled={approving}
                     className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 disabled:opacity-60"
                   >
                     {approving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                    {approving ? "Approving…" : "Approve metadata"}
+                    {approving ? "Submitting…" : "Submit metadata"}
                   </button>
                 </div>
               </div>
             )}
 
-            {/* Queries */}
-            <MetadataQueries
-              ticket={ticket}
-              viewer="author"
-              canRaise={isSent && !isApproved}
-              raisableFields={raisableFields}
-            />
+            {/* Queries (toggle) */}
+            {(showQueries || isApproved || !canApprove) && (
+              <MetadataQueries
+                ticket={ticket}
+                viewer="author"
+                canRaise={isSent && !isApproved}
+                raisableFields={raisableFields}
+              />
+            )}
           </>
         )}
       </div>
