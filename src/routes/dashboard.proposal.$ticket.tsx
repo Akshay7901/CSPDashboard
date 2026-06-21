@@ -124,7 +124,7 @@ type ProposalDetail = {
   internal_status?: string;
   submitted_at: string;
   updated_at?: string;
-  current_data: Record<string, unknown>;
+  current_data: Record<string, any>;
   assignments?: Assignment[];
   timeline?: TimelineStage[];
 };
