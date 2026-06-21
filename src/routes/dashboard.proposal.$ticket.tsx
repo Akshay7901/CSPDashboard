@@ -1484,6 +1484,7 @@ function ProposalDetailPage() {
                         const coverUrl = metadata.cover_image?.s3_url;
                         const authorsList = metaForm.authors;
                         const isMetaLocked = metadata.metadata_status === "sent_to_author";
+                        const isMetaApproved = metadata.metadata_status === "approved" || !!metadata.approved_at;
                         return (
                           <div className="space-y-4">
                             {isMetaLocked && (
