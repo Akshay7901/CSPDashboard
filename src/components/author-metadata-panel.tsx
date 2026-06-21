@@ -201,11 +201,8 @@ export function AuthorMetadataPanel({
           </div>
           <div className="min-w-0">
             <h2 className="font-serif text-base font-bold text-stone-900">
-              Catalogue Metadata
+              Metadata
             </h2>
-            <p className="mt-0.5 font-sans text-xs text-stone-500">
-              Review what the publisher has prepared for your book
-            </p>
           </div>
         </div>
         <span
