@@ -104,6 +104,10 @@ export function MetadataQueries({
     (t) => t.type === "query" && !answered.has(t.id),
   );
 
+  if (viewer === "dr" && !loading && thread.length === 0) {
+    return null;
+  }
+
   return (
     <div className="rounded-2xl border border-stone-200 bg-white">
       <div className="flex items-center justify-between gap-3 border-b border-stone-200 px-5 py-3.5">
