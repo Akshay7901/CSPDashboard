@@ -922,7 +922,72 @@ function ProposalDetailPage() {
     navigate({ to: "/login" });
   };
 
-  const cd = data?.current_data ?? {};
+  const rawCd = (data?.current_data ?? {}) as Record<string, unknown>;
+  const asStr = (v: unknown): string | undefined => {
+    if (v === null || v === undefined || v === "") return undefined;
+    if (typeof v === "string") return v;
+    if (typeof v === "number" || typeof v === "boolean") return String(v);
+    if (Array.isArray(v)) {
+      const parts = v
+        .map((item) => {
+          if (item == null) return "";
+          if (typeof item === "string") return item;
+          if (typeof item === "object") {
+            const o = item as Record<string, unknown>;
+            const name = [o.first_name, o.last_name].filter(Boolean).join(" ").trim();
+            return name || (typeof o.name === "string" ? o.name : JSON.stringify(o));
+          }
+          return String(item);
+        })
+        .filter(Boolean);
+      return parts.length ? parts.join("\n") : undefined;
+    }
+    return undefined;
+  };
+  const pick = (...keys: string[]): string | undefined => {
+    for (const k of keys) {
+      const s = asStr(rawCd[k]);
+      if (s !== undefined) return s;
+    }
+    return undefined;
+  };
+  const cd: Record<string, string | undefined> = {
+    main_title: pick("main_title", "title"),
+    sub_title: pick("sub_title", "subtitle"),
+    book_type: pick("book_type"),
+    corresponding_author_name:
+      pick("corresponding_author_name") ||
+      [pick("author_first_name"), pick("author_last_name")].filter(Boolean).join(" ") ||
+      undefined,
+    email: pick("email"),
+    secondary_email: pick("secondary_email", "email_2"),
+    institution: pick("institution"),
+    job_title: pick("job_title", "author_title"),
+    address: pick("address"),
+    biography: pick("biography"),
+    co_authors_editors: pick("co_authors_editors", "co_authors"),
+    word_count: pick("word_count", "estimated_word_count"),
+    figures_tables_count: pick("figures_tables_count", "illustration_count"),
+    under_review_elsewhere: pick("under_review_elsewhere", "is_previously_published"),
+    expected_completion_date: pick("expected_completion_date", "estimated_completion_date"),
+    short_description: pick("short_description", "detailed_description"),
+    detailed_description: pick(
+      "detailed_description_extra",
+      "key_features",
+      "unique_selling_points",
+    ),
+    keywords: pick("keywords"),
+    marketing_info: pick(
+      "marketing_info",
+      "primary_market",
+      "target_audience",
+      "competing_titles",
+    ),
+    referees_reviewers: pick("referees_reviewers", "recommended_reviewers"),
+    additional_info: pick("additional_info", "conferences", "promotional_channels"),
+    permissions_required: pick("permissions_required"),
+    table_of_contents: pick("table_of_contents"),
+  };
   const title = cd.main_title || ticket;
 
   const keywords = useMemo(
