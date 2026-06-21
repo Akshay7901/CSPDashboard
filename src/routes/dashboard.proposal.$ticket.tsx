@@ -1521,21 +1521,37 @@ function ProposalDetailPage() {
                                 {metaSaveError && (
                                   <span className="text-rose-700">{metaSaveError}</span>
                                 )}
-                                {!metaSaveError && metaSaveSuccess && (
+                                {metaSendError && (
+                                  <span className="text-rose-700">{metaSendError}</span>
+                                )}
+                                {!metaSaveError && !metaSendError && metaSaveSuccess && (
                                   <span className="text-emerald-700">{metaSaveSuccess}</span>
                                 )}
-                                {!metaSaveError && !metaSaveSuccess && (
+                                {!metaSaveError && !metaSendError && metaSendSuccess && (
+                                  <span className="text-emerald-700">{metaSendSuccess}</span>
+                                )}
+                                {!metaSaveError && !metaSendError && !metaSaveSuccess && !metaSendSuccess && (
                                   <span>Status: <strong className="text-stone-800">{metadata.metadata_status || "draft"}</strong></span>
                                 )}
                               </div>
-                              <button
-                                type="button"
-                                onClick={saveMetadataDraft}
-                                disabled={metaSaving}
-                                className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
-                              >
-                                {metaSaving ? "Saving…" : "Save Draft"}
-                              </button>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={saveMetadataDraft}
+                                  disabled={metaSaving}
+                                  className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                  {metaSaving ? "Saving…" : "Save Draft"}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={sendMetadataToAuthor}
+                                  disabled={metaSendLoading || metaSaving}
+                                  className="inline-flex items-center gap-2 rounded-lg bg-stone-800 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm transition hover:bg-stone-900 disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                  {metaSendLoading ? "Sending…" : "Send to Author"}
+                                </button>
+                              </div>
                             </div>
                           </div>
                         );
