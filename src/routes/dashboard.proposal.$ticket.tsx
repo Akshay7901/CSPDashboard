@@ -345,6 +345,9 @@ function ProposalDetailPage() {
   const [metaSaving, setMetaSaving] = useState(false);
   const [metaSaveError, setMetaSaveError] = useState<string | null>(null);
   const [metaSaveSuccess, setMetaSaveSuccess] = useState<string | null>(null);
+  const [metaSendLoading, setMetaSendLoading] = useState(false);
+  const [metaSendError, setMetaSendError] = useState<string | null>(null);
+  const [metaSendSuccess, setMetaSendSuccess] = useState<string | null>(null);
 
   // Request Revisions (request-info) modal state
   const REVISION_AREAS: { key: string; label: string }[] = [
