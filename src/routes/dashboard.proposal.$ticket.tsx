@@ -49,11 +49,13 @@ import { Textarea } from "@/components/ui/textarea";
 
 function MetaRow({
   label,
-  defaultValue,
+  value,
+  onChange,
   multiline,
 }: {
   label: string;
-  defaultValue?: string;
+  value: string;
+  onChange: (v: string) => void;
   multiline?: boolean;
 }) {
   return (
@@ -64,13 +66,15 @@ function MetaRow({
       <div className="border-t border-stone-200 px-4 py-3 sm:border-l sm:border-t-0">
         {multiline ? (
           <Textarea
-            defaultValue={defaultValue || ""}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
             rows={3}
             className="w-full border-stone-200 bg-white font-sans text-sm text-stone-800"
           />
         ) : (
           <Input
-            defaultValue={defaultValue || ""}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
             className="h-10 w-full border-stone-200 bg-white font-sans text-sm text-stone-800"
           />
         )}
