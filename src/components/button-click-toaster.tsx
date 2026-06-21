@@ -36,8 +36,7 @@ export function ButtonClickToaster() {
         "Action";
 
       const short = label.length > 60 ? `${label.slice(0, 60)}…` : label;
-      toast(short, {
-        description: "Action triggered",
+      toast.success(short, {
         duration: 2000,
       });
     };
