@@ -36,7 +36,6 @@ import {
 } from "@/lib/contractsApi";
 import { ContractPdfModal } from "@/components/contract-pdf-modal";
 import { ContractQueries } from "@/components/contract-queries";
-import { Card as UICard } from "@/components/ui/card";
 
 
 type Assignment = {
@@ -3055,9 +3054,17 @@ function MetaItem({ icon, text }: { icon: "user" | "mail" | "building" | "calend
   );
 }
 
-function Card({ children }: { children: React.ReactNode }) {
+function Card({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <section className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
+    <section
+      className={`overflow-hidden rounded-2xl border border-stone-200 bg-white ${className ?? ""}`}
+    >
       {children}
     </section>
   );
