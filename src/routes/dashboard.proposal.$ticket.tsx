@@ -49,11 +49,13 @@ import { Textarea } from "@/components/ui/textarea";
 
 function MetaRow({
   label,
-  defaultValue,
+  value,
+  onChange,
   multiline,
 }: {
   label: string;
-  defaultValue?: string;
+  value: string;
+  onChange: (v: string) => void;
   multiline?: boolean;
 }) {
   return (
@@ -64,13 +66,15 @@ function MetaRow({
       <div className="border-t border-stone-200 px-4 py-3 sm:border-l sm:border-t-0">
         {multiline ? (
           <Textarea
-            defaultValue={defaultValue || ""}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
             rows={3}
             className="w-full border-stone-200 bg-white font-sans text-sm text-stone-800"
           />
         ) : (
           <Input
-            defaultValue={defaultValue || ""}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
             className="h-10 w-full border-stone-200 bg-white font-sans text-sm text-stone-800"
           />
         )}
@@ -310,6 +314,36 @@ function ProposalDetailPage() {
   const [metadata, setMetadata] = useState<ProposalMetadata | null>(null);
   const [metadataLoading, setMetadataLoading] = useState(false);
   const [metadataError, setMetadataError] = useState<string | null>(null);
+  type MetaForm = {
+    full_title: string;
+    title: string;
+    subtitle: string;
+    category: string;
+    display_names: string;
+    display_bios: string;
+    book_description: string;
+    keywords: string;
+    website_classification: string;
+    bic: string;
+    authors: MetadataAuthor[];
+  };
+  const emptyMetaForm: MetaForm = {
+    full_title: "",
+    title: "",
+    subtitle: "",
+    category: "",
+    display_names: "",
+    display_bios: "",
+    book_description: "",
+    keywords: "",
+    website_classification: "",
+    bic: "",
+    authors: [],
+  };
+  const [metaForm, setMetaForm] = useState<MetaForm>(emptyMetaForm);
+  const [metaSaving, setMetaSaving] = useState(false);
+  const [metaSaveError, setMetaSaveError] = useState<string | null>(null);
+  const [metaSaveSuccess, setMetaSaveSuccess] = useState<string | null>(null);
 
   // Request Revisions (request-info) modal state
   const REVISION_AREAS: { key: string; label: string }[] = [
@@ -1024,6 +1058,111 @@ function ProposalDetailPage() {
     };
   }, [isContractSigned, ticket]);
 
+  useEffect(() => {
+    if (!metadata) {
+      setMetaForm(emptyMetaForm);
+      return;
+    }
+    const md = metadata.metadata || {};
+    setMetaForm({
+      full_title: md.full_title || "",
+      title: md.title || "",
+      subtitle: md.subtitle || "",
+      category: md.category || "",
+      display_names: md.display_names || "",
+      display_bios: md.display_bios || "",
+      book_description: md.book_description || "",
+      keywords: md.keywords || "",
+      website_classification: md.website_classification || "",
+      bic: md.bic || "",
+      authors: (md.authors || []).map((a) => ({ ...a })),
+    });
+    setMetaSaveError(null);
+    setMetaSaveSuccess(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [metadata]);
+
+  const updateMetaField = <K extends keyof MetaForm>(key: K, value: MetaForm[K]) => {
+    setMetaForm((prev) => ({ ...prev, [key]: value }));
+    setMetaSaveSuccess(null);
+  };
+  const updateMetaAuthor = (index: number, key: keyof MetadataAuthor, value: string) => {
+    setMetaForm((prev) => {
+      const next = prev.authors.map((a, i) => (i === index ? { ...a, [key]: value } : a));
+      return { ...prev, authors: next };
+    });
+    setMetaSaveSuccess(null);
+  };
+
+  const saveMetadataDraft = async () => {
+    if (!ticket) return;
+    setMetaSaving(true);
+    setMetaSaveError(null);
+    setMetaSaveSuccess(null);
+    try {
+      const token = getPortalToken();
+      const session = getPortalSession();
+      const payload: Record<string, unknown> = {
+        full_title: metaForm.full_title,
+        title: metaForm.title,
+        subtitle: metaForm.subtitle,
+        category: metaForm.category,
+        display_names: metaForm.display_names,
+        display_bios: metaForm.display_bios,
+        book_description: metaForm.book_description,
+        keywords: metaForm.keywords,
+        website_classification: metaForm.website_classification,
+        bic: metaForm.bic,
+        authors: metaForm.authors,
+      };
+      if (session?.email) payload.updated_by = session.email;
+      const res = await proposalApiFetch(`/${encodeURIComponent(ticket)}/metadata`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(payload),
+      });
+      const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+      if (!res.ok) {
+        setMetaSaveError((body.error as string) || `Failed to save (${res.status}).`);
+        return;
+      }
+      // Optimistically update local metadata snapshot
+      setMetadata((prev) =>
+        prev
+          ? {
+              ...prev,
+              metadata_status: "draft",
+              current_version:
+                (body.current_version as number) ?? prev.current_version,
+              updated_at: new Date().toISOString(),
+              metadata: {
+                ...(prev.metadata || {}),
+                full_title: metaForm.full_title,
+                title: metaForm.title,
+                subtitle: metaForm.subtitle,
+                category: metaForm.category,
+                display_names: metaForm.display_names,
+                display_bios: metaForm.display_bios,
+                book_description: metaForm.book_description,
+                keywords: metaForm.keywords,
+                website_classification: metaForm.website_classification,
+                bic: metaForm.bic,
+                authors: metaForm.authors,
+              },
+            }
+          : prev,
+      );
+      setMetaSaveSuccess("Draft saved.");
+    } catch {
+      setMetaSaveError("Network error. Please try again.");
+    } finally {
+      setMetaSaving(false);
+    }
+  };
+
   const primaryReview = reviews[0];
   const recommendationKey = (primaryReview?.review_data?.recommendation as string) || "";
   const recommendationLabel = RECOMMENDATION_LABELS[recommendationKey] || recommendationKey;
@@ -1301,51 +1440,69 @@ function ProposalDetailPage() {
                       )}
 
                       {!metadataLoading && !metadataError && metadata && (() => {
-                        const md = metadata.metadata || {};
-                        const authorsList = md.authors || [];
                         const coverUrl = metadata.cover_image?.s3_url;
+                        const authorsList = metaForm.authors;
                         return (
-                          <div className="overflow-hidden rounded-xl border border-stone-200 bg-white">
-                            <MetaRow label="Title Full" defaultValue={md.full_title} />
-                            <MetaRow label="Title" defaultValue={md.title} />
-                            <MetaRow label="Subtitle" defaultValue={md.subtitle} />
-                            <MetaRow label="Category Auth/Ed" defaultValue={md.category} />
-                            <MetaRow label="Display Names" defaultValue={md.display_names} />
-                            <MetaRow label="Display Bios" defaultValue={md.display_bios} multiline />
-                            <MetaRow label="Book Description" defaultValue={md.book_description} multiline />
-                            <MetaRow label="Keywords" defaultValue={md.keywords} />
-                            <MetaRow label="Website Classification" defaultValue={md.website_classification} />
-                            <MetaRow label="BIC Codes" defaultValue={md.bic} />
-                            {coverUrl && (
-                              <div className="grid grid-cols-[220px_1fr] gap-0 border-t border-stone-200">
-                                <div className="flex items-center bg-stone-50/60 px-5 py-4 font-sans text-sm font-medium text-stone-700">
-                                  Cover Image
+                          <div className="space-y-4">
+                            <div className="overflow-hidden rounded-xl border border-stone-200 bg-white">
+                              <MetaRow label="Title Full" value={metaForm.full_title} onChange={(v) => updateMetaField("full_title", v)} />
+                              <MetaRow label="Title" value={metaForm.title} onChange={(v) => updateMetaField("title", v)} />
+                              <MetaRow label="Subtitle" value={metaForm.subtitle} onChange={(v) => updateMetaField("subtitle", v)} />
+                              <MetaRow label="Category Auth/Ed" value={metaForm.category} onChange={(v) => updateMetaField("category", v)} />
+                              <MetaRow label="Display Names" value={metaForm.display_names} onChange={(v) => updateMetaField("display_names", v)} />
+                              <MetaRow label="Display Bios" value={metaForm.display_bios} onChange={(v) => updateMetaField("display_bios", v)} multiline />
+                              <MetaRow label="Book Description" value={metaForm.book_description} onChange={(v) => updateMetaField("book_description", v)} multiline />
+                              <MetaRow label="Keywords" value={metaForm.keywords} onChange={(v) => updateMetaField("keywords", v)} />
+                              <MetaRow label="Website Classification" value={metaForm.website_classification} onChange={(v) => updateMetaField("website_classification", v)} />
+                              <MetaRow label="BIC Codes" value={metaForm.bic} onChange={(v) => updateMetaField("bic", v)} />
+                              {coverUrl && (
+                                <div className="grid grid-cols-[220px_1fr] gap-0 border-t border-stone-200">
+                                  <div className="flex items-center bg-stone-50/60 px-5 py-4 font-sans text-sm font-medium text-stone-700">
+                                    Cover Image
+                                  </div>
+                                  <div className="border-l border-stone-200 px-4 py-4">
+                                    <img src={coverUrl} alt="Cover" className="h-40 rounded-lg border border-stone-200 object-cover shadow-sm" />
+                                  </div>
                                 </div>
-                                <div className="border-l border-stone-200 px-4 py-4">
-                                  <img src={coverUrl} alt="Cover" className="h-40 rounded-lg border border-stone-200 object-cover shadow-sm" />
-                                </div>
-                              </div>
-                            )}
+                              )}
 
-                            {authorsList.map((a, i) => {
-                              const fullName = [a.title, a.first_name, a.last_name].filter(Boolean).join(" ");
-                              const displayName = fullName || (a.email ? displayNameFromEmail(a.email) : `Author ${i + 1}`);
-                              return (
-                                <div key={`${a.email || i}`}>
+                              {authorsList.map((a, i) => (
+                                <div key={i}>
                                   <div className="border-t border-stone-200 bg-emerald-700 px-5 py-3 font-sans text-xs font-bold uppercase tracking-[0.18em] text-white">
                                     {authorsList.length > 1 ? `Primary Author(s) — ${i + 1}` : "Primary Author(s)"}
                                   </div>
-                                  <MetaRow label="Display Name(s)" defaultValue={displayName} />
-                                  <MetaRow label="Salutation" defaultValue={a.title} />
-                                  <MetaRow label="First name" defaultValue={a.first_name} />
-                                  <MetaRow label="Last name" defaultValue={a.last_name} />
-                                  <MetaRow label="Email" defaultValue={a.email} />
-                                  <MetaRow label="Email 2" defaultValue={a.email_2} />
-                                  <MetaRow label="Institution" defaultValue={a.institution} />
-                                  <MetaRow label="Country" defaultValue={a.country} />
+                                  <MetaRow label="Salutation" value={a.title || ""} onChange={(v) => updateMetaAuthor(i, "title", v)} />
+                                  <MetaRow label="First name" value={a.first_name || ""} onChange={(v) => updateMetaAuthor(i, "first_name", v)} />
+                                  <MetaRow label="Last name" value={a.last_name || ""} onChange={(v) => updateMetaAuthor(i, "last_name", v)} />
+                                  <MetaRow label="Email" value={a.email || ""} onChange={(v) => updateMetaAuthor(i, "email", v)} />
+                                  <MetaRow label="Email 2" value={a.email_2 || ""} onChange={(v) => updateMetaAuthor(i, "email_2", v)} />
+                                  <MetaRow label="Institution" value={a.institution || ""} onChange={(v) => updateMetaAuthor(i, "institution", v)} />
+                                  <MetaRow label="Country" value={a.country || ""} onChange={(v) => updateMetaAuthor(i, "country", v)} />
                                 </div>
-                              );
-                            })}
+                              ))}
+                            </div>
+
+                            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-stone-200 bg-stone-50 px-5 py-3">
+                              <div className="min-w-0 font-sans text-xs text-stone-600">
+                                {metaSaveError && (
+                                  <span className="text-rose-700">{metaSaveError}</span>
+                                )}
+                                {!metaSaveError && metaSaveSuccess && (
+                                  <span className="text-emerald-700">{metaSaveSuccess}</span>
+                                )}
+                                {!metaSaveError && !metaSaveSuccess && (
+                                  <span>Status: <strong className="text-stone-800">{metadata.metadata_status || "draft"}</strong></span>
+                                )}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={saveMetadataDraft}
+                                disabled={metaSaving}
+                                className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+                              >
+                                {metaSaving ? "Saving…" : "Save Draft"}
+                              </button>
+                            </div>
                           </div>
                         );
                       })()}
