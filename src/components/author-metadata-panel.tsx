@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import {
   BookOpen,
   Check,
@@ -122,6 +123,7 @@ export function AuthorMetadataPanel({
     try {
       await approveMetadata(ticket);
       setApproveSuccess("Metadata approved. Thank you!");
+      toast.success("Metadata submitted successfully");
       await reload();
     } catch (e) {
       setApproveError((e as Error).message);
