@@ -36,6 +36,7 @@ import {
 } from "@/lib/contractsApi";
 import { ContractPdfModal } from "@/components/contract-pdf-modal";
 import { ContractQueries } from "@/components/contract-queries";
+import { Card as UICard } from "@/components/ui/card";
 
 
 type Assignment = {
