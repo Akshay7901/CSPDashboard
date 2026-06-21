@@ -18,6 +18,7 @@ import {
   MessageSquare,
   Pencil,
   Plus,
+  Send,
   SquarePen,
   Trash2,
   X as XIcon,
