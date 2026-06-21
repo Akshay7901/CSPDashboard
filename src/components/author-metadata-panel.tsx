@@ -411,17 +411,15 @@ export function AuthorMetadataPanel({
                     <MessageSquarePlus className="h-4 w-4" />
                     {showQueries ? "Hide queries" : "Raise query"}
                   </button>
-                  {canApprove && (
-                    <button
-                      type="button"
-                      onClick={onApprove}
-                      disabled={approving}
-                      className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 disabled:opacity-60"
-                    >
-                      {approving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                      {approving ? "Submitting…" : "Submit metadata"}
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={onApprove}
+                    disabled={approving}
+                    className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 disabled:opacity-60"
+                  >
+                    {approving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                    {approving ? "Submitting…" : "Submit metadata"}
+                  </button>
                 </div>
               </div>
             )}
