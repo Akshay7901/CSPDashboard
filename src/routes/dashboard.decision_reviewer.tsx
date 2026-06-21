@@ -22,6 +22,7 @@ import {
   displayNameFromEmail,
 } from "@/lib/proposals";
 import { proposalApiFetch } from "@/lib/proposalApi";
+import { ChangePasswordButton } from "@/components/change-password-dialog";
 
 type PeerReviewer = {
   id: number;
@@ -563,6 +564,10 @@ function DecisionReviewerDashboard() {
               {initialsFromName(displayName)}
             </div>
             <span className="font-sans text-sm text-[#2C1A0E]">{displayName}</span>
+            <span className="h-5 w-px bg-stone-300" />
+            <ChangePasswordButton
+              triggerClassName="inline-flex items-center gap-1.5 font-sans text-sm text-[#7A6A5A] hover:text-[#2C1A0E]"
+            />
             <span className="h-5 w-px bg-stone-300" />
             <button
               type="button"
