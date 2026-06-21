@@ -53,11 +53,13 @@ function MetaRow({
   value,
   onChange,
   multiline,
+  disabled,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   multiline?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <div className="grid grid-cols-1 border-t border-stone-200 first:border-t-0 sm:grid-cols-[220px_1fr]">
@@ -70,13 +72,17 @@ function MetaRow({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             rows={3}
-            className="w-full border-stone-200 bg-white font-sans text-sm text-stone-800"
+            disabled={disabled}
+            readOnly={disabled}
+            className={`w-full border-stone-200 bg-white font-sans text-sm text-stone-800 ${disabled ? "bg-stone-50 text-stone-500" : ""}`}
           />
         ) : (
           <Input
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="h-10 w-full border-stone-200 bg-white font-sans text-sm text-stone-800"
+            disabled={disabled}
+            readOnly={disabled}
+            className={`h-10 w-full border-stone-200 bg-white font-sans text-sm text-stone-800 ${disabled ? "bg-stone-50 text-stone-500" : ""}`}
           />
         )}
       </div>
