@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
 import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
+import { ChangePasswordButton } from "@/components/change-password-dialog";
 import { formatDate, initialsFromName, type Proposal, type StatusKey } from "@/lib/proposals";
 import { proposalApiFetch } from "@/lib/proposalApi";
 
@@ -659,6 +660,10 @@ function AuthorDashboard() {
               </span>
               <span className="font-sans text-sm text-text">{displayName}</span>
             </div>
+            <span className="text-stone-300">|</span>
+            <ChangePasswordButton
+              triggerClassName="font-sans text-sm text-text-muted transition-colors hover:text-text inline-flex items-center gap-1.5"
+            />
             <span className="text-stone-300">|</span>
             <button onClick={onLogout} className="font-sans text-sm text-text-muted transition-colors hover:text-text">
               Logout
