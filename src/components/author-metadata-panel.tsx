@@ -14,6 +14,7 @@ import {
   getMetadata,
   uploadCoverImage,
   validateCoverImageFile,
+  type MetadataAuthor,
   type ProposalMetadata,
 } from "@/lib/metadataApi";
 import { MetadataQueries } from "@/components/metadata-queries";
@@ -31,14 +32,14 @@ const FIELD_DEFS: { key: string; label: string; multiline?: boolean }[] = [
   { key: "bic", label: "BIC codes" },
 ];
 
-const AUTHOR_FIELDS: { key: keyof NonNullable<ProposalMetadata["metadata"]>["authors"] extends Array<infer T> ? keyof T : never; label: string }[] = [
-  { key: "title" as const, label: "Salutation" },
-  { key: "first_name" as const, label: "First name" },
-  { key: "last_name" as const, label: "Last name" },
-  { key: "email" as const, label: "Email" },
-  { key: "email_2" as const, label: "Email 2" },
-  { key: "institution" as const, label: "Institution" },
-  { key: "country" as const, label: "Country" },
+const AUTHOR_FIELDS: { key: keyof MetadataAuthor; label: string }[] = [
+  { key: "title", label: "Salutation" },
+  { key: "first_name", label: "First name" },
+  { key: "last_name", label: "Last name" },
+  { key: "email", label: "Email" },
+  { key: "email_2", label: "Email 2" },
+  { key: "institution", label: "Institution" },
+  { key: "country", label: "Country" },
 ];
 
 export function AuthorMetadataPanel({
@@ -257,9 +258,9 @@ export function AuthorMetadataPanel({
                   </div>
                   {AUTHOR_FIELDS.map((af) => (
                     <ReadRow
-                      key={af.key as string}
+                      key={af.key}
                       label={af.label}
-                      value={(a as Record<string, string | undefined>)[af.key as string] || ""}
+                      value={(a[af.key] as string | undefined) || ""}
                     />
                   ))}
                 </div>
