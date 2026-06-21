@@ -1482,19 +1482,25 @@ function ProposalDetailPage() {
                       {!metadataLoading && !metadataError && metadata && (() => {
                         const coverUrl = metadata.cover_image?.s3_url;
                         const authorsList = metaForm.authors;
+                        const isMetaLocked = metadata.metadata_status === "sent_to_author";
                         return (
                           <div className="space-y-4">
+                            {isMetaLocked && (
+                              <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 font-sans text-sm text-amber-800">
+                                Metadata has been sent to the author for approval. Editing is disabled until the author responds.
+                              </div>
+                            )}
                             <div className="overflow-hidden rounded-xl border border-stone-200 bg-white">
-                              <MetaRow label="Title Full" value={metaForm.full_title} onChange={(v) => updateMetaField("full_title", v)} />
-                              <MetaRow label="Title" value={metaForm.title} onChange={(v) => updateMetaField("title", v)} />
-                              <MetaRow label="Subtitle" value={metaForm.subtitle} onChange={(v) => updateMetaField("subtitle", v)} />
-                              <MetaRow label="Category Auth/Ed" value={metaForm.category} onChange={(v) => updateMetaField("category", v)} />
-                              <MetaRow label="Display Names" value={metaForm.display_names} onChange={(v) => updateMetaField("display_names", v)} />
-                              <MetaRow label="Display Bios" value={metaForm.display_bios} onChange={(v) => updateMetaField("display_bios", v)} multiline />
-                              <MetaRow label="Book Description" value={metaForm.book_description} onChange={(v) => updateMetaField("book_description", v)} multiline />
-                              <MetaRow label="Keywords" value={metaForm.keywords} onChange={(v) => updateMetaField("keywords", v)} />
-                              <MetaRow label="Website Classification" value={metaForm.website_classification} onChange={(v) => updateMetaField("website_classification", v)} />
-                              <MetaRow label="BIC Codes" value={metaForm.bic} onChange={(v) => updateMetaField("bic", v)} />
+                              <MetaRow label="Title Full" value={metaForm.full_title} onChange={(v) => updateMetaField("full_title", v)} disabled={isMetaLocked} />
+                              <MetaRow label="Title" value={metaForm.title} onChange={(v) => updateMetaField("title", v)} disabled={isMetaLocked} />
+                              <MetaRow label="Subtitle" value={metaForm.subtitle} onChange={(v) => updateMetaField("subtitle", v)} disabled={isMetaLocked} />
+                              <MetaRow label="Category Auth/Ed" value={metaForm.category} onChange={(v) => updateMetaField("category", v)} disabled={isMetaLocked} />
+                              <MetaRow label="Display Names" value={metaForm.display_names} onChange={(v) => updateMetaField("display_names", v)} disabled={isMetaLocked} />
+                              <MetaRow label="Display Bios" value={metaForm.display_bios} onChange={(v) => updateMetaField("display_bios", v)} multiline disabled={isMetaLocked} />
+                              <MetaRow label="Book Description" value={metaForm.book_description} onChange={(v) => updateMetaField("book_description", v)} multiline disabled={isMetaLocked} />
+                              <MetaRow label="Keywords" value={metaForm.keywords} onChange={(v) => updateMetaField("keywords", v)} disabled={isMetaLocked} />
+                              <MetaRow label="Website Classification" value={metaForm.website_classification} onChange={(v) => updateMetaField("website_classification", v)} disabled={isMetaLocked} />
+                              <MetaRow label="BIC Codes" value={metaForm.bic} onChange={(v) => updateMetaField("bic", v)} disabled={isMetaLocked} />
                               {coverUrl && (
                                 <div className="grid grid-cols-[220px_1fr] gap-0 border-t border-stone-200">
                                   <div className="flex items-center bg-stone-50/60 px-5 py-4 font-sans text-sm font-medium text-stone-700">
@@ -1511,13 +1517,13 @@ function ProposalDetailPage() {
                                   <div className="border-t border-stone-200 bg-emerald-700 px-5 py-3 font-sans text-xs font-bold uppercase tracking-[0.18em] text-white">
                                     {authorsList.length > 1 ? `Primary Author(s) — ${i + 1}` : "Primary Author(s)"}
                                   </div>
-                                  <MetaRow label="Salutation" value={a.title || ""} onChange={(v) => updateMetaAuthor(i, "title", v)} />
-                                  <MetaRow label="First name" value={a.first_name || ""} onChange={(v) => updateMetaAuthor(i, "first_name", v)} />
-                                  <MetaRow label="Last name" value={a.last_name || ""} onChange={(v) => updateMetaAuthor(i, "last_name", v)} />
-                                  <MetaRow label="Email" value={a.email || ""} onChange={(v) => updateMetaAuthor(i, "email", v)} />
-                                  <MetaRow label="Email 2" value={a.email_2 || ""} onChange={(v) => updateMetaAuthor(i, "email_2", v)} />
-                                  <MetaRow label="Institution" value={a.institution || ""} onChange={(v) => updateMetaAuthor(i, "institution", v)} />
-                                  <MetaRow label="Country" value={a.country || ""} onChange={(v) => updateMetaAuthor(i, "country", v)} />
+                                  <MetaRow label="Salutation" value={a.title || ""} onChange={(v) => updateMetaAuthor(i, "title", v)} disabled={isMetaLocked} />
+                                  <MetaRow label="First name" value={a.first_name || ""} onChange={(v) => updateMetaAuthor(i, "first_name", v)} disabled={isMetaLocked} />
+                                  <MetaRow label="Last name" value={a.last_name || ""} onChange={(v) => updateMetaAuthor(i, "last_name", v)} disabled={isMetaLocked} />
+                                  <MetaRow label="Email" value={a.email || ""} onChange={(v) => updateMetaAuthor(i, "email", v)} disabled={isMetaLocked} />
+                                  <MetaRow label="Email 2" value={a.email_2 || ""} onChange={(v) => updateMetaAuthor(i, "email_2", v)} disabled={isMetaLocked} />
+                                  <MetaRow label="Institution" value={a.institution || ""} onChange={(v) => updateMetaAuthor(i, "institution", v)} disabled={isMetaLocked} />
+                                  <MetaRow label="Country" value={a.country || ""} onChange={(v) => updateMetaAuthor(i, "country", v)} disabled={isMetaLocked} />
                                 </div>
                               ))}
                             </div>
@@ -1541,17 +1547,19 @@ function ProposalDetailPage() {
                                 )}
                               </div>
                               <div className="flex flex-wrap items-center gap-2">
-                                <button
-                                  type="button"
-                                  onClick={saveMetadataDraft}
-                                  disabled={metaSaving}
-                                  className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
-                                >
-                                  {metaSaving ? "Saving…" : "Save Draft"}
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={sendMetadataToAuthor}
+                                {!isMetaLocked && (
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={saveMetadataDraft}
+                                      disabled={metaSaving}
+                                      className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                      {metaSaving ? "Saving…" : "Save Draft"}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={sendMetadataToAuthor}
                                   disabled={metaSendLoading || metaSaving}
                                   className="inline-flex items-center gap-2 rounded-lg bg-stone-800 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm transition hover:bg-stone-900 disabled:cursor-not-allowed disabled:opacity-60"
                                 >
