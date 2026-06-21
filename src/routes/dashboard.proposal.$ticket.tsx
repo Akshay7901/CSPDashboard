@@ -1569,6 +1569,8 @@ function ProposalDetailPage() {
                                 )}
                               </div>
                             </div>
+
+                            <MetadataQueries ticket={ticket} viewer="dr" />
                           </div>
                         );
                       })()}
