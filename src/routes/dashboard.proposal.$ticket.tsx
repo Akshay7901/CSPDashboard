@@ -227,6 +227,48 @@ function ProposalDetailPage() {
   const [editorialSummary, setEditorialSummary] = useState("");
   const [originalOpen, setOriginalOpen] = useState(false);
 
+  // Metadata (shown after the contract is signed)
+  type MetadataAuthor = {
+    title?: string;
+    first_name?: string;
+    last_name?: string;
+    email?: string;
+    email_2?: string;
+    institution?: string;
+    country?: string;
+  };
+  type ProposalMetadata = {
+    ticket_number?: string;
+    current_version?: number;
+    metadata_status?: string;
+    metadata?: {
+      full_title?: string;
+      title?: string;
+      subtitle?: string;
+      category?: string;
+      display_names?: string;
+      display_bios?: string;
+      authors?: MetadataAuthor[];
+      book_description?: string;
+      keywords?: string;
+      website_classification?: string;
+      bic?: string;
+    };
+    created_at?: string;
+    updated_at?: string;
+    approved_at?: string;
+    cover_image?: {
+      s3_url?: string;
+      filename?: string;
+      width_px?: number;
+      height_px?: number;
+      uploaded_at?: string;
+    } | null;
+  };
+  const [metadata, setMetadata] = useState<ProposalMetadata | null>(null);
+  const [metadataLoading, setMetadataLoading] = useState(false);
+  const [metadataError, setMetadataError] = useState<string | null>(null);
+
   // Request Revisions (request-info) modal state
   const REVISION_AREAS: { key: string; label: string }[] = [
     { key: "abstract_blurb", label: "Abstract / Blurb" },
