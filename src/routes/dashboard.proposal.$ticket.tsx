@@ -310,6 +310,36 @@ function ProposalDetailPage() {
   const [metadata, setMetadata] = useState<ProposalMetadata | null>(null);
   const [metadataLoading, setMetadataLoading] = useState(false);
   const [metadataError, setMetadataError] = useState<string | null>(null);
+  type MetaForm = {
+    full_title: string;
+    title: string;
+    subtitle: string;
+    category: string;
+    display_names: string;
+    display_bios: string;
+    book_description: string;
+    keywords: string;
+    website_classification: string;
+    bic: string;
+    authors: MetadataAuthor[];
+  };
+  const emptyMetaForm: MetaForm = {
+    full_title: "",
+    title: "",
+    subtitle: "",
+    category: "",
+    display_names: "",
+    display_bios: "",
+    book_description: "",
+    keywords: "",
+    website_classification: "",
+    bic: "",
+    authors: [],
+  };
+  const [metaForm, setMetaForm] = useState<MetaForm>(emptyMetaForm);
+  const [metaSaving, setMetaSaving] = useState(false);
+  const [metaSaveError, setMetaSaveError] = useState<string | null>(null);
+  const [metaSaveSuccess, setMetaSaveSuccess] = useState<string | null>(null);
 
   // Request Revisions (request-info) modal state
   const REVISION_AREAS: { key: string; label: string }[] = [
