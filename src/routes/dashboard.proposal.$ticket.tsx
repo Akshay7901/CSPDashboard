@@ -227,6 +227,48 @@ function ProposalDetailPage() {
   const [editorialSummary, setEditorialSummary] = useState("");
   const [originalOpen, setOriginalOpen] = useState(false);
 
+  // Metadata (shown after the contract is signed)
+  type MetadataAuthor = {
+    title?: string;
+    first_name?: string;
+    last_name?: string;
+    email?: string;
+    email_2?: string;
+    institution?: string;
+    country?: string;
+  };
+  type ProposalMetadata = {
+    ticket_number?: string;
+    current_version?: number;
+    metadata_status?: string;
+    metadata?: {
+      full_title?: string;
+      title?: string;
+      subtitle?: string;
+      category?: string;
+      display_names?: string;
+      display_bios?: string;
+      authors?: MetadataAuthor[];
+      book_description?: string;
+      keywords?: string;
+      website_classification?: string;
+      bic?: string;
+    };
+    created_at?: string;
+    updated_at?: string;
+    approved_at?: string;
+    cover_image?: {
+      s3_url?: string;
+      filename?: string;
+      width_px?: number;
+      height_px?: number;
+      uploaded_at?: string;
+    } | null;
+  };
+  const [metadata, setMetadata] = useState<ProposalMetadata | null>(null);
+  const [metadataLoading, setMetadataLoading] = useState(false);
+  const [metadataError, setMetadataError] = useState<string | null>(null);
+
   // Request Revisions (request-info) modal state
   const REVISION_AREAS: { key: string; label: string }[] = [
     { key: "abstract_blurb", label: "Abstract / Blurb" },
@@ -897,6 +939,49 @@ function ProposalDetailPage() {
     return cs === "signed";
   }, [latestContract]);
 
+  useEffect(() => {
+    if (!isContractSigned || !ticket) return;
+    let cancelled = false;
+    const load = async () => {
+      setMetadataLoading(true);
+      setMetadataError(null);
+      try {
+        const token = getPortalToken();
+        const res = await proposalApiFetch(
+          `/${encodeURIComponent(ticket)}/metadata`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+          },
+        );
+        const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+        if (cancelled) return;
+        if (!res.ok) {
+          if (res.status === 404) {
+            setMetadata(null);
+            setMetadataError(null);
+          } else {
+            setMetadataError(
+              (body.error as string) || `Failed to load metadata (${res.status}).`,
+            );
+          }
+        } else {
+          setMetadata(body as ProposalMetadata);
+        }
+      } catch {
+        if (!cancelled) setMetadataError("Network error. Please try again.");
+      } finally {
+        if (!cancelled) setMetadataLoading(false);
+      }
+    };
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [isContractSigned, ticket]);
+
   const primaryReview = reviews[0];
   const recommendationKey = (primaryReview?.review_data?.recommendation as string) || "";
   const recommendationLabel = RECOMMENDATION_LABELS[recommendationKey] || recommendationKey;
@@ -1342,6 +1427,164 @@ function ProposalDetailPage() {
                       />
                     </button>
                   </>
+                )}
+
+                {isContractSigned && (
+                  <Card>
+                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-t-2xl border-b border-emerald-200 bg-emerald-50/70 px-6 py-4">
+                      <div className="min-w-0">
+                        <h2 className="font-serif text-base font-bold text-stone-900">
+                          Metadata
+                        </h2>
+                        <p className="mt-0.5 font-sans text-sm text-stone-500">
+                          Editorial / cataloguing metadata for this proposal
+                        </p>
+                      </div>
+                      {metadata?.metadata_status && (
+                        <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 font-sans text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
+                          {metadata.metadata_status.replace(/_/g, " ")}
+                        </span>
+                      )}
+                    </div>
+                    <div className="px-6 py-6">
+                      {metadataLoading && (
+                        <p className="font-sans text-sm text-stone-500">Loading metadata…</p>
+                      )}
+                      {metadataError && (
+                        <p className="rounded-lg bg-rose-50 px-3 py-2 font-sans text-sm text-rose-700 ring-1 ring-rose-200">
+                          {metadataError}
+                        </p>
+                      )}
+                      {!metadataLoading && !metadataError && !metadata && (
+                        <p className="font-sans text-sm text-stone-500">
+                          No metadata has been recorded for this proposal yet.
+                        </p>
+                      )}
+                      {!metadataLoading && !metadataError && metadata && (
+                        <div className="space-y-6">
+                          <div className="flex flex-wrap items-start gap-6">
+                            {metadata.cover_image?.s3_url && (
+                              <img
+                                src={metadata.cover_image.s3_url}
+                                alt={metadata.cover_image.filename || "Cover"}
+                                className="h-40 w-auto rounded-lg border border-stone-200 object-cover shadow-sm"
+                              />
+                            )}
+                            <div className="min-w-0 flex-1 space-y-1">
+                              <h3 className="font-serif text-xl font-bold text-stone-900">
+                                {metadata.metadata?.full_title ||
+                                  metadata.metadata?.title ||
+                                  "—"}
+                              </h3>
+                              {metadata.metadata?.subtitle && (
+                                <p className="font-serif text-base italic text-stone-600">
+                                  {metadata.metadata.subtitle}
+                                </p>
+                              )}
+                              {metadata.metadata?.display_names && (
+                                <p className="mt-2 font-sans text-sm text-stone-700">
+                                  {metadata.metadata.display_names}
+                                </p>
+                              )}
+                              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-sans text-xs text-stone-500">
+                                {metadata.metadata?.category && (
+                                  <span>Category: {metadata.metadata.category}</span>
+                                )}
+                                <span>Version: {metadata.current_version ?? "—"}</span>
+                                {metadata.updated_at && (
+                                  <span>Updated {formatDate(metadata.updated_at)}</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {metadata.metadata?.book_description && (
+                            <div>
+                              <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-500">
+                                Description
+                              </p>
+                              <p className="mt-1 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
+                                {metadata.metadata.book_description}
+                              </p>
+                            </div>
+                          )}
+
+                          {metadata.metadata?.display_bios && (
+                            <div>
+                              <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-500">
+                                Author Bios
+                              </p>
+                              <p className="mt-1 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
+                                {metadata.metadata.display_bios}
+                              </p>
+                            </div>
+                          )}
+
+                          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            {metadata.metadata?.keywords && (
+                              <InfoRow label="Keywords" value={metadata.metadata.keywords} />
+                            )}
+                            {metadata.metadata?.website_classification && (
+                              <InfoRow
+                                label="Website Classification"
+                                value={metadata.metadata.website_classification}
+                              />
+                            )}
+                            {metadata.metadata?.bic && (
+                              <InfoRow label="BIC" value={metadata.metadata.bic} />
+                            )}
+                            {metadata.approved_at && (
+                              <InfoRow
+                                label="Approved"
+                                value={formatDate(metadata.approved_at)}
+                              />
+                            )}
+                          </div>
+
+                          {metadata.metadata?.authors && metadata.metadata.authors.length > 0 && (
+                            <div>
+                              <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-500">
+                                Authors
+                              </p>
+                              <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                {metadata.metadata.authors.map((a, i) => {
+                                  const name = [a.title, a.first_name, a.last_name]
+                                    .filter(Boolean)
+                                    .join(" ");
+                                  return (
+                                    <div
+                                      key={`${a.email || i}`}
+                                      className="rounded-xl border border-stone-200 px-4 py-3"
+                                    >
+                                      <p className="font-serif text-sm font-bold text-stone-900">
+                                        {name || "—"}
+                                      </p>
+                                      {a.institution && (
+                                        <p className="font-sans text-xs text-stone-600">
+                                          {a.institution}
+                                          {a.country ? `, ${a.country}` : ""}
+                                        </p>
+                                      )}
+                                      {a.email && (
+                                        <p className="font-sans text-xs text-stone-500">
+                                          {a.email}
+                                        </p>
+                                      )}
+                                      {a.email_2 && (
+                                        <p className="font-sans text-xs text-stone-500">
+                                          {a.email_2}
+                                        </p>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </Card>
                 )}
 
                 {isReviewReturned && !isContractIssued && (
