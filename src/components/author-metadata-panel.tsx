@@ -423,7 +423,7 @@ export function AuthorMetadataPanel({
             )}
 
             {/* Queries (toggle) */}
-            {(showQueries || isApproved || !canApprove) && (
+            {showQueries && (
               <MetadataQueries
                 ticket={ticket}
                 viewer="author"
