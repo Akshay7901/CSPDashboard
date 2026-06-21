@@ -45,6 +45,7 @@ import {
 } from "@/lib/contractsApi";
 import { ContractPdfModal } from "@/components/contract-pdf-modal";
 import { ContractQueries } from "@/components/contract-queries";
+import { MetadataQueries } from "@/components/metadata-queries";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -1569,6 +1570,8 @@ function ProposalDetailPage() {
                                 )}
                               </div>
                             </div>
+
+                            <MetadataQueries ticket={ticket} viewer="dr" />
                           </div>
                         );
                       })()}
