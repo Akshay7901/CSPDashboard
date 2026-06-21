@@ -22,6 +22,7 @@ import {
   displayNameFromEmail,
 } from "@/lib/proposals";
 import { proposalApiFetch } from "@/lib/proposalApi";
+import { ChangePasswordButton } from "@/components/change-password-dialog";
 
 type PeerReviewer = {
   id: number;
