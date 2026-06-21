@@ -44,6 +44,40 @@ import {
 } from "@/lib/contractsApi";
 import { ContractPdfModal } from "@/components/contract-pdf-modal";
 import { ContractQueries } from "@/components/contract-queries";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+
+function MetaRow({
+  label,
+  defaultValue,
+  multiline,
+}: {
+  label: string;
+  defaultValue?: string;
+  multiline?: boolean;
+}) {
+  return (
+    <div className="grid grid-cols-1 border-t border-stone-200 first:border-t-0 sm:grid-cols-[220px_1fr]">
+      <div className="flex items-start bg-stone-50/60 px-5 py-4 font-sans text-sm font-medium text-stone-700">
+        {label}
+      </div>
+      <div className="border-t border-stone-200 px-4 py-3 sm:border-l sm:border-t-0">
+        {multiline ? (
+          <Textarea
+            defaultValue={defaultValue || ""}
+            rows={3}
+            className="w-full border-stone-200 bg-white font-sans text-sm text-stone-800"
+          />
+        ) : (
+          <Input
+            defaultValue={defaultValue || ""}
+            className="h-10 w-full border-stone-200 bg-white font-sans text-sm text-stone-800"
+          />
+        )}
+      </div>
+    </div>
+  );
+}
 
 
 type Assignment = {
@@ -1269,153 +1303,49 @@ function ProposalDetailPage() {
                       {!metadataLoading && !metadataError && metadata && (() => {
                         const md = metadata.metadata || {};
                         const authorsList = md.authors || [];
-                        const keywords = (md.keywords || "")
-                          .split(/[,;]/)
-                          .map((s) => s.trim())
-                          .filter(Boolean);
-                        const websiteTags = (md.website_classification || "")
-                          .split(/[,|]/)
-                          .map((s) => s.trim())
-                          .filter(Boolean);
-                        const bicCodes = (md.bic || "")
-                          .split(/[\s,]+/)
-                          .map((s) => s.trim())
-                          .filter(Boolean);
                         const coverUrl = metadata.cover_image?.s3_url;
                         return (
-                          <div className="space-y-6">
-                            {/* Title & Status */}
-                            <Card>
-                              <CardHeader
-                                title="Metadata"
-                              />
-                              <div className="divide-y divide-stone-200">
-                                <div className="px-7 py-6">
-                                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-                                    <DataField label="Full Title" value={md.full_title || md.title} />
-                                    <DataField label="Subtitle" value={md.subtitle} />
-                                    <DataField label="Display Names" value={md.display_names} />
-                                    <DataField label="Category" value={md.category} />
-                                    <DataField label="Last Updated" value={metadata.updated_at ? formatDate(metadata.updated_at) : undefined} />
-                                    <DataField label="Approved" value={metadata.approved_at ? formatDate(metadata.approved_at) : undefined} />
-                                  </div>
+                          <div className="overflow-hidden rounded-xl border border-stone-200 bg-white">
+                            <MetaRow label="Title Full" defaultValue={md.full_title} />
+                            <MetaRow label="Title" defaultValue={md.title} />
+                            <MetaRow label="Subtitle" defaultValue={md.subtitle} />
+                            <MetaRow label="Category Auth/Ed" defaultValue={md.category} />
+                            <MetaRow label="Display Names" defaultValue={md.display_names} />
+                            <MetaRow label="Display Bios" defaultValue={md.display_bios} multiline />
+                            <MetaRow label="Book Description" defaultValue={md.book_description} multiline />
+                            <MetaRow label="Keywords" defaultValue={md.keywords} />
+                            <MetaRow label="Website Classification" defaultValue={md.website_classification} />
+                            <MetaRow label="BIC Codes" defaultValue={md.bic} />
+                            {coverUrl && (
+                              <div className="grid grid-cols-[220px_1fr] gap-0 border-t border-stone-200">
+                                <div className="flex items-center bg-stone-50/60 px-5 py-4 font-sans text-sm font-medium text-stone-700">
+                                  Cover Image
                                 </div>
-                                {coverUrl && (
-                                  <div className="px-7 py-6">
-                                    <SectionLabel>Cover Image</SectionLabel>
-                                    <img
-                                      src={coverUrl}
-                                      alt="Cover"
-                                      className="mt-2 h-48 rounded-lg border border-stone-200 object-cover shadow-sm"
-                                    />
-                                  </div>
-                                )}
+                                <div className="border-l border-stone-200 px-4 py-4">
+                                  <img src={coverUrl} alt="Cover" className="h-40 rounded-lg border border-stone-200 object-cover shadow-sm" />
+                                </div>
                               </div>
-                            </Card>
-
-                            {/* Description */}
-                            {md.book_description && (
-                              <Card>
-                                <CardHeader
-                                  title="Description"
-                                  subtitle="Book overview and synopsis"
-                                />
-                                <div className="px-7 py-6">
-                                  <p className="whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
-                                    {md.book_description}
-                                  </p>
-                                </div>
-                              </Card>
                             )}
 
-                            {/* Classification */}
-                            {(keywords.length > 0 || websiteTags.length > 0 || bicCodes.length > 0) && (
-                              <Card>
-                                <CardHeader
-                                  title="Classification"
-                                  subtitle="Keywords, website classification and BIC codes"
-                                />
-                                <div className="space-y-6 px-7 py-6">
-                                  {keywords.length > 0 && (
-                                    <div>
-                                      <SectionLabel>Keywords</SectionLabel>
-                                      <div className="mt-2 flex flex-wrap gap-2">
-                                        {keywords.map((k) => (
-                                          <span
-                                            key={k}
-                                            className="inline-flex rounded-full bg-amber-50 px-3 py-1 font-sans text-xs font-medium text-amber-800 ring-1 ring-amber-200"
-                                          >
-                                            {k}
-                                          </span>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )}
-                                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                                    {websiteTags.length > 0 && (
-                                      <DataField
-                                        label="Website Classification"
-                                        value={websiteTags.join(", ")}
-                                      />
-                                    )}
-                                    {bicCodes.length > 0 && (
-                                      <DataField
-                                        label="BIC Codes"
-                                        value={bicCodes.join(", ")}
-                                      />
-                                    )}
+                            {authorsList.map((a, i) => {
+                              const fullName = [a.title, a.first_name, a.last_name].filter(Boolean).join(" ");
+                              const displayName = fullName || (a.email ? displayNameFromEmail(a.email) : `Author ${i + 1}`);
+                              return (
+                                <div key={`${a.email || i}`}>
+                                  <div className="border-t border-stone-200 bg-emerald-700 px-5 py-3 font-sans text-xs font-bold uppercase tracking-[0.18em] text-white">
+                                    {authorsList.length > 1 ? `Primary Author(s) — ${i + 1}` : "Primary Author(s)"}
                                   </div>
+                                  <MetaRow label="Display Name(s)" defaultValue={displayName} />
+                                  <MetaRow label="Salutation" defaultValue={a.title} />
+                                  <MetaRow label="First name" defaultValue={a.first_name} />
+                                  <MetaRow label="Last name" defaultValue={a.last_name} />
+                                  <MetaRow label="Email" defaultValue={a.email} />
+                                  <MetaRow label="Email 2" defaultValue={a.email_2} />
+                                  <MetaRow label="Institution" defaultValue={a.institution} />
+                                  <MetaRow label="Country" defaultValue={a.country} />
                                 </div>
-                              </Card>
-                            )}
-
-                            {/* Author Bios */}
-                            {md.display_bios && (
-                              <Card>
-                                <CardHeader
-                                  title="Author Bios"
-                                  subtitle="Contributor biographical information"
-                                />
-                                <div className="px-7 py-6">
-                                  <p className="whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
-                                    {md.display_bios}
-                                  </p>
-                                </div>
-                              </Card>
-                            )}
-
-                            {/* Authors */}
-                            {authorsList.length > 0 && (
-                              <Card>
-                                <CardHeader
-                                  title="Authors"
-                                  subtitle={`${authorsList.length} contributor${authorsList.length === 1 ? "" : "s"}`}
-                                />
-                                <div className="divide-y divide-stone-200">
-                                  {authorsList.map((a, i) => {
-                                    const fullName = [a.title, a.first_name, a.last_name]
-                                      .filter(Boolean)
-                                      .join(" ");
-                                    const displayName =
-                                      fullName ||
-                                      (a.email
-                                        ? displayNameFromEmail(a.email)
-                                        : `Author ${i + 1}`);
-                                    return (
-                                      <div key={`${a.email || i}`} className="grid grid-cols-1 gap-5 px-7 py-6 sm:grid-cols-3">
-                                        <DataField label="Name" value={displayName} />
-                                        <DataField label="Email" value={a.email} />
-                                        <DataField label="Secondary Email" value={a.email_2} />
-                                        <DataField
-                                          label="Institution"
-                                          value={a.institution ? `${a.institution}${a.country ? `, ${a.country}` : ""}` : undefined}
-                                        />
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </Card>
-                            )}
+                              );
+                            })}
                           </div>
                         );
                       })()}
