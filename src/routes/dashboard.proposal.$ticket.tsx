@@ -1559,14 +1559,16 @@ function ProposalDetailPage() {
                                     >
                                       {metaSaving ? "Saving…" : "Save Draft"}
                                     </button>
-                                    <button
-                                      type="button"
-                                      onClick={sendMetadataToAuthor}
-                                      disabled={metaSendLoading || metaSaving}
-                                      className="inline-flex items-center gap-2 rounded-lg bg-stone-800 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm transition hover:bg-stone-900 disabled:cursor-not-allowed disabled:opacity-60"
-                                    >
-                                      {metaSendLoading ? "Sending…" : "Send to Author"}
-                                    </button>
+                                    {!isMetaApproved && (
+                                      <button
+                                        type="button"
+                                        onClick={sendMetadataToAuthor}
+                                        disabled={metaSendLoading || metaSaving}
+                                        className="inline-flex items-center gap-2 rounded-lg bg-stone-800 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm transition hover:bg-stone-900 disabled:cursor-not-allowed disabled:opacity-60"
+                                      >
+                                        {metaSendLoading ? "Sending…" : "Send to Author"}
+                                      </button>
+                                    )}
                                   </>
                                 )}
                               </div>
