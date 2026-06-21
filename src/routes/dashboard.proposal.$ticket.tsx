@@ -47,6 +47,38 @@ import { ContractQueries } from "@/components/contract-queries";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
+function MetaRow({
+  label,
+  defaultValue,
+  multiline,
+}: {
+  label: string;
+  defaultValue?: string;
+  multiline?: boolean;
+}) {
+  return (
+    <div className="grid grid-cols-1 border-t border-stone-200 first:border-t-0 sm:grid-cols-[220px_1fr]">
+      <div className="flex items-start bg-stone-50/60 px-5 py-4 font-sans text-sm font-medium text-stone-700">
+        {label}
+      </div>
+      <div className="border-t border-stone-200 px-4 py-3 sm:border-l sm:border-t-0">
+        {multiline ? (
+          <Textarea
+            defaultValue={defaultValue || ""}
+            rows={3}
+            className="w-full border-stone-200 bg-white font-sans text-sm text-stone-800"
+          />
+        ) : (
+          <Input
+            defaultValue={defaultValue || ""}
+            className="h-10 w-full border-stone-200 bg-white font-sans text-sm text-stone-800"
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
 
 type Assignment = {
   reviewer_email: string;
