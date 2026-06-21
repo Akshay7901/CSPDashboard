@@ -1297,8 +1297,7 @@ function ProposalDetailPage() {
                           .split(/[\s,]+/)
                           .map((s) => s.trim())
                           .filter(Boolean);
-                        const coverUrl =
-                          md.cover_image?.s3_url || metadata.cover_image?.s3_url;
+                        const coverUrl = metadata.cover_image?.s3_url;
                         return (
                           <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_1fr]">
                             {/* Sidebar — cover + quick facts */}
