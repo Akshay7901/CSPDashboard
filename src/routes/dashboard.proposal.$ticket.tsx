@@ -1167,6 +1167,36 @@ function ProposalDetailPage() {
     }
   };
 
+  const sendMetadataToAuthor = async () => {
+    if (!ticket) return;
+    setMetaSendLoading(true);
+    setMetaSendError(null);
+    setMetaSendSuccess(null);
+    try {
+      const token = getPortalToken();
+      const res = await proposalApiFetch(`/${encodeURIComponent(ticket)}/metadata/send`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+      const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+      if (!res.ok) {
+        setMetaSendError((body.error as string) || `Failed to send (${res.status}).`);
+        return;
+      }
+      setMetaSendSuccess((body.message as string) || "Metadata sent to author.");
+      setMetadata((prev) =>
+        prev ? { ...prev, metadata_status: "sent_to_author" } : prev,
+      );
+    } catch {
+      setMetaSendError("Network error. Please try again.");
+    } finally {
+      setMetaSendLoading(false);
+    }
+  };
+
   const primaryReview = reviews[0];
   const recommendationKey = (primaryReview?.review_data?.recommendation as string) || "";
   const recommendationLabel = RECOMMENDATION_LABELS[recommendationKey] || recommendationKey;
