@@ -401,7 +401,7 @@ function ProposalDetailPage() {
   >(null);
   const [comments, setComments] = useState<ReviewComment[]>([]);
   const [commentsSeeded, setCommentsSeeded] = useState(false);
-  const [editorialSummary, setEditorialSummary] = useState("");
+  
   const [originalOpen, setOriginalOpen] = useState(false);
 
   // Metadata (shown after the contract is signed)
