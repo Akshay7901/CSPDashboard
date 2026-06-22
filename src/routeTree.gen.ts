@@ -15,7 +15,6 @@ import { Route as DashboardReviewerRouteImport } from './routes/dashboard.review
 import { Route as DashboardEditorRouteImport } from './routes/dashboard.editor'
 import { Route as DashboardDecision_reviewerRouteImport } from './routes/dashboard.decision_reviewer'
 import { Route as DashboardAuthorRouteImport } from './routes/dashboard.author'
-import { Route as DashboardAdminRouteImport } from './routes/dashboard.admin'
 import { Route as DashboardRoleRouteImport } from './routes/dashboard.$role'
 import { Route as DashboardProposalTicketRouteImport } from './routes/dashboard.proposal.$ticket'
 import { Route as DashboardAuthor_proposalIdRouteImport } from './routes/dashboard.author_proposal.$id'
@@ -53,11 +52,6 @@ const DashboardAuthorRoute = DashboardAuthorRouteImport.update({
   path: '/dashboard/author',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardAdminRoute = DashboardAdminRouteImport.update({
-  id: '/dashboard/admin',
-  path: '/dashboard/admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const DashboardRoleRoute = DashboardRoleRouteImport.update({
   id: '/dashboard/$role',
   path: '/dashboard/$role',
@@ -91,7 +85,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/dashboard/$role': typeof DashboardRoleRoute
-  '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/author': typeof DashboardAuthorRoute
   '/dashboard/decision_reviewer': typeof DashboardDecision_reviewerRoute
   '/dashboard/editor': typeof DashboardEditorRouteWithChildren
@@ -105,7 +98,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/dashboard/$role': typeof DashboardRoleRoute
-  '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/author': typeof DashboardAuthorRoute
   '/dashboard/decision_reviewer': typeof DashboardDecision_reviewerRoute
   '/dashboard/editor': typeof DashboardEditorRouteWithChildren
@@ -120,7 +112,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/dashboard/$role': typeof DashboardRoleRoute
-  '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/author': typeof DashboardAuthorRoute
   '/dashboard/decision_reviewer': typeof DashboardDecision_reviewerRoute
   '/dashboard/editor': typeof DashboardEditorRouteWithChildren
@@ -136,7 +127,6 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/dashboard/$role'
-    | '/dashboard/admin'
     | '/dashboard/author'
     | '/dashboard/decision_reviewer'
     | '/dashboard/editor'
@@ -150,7 +140,6 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/dashboard/$role'
-    | '/dashboard/admin'
     | '/dashboard/author'
     | '/dashboard/decision_reviewer'
     | '/dashboard/editor'
@@ -164,7 +153,6 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/dashboard/$role'
-    | '/dashboard/admin'
     | '/dashboard/author'
     | '/dashboard/decision_reviewer'
     | '/dashboard/editor'
@@ -179,7 +167,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
   DashboardRoleRoute: typeof DashboardRoleRoute
-  DashboardAdminRoute: typeof DashboardAdminRoute
   DashboardAuthorRoute: typeof DashboardAuthorRoute
   DashboardDecision_reviewerRoute: typeof DashboardDecision_reviewerRoute
   DashboardEditorRoute: typeof DashboardEditorRouteWithChildren
@@ -230,13 +217,6 @@ declare module '@tanstack/react-router' {
       path: '/dashboard/author'
       fullPath: '/dashboard/author'
       preLoaderRoute: typeof DashboardAuthorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard/admin': {
-      id: '/dashboard/admin'
-      path: '/dashboard/admin'
-      fullPath: '/dashboard/admin'
-      preLoaderRoute: typeof DashboardAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/$role': {
@@ -304,7 +284,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   DashboardRoleRoute: DashboardRoleRoute,
-  DashboardAdminRoute: DashboardAdminRoute,
   DashboardAuthorRoute: DashboardAuthorRoute,
   DashboardDecision_reviewerRoute: DashboardDecision_reviewerRoute,
   DashboardEditorRoute: DashboardEditorRouteWithChildren,

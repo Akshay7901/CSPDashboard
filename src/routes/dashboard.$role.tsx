@@ -21,15 +21,6 @@ function DashboardPage() {
   const [email, setEmail] = useState<string>("");
 
   useEffect(() => {
-    const normalized = String(role || "").toLowerCase();
-    if (normalized === "admin") {
-      navigate({ to: "/dashboard/admin", replace: true });
-      return;
-    }
-    if (normalized === "decision_reviewer") {
-      navigate({ to: "/dashboard/decision_reviewer", replace: true });
-      return;
-    }
     try {
       const session = getPortalSession() as { role: Role; email: string } | null;
       if (!session) {

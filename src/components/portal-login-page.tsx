@@ -10,14 +10,13 @@ type ApiRole = "admin" | "editor" | "reviewer" | "decision_reviewer" | "author" 
 
 function roleToPortal(apiRole: ApiRole): Role {
   const r = (apiRole || "").toLowerCase();
-  if (r === "admin") return "admin";
   if (r === "decision_reviewer") return "decision_reviewer";
-  if (r === "editor") return "editor";
+  if (r === "editor" || r === "admin") return "editor";
   if (r === "reviewer" || r === "peer_reviewer" || r.includes("reviewer")) return "reviewer";
   return "author";
 }
 
-type Role = "author" | "editor" | "reviewer" | "decision_reviewer" | "admin";
+type Role = "author" | "editor" | "reviewer" | "decision_reviewer";
 
 interface PortalConfig {
   id: Role;
@@ -75,16 +74,11 @@ export function LoginPage() {
   useEffect(() => {
     const session = getPortalSession();
     if (!session?.role) return;
-    const role = String(session.role).toLowerCase();
-    if (role === "admin") {
-      navigate({ to: "/dashboard/admin" });
-      return;
-    }
-    if (role === "decision_reviewer") {
+    if (session.role === "decision_reviewer") {
       navigate({ to: "/dashboard/decision_reviewer" });
       return;
     }
-    navigate({ to: "/dashboard/$role", params: { role } });
+    navigate({ to: "/dashboard/$role", params: { role: session.role } });
   }, [navigate]);
 
   return (
@@ -170,10 +164,6 @@ function PortalLoginForm({ portal, onBack }: { portal: PortalConfig; onBack: () 
       return;
     }
     persistPortalSession({ token, email: userEmail, name, role });
-    if (role === "admin") {
-      navigate({ to: "/dashboard/admin" });
-      return;
-    }
     if (role === "decision_reviewer") {
       navigate({ to: "/dashboard/decision_reviewer" });
       return;
@@ -242,10 +232,9 @@ function PortalLoginForm({ portal, onBack }: { portal: PortalConfig; onBack: () 
   const isRoleAllowedForPortal = (apiRole: ApiRole | undefined): boolean => {
     const allowed: Record<Role, string[]> = {
       author: ["author"],
-      editor: ["editor", "decision_reviewer", "admin"],
+      editor: ["editor", "admin", "decision_reviewer"],
       reviewer: ["reviewer", "peer_reviewer"],
       decision_reviewer: ["decision_reviewer"],
-      admin: ["admin"],
     };
     const normalized = (apiRole || "").toLowerCase();
     return allowed[portal.id].includes(normalized);
