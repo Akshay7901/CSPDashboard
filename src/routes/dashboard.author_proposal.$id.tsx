@@ -1396,42 +1396,50 @@ function ContractIssuedView({
       </section>
     ) : (
     <section
-      className={`mt-6 overflow-hidden rounded-2xl border shadow-sm ${
+      className={`mt-6 overflow-hidden rounded-2xl border-2 shadow-sm ${
         isSigned
           ? "border-emerald-200 bg-gradient-to-b from-emerald-50/70 to-white"
-          : "border-stone-200 bg-white"
+          : "border-violet-200 bg-white"
       }`}
     >
       {/* Header */}
       <div
-        className={`flex flex-wrap items-start justify-between gap-3 border-b px-6 py-5 md:px-8 md:py-6 ${
-          isSigned ? "border-emerald-100" : "border-violet-100"
+        className={`flex flex-wrap items-start justify-between gap-4 border-b px-6 py-5 ${
+          isSigned
+            ? "border-emerald-100 bg-gradient-to-br from-emerald-50 to-emerald-100/40"
+            : "border-violet-200 bg-gradient-to-br from-violet-50 to-violet-100/40"
         }`}
       >
         <div className="min-w-0">
           <p
-            className={`inline-flex items-center gap-1.5 font-sans text-xs font-bold uppercase tracking-[0.14em] ${
-              isSigned ? "text-emerald-700" : isDeclined ? "text-rose-700" : "text-violet-700"
+            className={`inline-flex items-center gap-1.5 font-sans text-xs font-bold uppercase tracking-wider ${
+              isSigned ? "text-emerald-700" : isDeclined ? "text-rose-700" : "text-violet-600"
             }`}
           >
             {isSigned && <Check className="h-3.5 w-3.5" />}
             {isSigned ? "Contract Signed" : isDeclined ? "Contract Declined" : "Proposal Accepted"}
           </p>
-          <h2 className="mt-1.5 font-serif text-xl font-bold leading-snug text-[#2C1A0E] md:text-[1.6rem]">
+          <h2 className="font-serif text-xl font-bold leading-snug text-[#2C1A0E]">
             {isSigned
               ? "Thank you — your contract is confirmed"
               : "Read the reviewer's feedback, then sign your contract"}
           </h2>
           <p
             className={`mt-1.5 font-sans text-sm ${
-              isSigned ? "text-violet-700" : "text-stone-600"
+              isSigned ? "text-emerald-700" : "text-violet-600"
             }`}
           >
             Issued {formatDate(issuedAt)} · {contractTypeLabel}
           </p>
         </div>
         <span
-          className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 font-sans text-xs font-semibold ${pillCls}`}
+          className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 font-sans text-xs font-semibold ${
+            isSigned
+              ? "border-emerald-300 bg-emerald-50 text-emerald-800"
+              : isDeclined
+                ? "border-rose-300 bg-rose-50 text-rose-800"
+                : "border-violet-300 bg-violet-50 text-violet-800"
+          }`}
         >
           <span className={`h-1.5 w-1.5 rounded-full ${pillDot}`} />
           {pillLabel}
@@ -1440,28 +1448,30 @@ function ContractIssuedView({
 
       {/* Step 1 — Feedback (hidden once contract is signed) */}
       {!isSigned && (
-      <div className="border-b border-violet-100 px-6 py-6 md:px-8">
-          <div className="flex items-center gap-3">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-violet-600 font-sans text-sm font-bold text-white">
-              1
-            </span>
-            <h3 className="font-serif text-base font-bold text-[#2C1A0E]">
-              Read the reviewer's feedback
-            </h3>
-          </div>
+      <div>
+        <div className="flex items-center gap-3 border-b border-stone-200 bg-stone-50/60 px-6 py-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-violet-600 font-sans text-xs font-bold text-white">
+            1
+          </span>
+          <h3 className="font-sans text-sm font-semibold text-[#2C1A0E]">
+            Read the reviewer's feedback
+          </h3>
+        </div>
 
+        <div className="px-6 py-4">
           {editorialFeedback && (
-            <div className="mt-5 rounded-xl border border-stone-200 bg-white p-5">
-              <p className="font-sans text-[11px] font-bold uppercase tracking-wider text-stone-500">
+            <div>
+              <p className="font-sans text-xs font-semibold uppercase tracking-wide text-[#7A6A5A]">
                 Overall assessment
               </p>
-              <p className="mt-2 whitespace-pre-line font-serif text-[15px] italic leading-relaxed text-stone-700">
+              <p className="mt-2 whitespace-pre-line font-sans text-sm italic leading-relaxed text-[#2C1A0E]">
                 "{editorialFeedback}"
               </p>
             </div>
           )}
 
-        <ReviewerCommentsList ticket={ticket} />
+          <ReviewerCommentsList ticket={ticket} />
+        </div>
       </div>
       )}
 
