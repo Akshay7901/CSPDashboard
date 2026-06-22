@@ -124,7 +124,6 @@ function EditorDashboard() {
         return;
       }
       setUserEmail(session.email);
-      setIsAdmin(checkIsAdmin());
     } catch {
       navigate({ to: "/login" });
     }
@@ -149,14 +148,14 @@ function EditorDashboard() {
 
   const mergedProposals = useMemo(
     () =>
-      PROPOSALS.filter((p) => !deletedIds.has(p.id)).map((p) => {
+      PROPOSALS.map((p) => {
         const status = statusOverrides[p.id] ?? p.status;
         return {
           ...p,
           status: status === "submitted" && assignedProposalIds.has(p.id) ? "in_review" : status,
         };
       }),
-    [assignedProposalIds, statusOverrides, deletedIds],
+    [assignedProposalIds, statusOverrides],
   );
 
   const counts = useMemo(() => {
@@ -192,29 +191,6 @@ function EditorDashboard() {
   const onLogout = async () => {
     await portalLogout();
     navigate({ to: "/login" });
-  };
-
-  const onConfirmDelete = async () => {
-    const id = confirmId;
-    if (!id) return;
-    setDeletingId(id);
-    try {
-      await deleteProposal(id);
-      const next = new Set(deletedIds);
-      next.add(id);
-      setDeletedIds(next);
-      try {
-        localStorage.setItem("csp.deletedProposalIds", JSON.stringify([...next]));
-      } catch {
-        // ignore
-      }
-      toast.success(`Proposal ${id} deleted.`);
-      setConfirmId(null);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete proposal.");
-    } finally {
-      setDeletingId(null);
-    }
   };
 
   const displayName = displayNameFromEmail(userEmail);
