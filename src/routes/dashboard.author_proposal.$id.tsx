@@ -93,6 +93,16 @@ type AuthorReview = {
 };
 
 function ReviewerCommentsList({ ticket }: { ticket: string }) {
+  return <ReviewerCommentsListInner ticket={ticket} />;
+}
+
+function ReviewerCommentsListInner({
+  ticket,
+  onCount,
+}: {
+  ticket: string;
+  onCount?: (n: number) => void;
+}) {
   const [reviews, setReviews] = useState<AuthorReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
