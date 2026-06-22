@@ -163,7 +163,7 @@ function PortalLoginForm({ portal, onBack }: { portal: PortalConfig; onBack: () 
       setError(buildRoleMismatchError(apiRole));
       return;
     }
-    persistPortalSession({ token, email: userEmail, name, role });
+    persistPortalSession({ token, email: userEmail, name, role, apiRole: (apiRole || "").toLowerCase() });
     if (role === "decision_reviewer") {
       navigate({ to: "/dashboard/decision_reviewer" });
       return;
