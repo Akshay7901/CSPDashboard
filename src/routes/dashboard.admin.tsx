@@ -192,9 +192,9 @@ function deriveDisplayStatus(p: ApiProposal): string | undefined {
 
 export const Route = createFileRoute("/dashboard/admin")({
   head: () => ({
-    meta: [{ title: "Editor Portal — Proposal Intake" }],
+    meta: [{ title: "Admin Portal — Proposal Intake" }],
   }),
-  component: DecisionReviewerDashboard,
+  component: AdminDashboard,
 });
 
 const FILTER_ORDER: ("all" | StatusKey)[] = [
@@ -210,7 +210,7 @@ const FILTER_ORDER: ("all" | StatusKey)[] = [
   "declined",
 ];
 
-function DecisionReviewerDashboard() {
+function AdminDashboard() {
   const navigate = useNavigate();
   const matchRoute = useMatchRoute();
   const [userEmail, setUserEmail] = useState<string>("");
