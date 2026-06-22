@@ -811,6 +811,64 @@ function DecisionReviewerDashboard() {
         </div>
       </main>
 
+      {confirmDeleteTicket && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 p-4"
+          onClick={() => deletingTicket === null && setConfirmDeleteTicket(null)}
+        >
+          <div
+            className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="border-b border-stone-200 px-6 py-4">
+              <h2 className="font-serif text-xl font-bold text-stone-900">Delete proposal?</h2>
+              <p className="mt-1 font-sans text-sm text-stone-600">
+                This will permanently delete proposal{" "}
+                <span className="font-semibold">{confirmDeleteTicket}</span> and all related data
+                (contracts, queries, reviews, metadata, events). This action cannot be undone.
+              </p>
+            </div>
+            <div className="flex items-center justify-end gap-2 bg-stone-50 px-6 py-3">
+              <button
+                type="button"
+                onClick={() => setConfirmDeleteTicket(null)}
+                disabled={deletingTicket !== null}
+                className="rounded-lg px-3 py-2 font-sans text-sm text-stone-700 hover:bg-stone-100 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const t = confirmDeleteTicket;
+                  if (!t) return;
+                  setDeletingTicket(t);
+                  try {
+                    await deleteProposal(t);
+                    setDeletedTickets((prev) => {
+                      const next = new Set(prev);
+                      next.add(t);
+                      return next;
+                    });
+                    toast.success(`Proposal ${t} deleted.`);
+                    setConfirmDeleteTicket(null);
+                  } catch (err) {
+                    toast.error(err instanceof Error ? err.message : "Failed to delete proposal.");
+                  } finally {
+                    setDeletingTicket(null);
+                  }
+                }}
+                disabled={deletingTicket !== null}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-2 font-sans text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                <Trash2 className="h-4 w-4" />
+                {deletingTicket ? "Deleting…" : "Delete permanently"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {reviewersOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 p-4"
