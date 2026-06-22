@@ -365,6 +365,7 @@ function ProposalDetailPage() {
   const [data, setData] = useState<ProposalDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [previewDoc, setPreviewDoc] = useState<{ url: string; filename: string } | null>(null);
   const [notes, setNotes] = useState("");
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [reviewersOpen, setReviewersOpen] = useState(false);
@@ -2331,9 +2332,9 @@ function ProposalDetailPage() {
                                 {doc.url && (
                                   <button
                                     type="button"
-                                    onClick={() => window.open(doc.url, "_blank")}
+                                    onClick={() => setPreviewDoc({ url: doc.url!, filename: doc.filename })}
                                     className="mt-0.5 shrink-0 rounded-md p-1 text-stone-500 hover:bg-stone-100 hover:text-stone-800"
-                                    title="Open document"
+                                    title="Preview document"
                                   >
                                     <Eye className="h-4 w-4" />
                                   </button>
@@ -3329,6 +3330,55 @@ function ProposalDetailPage() {
         </div>
       )}
       <ContractPdfModal ticket={ticket} open={pdfOpen} onClose={() => setPdfOpen(false)} />
+      <Dialog open={!!previewDoc} onOpenChange={(open) => !open && setPreviewDoc(null)}>
+        <DialogContent className="max-w-5xl p-0 sm:max-w-5xl">
+          <DialogHeader className="border-b border-stone-200 px-5 py-3">
+            <DialogTitle className="truncate font-sans text-sm font-semibold text-stone-900">
+              {previewDoc?.filename}
+            </DialogTitle>
+            <DialogDescription className="sr-only">Document preview</DialogDescription>
+          </DialogHeader>
+          {previewDoc && (() => {
+            const url = previewDoc.url;
+            const ext = (previewDoc.filename.split(".").pop() || "").toLowerCase();
+            const isImage = ["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp"].includes(ext);
+            const isPdf = ext === "pdf" || url.toLowerCase().includes(".pdf");
+            const isOffice = ["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(ext);
+            return (
+              <div className="h-[75vh] w-full bg-stone-100">
+                {isImage ? (
+                  <div className="flex h-full w-full items-center justify-center overflow-auto p-4">
+                    <img src={url} alt={previewDoc.filename} className="max-h-full max-w-full object-contain" />
+                  </div>
+                ) : isPdf ? (
+                  <iframe src={url} title={previewDoc.filename} className="h-full w-full" />
+                ) : isOffice ? (
+                  <iframe
+                    src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`}
+                    title={previewDoc.filename}
+                    className="h-full w-full"
+                  />
+                ) : (
+                  <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
+                    <FileText className="h-10 w-10 text-stone-400" />
+                    <p className="font-sans text-sm text-stone-600">
+                      Preview isn't available for this file type.
+                    </p>
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-md bg-stone-900 px-4 py-2 font-sans text-sm font-semibold text-white hover:bg-stone-800"
+                    >
+                      Open in new tab
+                    </a>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
       {voidOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
