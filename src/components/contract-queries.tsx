@@ -227,7 +227,7 @@ export function ContractQueries({
       </>
       )}
 
-      {viewer === "author" && (
+      {open && viewer === "author" && (
         (() => {
           const hasOpenQuery = thread.some(
             (t) => t.type === "query" && !answered.has(t.id),
