@@ -1045,7 +1045,9 @@ function ProposalDetailPage() {
     navigate({ to: "/login" });
   };
 
-  const rawCd = (data?.current_data ?? {}) as Record<string, unknown>;
+  const rawCd = normalizeProposalData(
+    (data?.current_data ?? {}) as Record<string, unknown>,
+  );
   const asStr = (v: unknown): string | undefined => {
     if (v === null || v === undefined || v === "") return undefined;
     if (typeof v === "string") return v;
