@@ -1633,11 +1633,11 @@ function ProposalDetailPage() {
               <div className="flex items-start justify-between gap-6">
                 <div>
                   <h1 className="font-serif text-3xl font-bold leading-tight text-stone-900">
-                    {title}
+                    {latestContract?.title || title}
                   </h1>
-                  {cd.sub_title && (
+                  {(latestContract?.subtitle || cd.sub_title) && (
                     <p className="mt-2 font-sans text-base font-medium text-amber-700">
-                      {cd.sub_title}
+                      {latestContract?.subtitle || cd.sub_title}
                     </p>
                   )}
                 </div>

@@ -624,6 +624,8 @@ function AuthorProposalDetails() {
 function ProposalBody({ proposal }: { proposal: ProposalState }) {
   const { cd } = proposal;
   const [contractSigned, setContractSigned] = useState(false);
+  const [contractTitleOverride, setContractTitleOverride] = useState<string | undefined>();
+  const [contractSubtitleOverride, setContractSubtitleOverride] = useState<string | undefined>();
   useEffect(() => {
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
@@ -632,6 +634,8 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
         const list = await getContract(proposal.ticket);
         if (cancelled) return;
         const latest = list[0];
+        if (latest?.title) setContractTitleOverride(latest.title);
+        if (latest?.subtitle) setContractSubtitleOverride(latest.subtitle);
         const s = (latest?.status || "").toLowerCase();
         const completed = !!latest?.docusign_completed_at;
         if (s === "signed" || s === "completed" || completed) {
@@ -658,8 +662,8 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
   const tint = STATUS_TINT[status];
   const isContractView = status === "contract" || status === "signed";
   const [showOriginal, setShowOriginal] = useState(false);
-  const title = cd.main_title || proposal.ticket;
-  const subtitle = cd.sub_title;
+  const title = contractTitleOverride || cd.main_title || proposal.ticket;
+  const subtitle = contractSubtitleOverride || cd.sub_title;
   const kind = cd.book_type || "Proposal";
   const files = cd.manuscript_files || {};
   const allFiles: ManuscriptFile[] = [
