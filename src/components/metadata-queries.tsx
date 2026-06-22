@@ -56,6 +56,9 @@ export function MetadataQueries({
 
   const [responseText, setResponseText] = useState("");
   const [fieldEdits, setFieldEdits] = useState<Record<string, string>>({});
+  const [rowEdits, setRowEdits] = useState<Record<string, string>>({});
+  const [applying, setApplying] = useState<string | null>(null);
+  const [appliedKeys, setAppliedKeys] = useState<Record<string, boolean>>({});
 
   const reload = useCallback(async () => {
     setLoading(true);
