@@ -1759,7 +1759,7 @@ function ProposalDetailPage() {
               {/* Main column */}
               <div className="space-y-6">
                 {isContractSigned && (
-                  <Card className="mt-6 overflow-hidden border-stone-200">
+                  <Card className="overflow-hidden border-stone-200">
                     {/* Header */}
                     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 bg-gradient-to-r from-emerald-50 via-emerald-50/60 to-white px-6 py-4">
                       <div className="flex min-w-0 items-center gap-3">
