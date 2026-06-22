@@ -477,7 +477,8 @@ function AdminDashboard() {
         navigate({ to: "/login" });
         return;
       }
-      if (session.role !== "admin") {
+      const role = String(session.role || "").toLowerCase();
+      if (role !== "admin") {
         navigate({ to: "/login" });
         return;
       }
