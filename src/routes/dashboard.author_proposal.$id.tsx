@@ -1339,9 +1339,17 @@ function ContractIssuedView({
             <div className="flex items-baseline justify-between gap-4">
               <span className="font-sans text-sm text-stone-600">Title</span>
               <span className="truncate font-sans text-sm font-medium text-stone-800 max-w-[60%] text-right">
-                {titleStr}
+                {contractTitle}
               </span>
             </div>
+            {contractSubtitle && (
+              <div className="flex items-baseline justify-between gap-4">
+                <span className="font-sans text-sm text-stone-600">Subtitle</span>
+                <span className="max-w-[60%] text-right font-sans text-sm font-medium text-stone-800">
+                  {contractSubtitle}
+                </span>
+              </div>
+            )}
             <div className="flex items-baseline justify-between gap-4">
               <span className="font-sans text-sm text-stone-600">Format</span>
               <span className="font-sans text-sm font-medium text-stone-800">{formatLabel}</span>
@@ -1352,6 +1360,14 @@ function ContractIssuedView({
                 {expectedCompletion}
               </span>
             </div>
+            {contractFieldRows.map((row) => (
+              <div key={row.label} className="flex items-baseline justify-between gap-4">
+                <span className="font-sans text-sm text-stone-600">{row.label}</span>
+                <span className="max-w-[60%] text-right font-sans text-sm font-medium text-stone-800">
+                  {row.value}
+                </span>
+              </div>
+            ))}
           </div>
 
           {/* Skeleton "terms" bars */}
