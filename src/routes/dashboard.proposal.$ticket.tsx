@@ -365,6 +365,7 @@ function ProposalDetailPage() {
   const [data, setData] = useState<ProposalDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [previewDoc, setPreviewDoc] = useState<{ url: string; filename: string } | null>(null);
   const [notes, setNotes] = useState("");
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [reviewersOpen, setReviewersOpen] = useState(false);
