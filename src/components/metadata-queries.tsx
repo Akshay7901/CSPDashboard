@@ -50,8 +50,8 @@ export function MetadataQueries({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [text, setText] = useState("");
-  const [selectedFields, setSelectedFields] = useState<string[]>([]);
+  type DraftRow = { field: string; text: string };
+  const [drafts, setDrafts] = useState<DraftRow[]>([{ field: "", text: "" }]);
   const [submitting, setSubmitting] = useState(false);
 
   const [respondingTo, setRespondingTo] = useState<number | null>(null);
@@ -75,21 +75,31 @@ export function MetadataQueries({
     void reload();
   }, [reload]);
 
-  const toggleField = (key: string) => {
-    setSelectedFields((prev) =>
-      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
-    );
+  const updateDraft = (idx: number, patch: Partial<DraftRow>) => {
+    setDrafts((prev) => prev.map((d, i) => (i === idx ? { ...d, ...patch } : d)));
   };
+  const addDraftRow = () =>
+    setDrafts((prev) => [...prev, { field: "", text: "" }]);
+  const removeDraftRow = (idx: number) =>
+    setDrafts((prev) =>
+      prev.length === 1 ? [{ field: "", text: "" }] : prev.filter((_, i) => i !== idx),
+    );
 
   const onRaise = async (e: FormEvent) => {
     e.preventDefault();
-    if (!text.trim()) return;
+    const valid = drafts.filter((d) => d.text.trim());
+    if (valid.length === 0) return;
     setSubmitting(true);
     setError(null);
     try {
-      await raiseMetadataQuery(ticket, text.trim(), selectedFields);
-      setText("");
-      setSelectedFields([]);
+      for (const d of valid) {
+        await raiseMetadataQuery(
+          ticket,
+          d.text.trim(),
+          d.field ? [d.field] : [],
+        );
+      }
+      setDrafts([{ field: "", text: "" }]);
       await reload();
       onChanged?.();
     } catch (e) {
