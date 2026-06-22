@@ -1817,7 +1817,96 @@ function ProposalDetailPage() {
                               </div>
                             </div>
 
-                            <MetadataQueries ticket={ticket} viewer="dr" />
+                            <MetadataQueries
+                              ticket={ticket}
+                              viewer="dr"
+                              fieldLabels={{
+                                full_title: "Title (full)",
+                                title: "Title",
+                                subtitle: "Subtitle",
+                                category: "Category",
+                                display_names: "Display names",
+                                display_bios: "Display bios",
+                                book_description: "Book description",
+                                keywords: "Keywords",
+                                website_classification: "Website classification",
+                                bic: "BIC codes",
+                                cover_image: "Cover image",
+                                authors: "Authors",
+                              }}
+                              fieldValues={{
+                                full_title: metaForm.full_title,
+                                title: metaForm.title,
+                                subtitle: metaForm.subtitle,
+                                category: metaForm.category,
+                                display_names: metaForm.display_names,
+                                display_bios: metaForm.display_bios,
+                                book_description: metaForm.book_description,
+                                keywords: metaForm.keywords,
+                                website_classification:
+                                  metaForm.website_classification,
+                                bic: metaForm.bic,
+                              }}
+                              onSaveFields={async (updates) => {
+                                const merged = { ...metaForm, ...updates };
+                                const token = getPortalToken();
+                                const session = getPortalSession();
+                                const payload: Record<string, unknown> = {
+                                  full_title: merged.full_title,
+                                  title: merged.title,
+                                  subtitle: merged.subtitle,
+                                  category: merged.category,
+                                  display_names: merged.display_names,
+                                  display_bios: merged.display_bios,
+                                  book_description: merged.book_description,
+                                  keywords: merged.keywords,
+                                  website_classification:
+                                    merged.website_classification,
+                                  bic: merged.bic,
+                                  authors: merged.authors,
+                                };
+                                if (session?.email)
+                                  payload.updated_by = session.email;
+                                const res = await proposalApiFetch(
+                                  `/${encodeURIComponent(ticket)}/metadata`,
+                                  {
+                                    method: "PUT",
+                                    headers: {
+                                      "Content-Type": "application/json",
+                                      ...(token
+                                        ? { Authorization: `Bearer ${token}` }
+                                        : {}),
+                                    },
+                                    body: JSON.stringify(payload),
+                                  },
+                                );
+                                const body = (await res
+                                  .json()
+                                  .catch(() => ({}))) as Record<string, unknown>;
+                                if (!res.ok) {
+                                  throw new Error(
+                                    (body.error as string) ||
+                                      `Failed to save (${res.status}).`,
+                                  );
+                                }
+                                setMetaForm(merged);
+                                setMetadata((prev) =>
+                                  prev
+                                    ? {
+                                        ...prev,
+                                        current_version:
+                                          (body.current_version as number) ??
+                                          prev.current_version,
+                                        updated_at: new Date().toISOString(),
+                                        metadata: {
+                                          ...(prev.metadata || {}),
+                                          ...updates,
+                                        },
+                                      }
+                                    : prev,
+                                );
+                              }}
+                            />
                           </div>
                         );
                       })()}
