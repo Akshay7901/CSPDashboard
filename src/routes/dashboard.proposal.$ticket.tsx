@@ -1674,6 +1674,41 @@ function ProposalDetailPage() {
                       {cd.sub_title}
                     </p>
                   )}
+                  {(() => {
+                    const proposedTitle =
+                      latestContractForHeader?.title &&
+                      latestContractForHeader.title !== (cd.main_title || title)
+                        ? latestContractForHeader.title
+                        : null;
+                    const proposedSubtitle =
+                      latestContractForHeader?.subtitle &&
+                      latestContractForHeader.subtitle !== cd.sub_title
+                        ? latestContractForHeader.subtitle
+                        : null;
+                    if (!proposedTitle && !proposedSubtitle) return null;
+                    return (
+                      <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50/60 px-4 py-2.5">
+                        {proposedTitle && (
+                          <p className="font-sans text-sm text-stone-700">
+                            <span className="font-semibold uppercase tracking-wide text-emerald-700 text-xs">
+                              Proposed Title:
+                            </span>{" "}
+                            <span className="font-serif text-base text-stone-900">
+                              {proposedTitle}
+                            </span>
+                          </p>
+                        )}
+                        {proposedSubtitle && (
+                          <p className="mt-1 font-sans text-sm text-stone-700">
+                            <span className="font-semibold uppercase tracking-wide text-emerald-700 text-xs">
+                              Proposed Subtitle:
+                            </span>{" "}
+                            <span className="text-stone-800">{proposedSubtitle}</span>
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
                 {isContractSigned ? (
                   <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1.5 font-sans text-xs font-semibold text-white shadow-sm">
