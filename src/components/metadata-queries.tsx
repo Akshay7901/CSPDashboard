@@ -216,6 +216,64 @@ export function MetadataQueries({
                 <div className="mt-3">
                   {respondingTo === entry.id ? (
                     <div className="space-y-2">
+                      {onSaveFields && entry.fields && entry.fields.length > 0 && (
+                        <div className="space-y-2 rounded-lg border border-stone-200 bg-white px-3 py-2">
+                          <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.1em] text-stone-500">
+                            Update tagged metadata fields
+                          </p>
+                          {entry.fields.map((fkey) => {
+                            // Skip non-text fields — they have their own UI elsewhere.
+                            if (fkey === "cover_image" || fkey === "authors") {
+                              return (
+                                <p
+                                  key={fkey}
+                                  className="font-sans text-xs text-stone-500"
+                                >
+                                  {(fieldLabels?.[fkey] || fkey)} — edit in the
+                                  metadata form above.
+                                </p>
+                              );
+                            }
+                            const current =
+                              fieldEdits[fkey] ?? fieldValues?.[fkey] ?? "";
+                            const multiline =
+                              fkey === "display_bios" ||
+                              fkey === "book_description";
+                            return (
+                              <div key={fkey}>
+                                <label className="block font-sans text-[11px] font-medium text-stone-600">
+                                  {fieldLabels?.[fkey] || fkey}
+                                </label>
+                                {multiline ? (
+                                  <textarea
+                                    rows={3}
+                                    value={current}
+                                    onChange={(e) =>
+                                      setFieldEdits((prev) => ({
+                                        ...prev,
+                                        [fkey]: e.target.value,
+                                      }))
+                                    }
+                                    className="mt-1 w-full resize-none rounded-md border border-stone-300 bg-white px-2 py-1.5 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
+                                  />
+                                ) : (
+                                  <input
+                                    type="text"
+                                    value={current}
+                                    onChange={(e) =>
+                                      setFieldEdits((prev) => ({
+                                        ...prev,
+                                        [fkey]: e.target.value,
+                                      }))
+                                    }
+                                    className="mt-1 w-full rounded-md border border-stone-300 bg-white px-2 py-1.5 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
+                                  />
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                       <textarea
                         value={responseText}
                         onChange={(e) => setResponseText(e.target.value)}
@@ -238,6 +296,7 @@ export function MetadataQueries({
                           onClick={() => {
                             setRespondingTo(null);
                             setResponseText("");
+                            setFieldEdits({});
                           }}
                           className="rounded-lg border border-stone-300 bg-white px-3 py-1.5 font-sans text-xs font-semibold text-stone-700 hover:bg-stone-50"
                         >
