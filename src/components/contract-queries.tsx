@@ -198,26 +198,42 @@ export function ContractQueries({
       </div>
 
       {viewer === "author" && (
-        <form onSubmit={onRaise} className="space-y-2 border-t border-stone-200 px-5 py-4">
-          <label className="block font-sans text-xs font-semibold uppercase tracking-[0.1em] text-stone-500">
-            Raise a new query
-          </label>
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            rows={3}
-            placeholder="Describe your concern about the contract…"
-            className="w-full resize-none rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
-          />
-          <button
-            type="submit"
-            disabled={submitting || !text.trim()}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#5B2EBA] px-4 py-2 font-sans text-sm font-semibold text-white hover:bg-[#4a2599] disabled:opacity-50"
-          >
-            <Send className="h-3.5 w-3.5" />
-            {submitting ? "Sending…" : "Submit Query"}
-          </button>
-        </form>
+        (() => {
+          const hasOpenQuery = thread.some(
+            (t) => t.type === "query" && !answered.has(t.id),
+          );
+          return (
+            <form onSubmit={onRaise} className="space-y-2 border-t border-stone-200 px-5 py-4">
+              <label className="block font-sans text-xs font-semibold uppercase tracking-[0.1em] text-stone-500">
+                Raise a new query
+              </label>
+              {hasOpenQuery ? (
+                <p className="rounded-lg bg-amber-50 px-3 py-2 font-sans text-xs text-amber-800 ring-1 ring-amber-200">
+                  You already have an open query awaiting a response from the editor.
+                  You can raise a new query once the editor has replied.
+                </p>
+              ) : (
+                <>
+                  <textarea
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    rows={3}
+                    placeholder="Describe your concern about the contract…"
+                    className="w-full resize-none rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
+                  />
+                  <button
+                    type="submit"
+                    disabled={submitting || !text.trim()}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-[#5B2EBA] px-4 py-2 font-sans text-sm font-semibold text-white hover:bg-[#4a2599] disabled:opacity-50"
+                  >
+                    <Send className="h-3.5 w-3.5" />
+                    {submitting ? "Sending…" : "Submit Query"}
+                  </button>
+                </>
+              )}
+            </form>
+          );
+        })()
       )}
     </div>
   );
