@@ -163,14 +163,14 @@ function EditorDashboard() {
 
   const mergedProposals = useMemo(
     () =>
-      PROPOSALS.map((p) => {
+      PROPOSALS.filter((p) => !deletedIds.has(p.id)).map((p) => {
         const status = statusOverrides[p.id] ?? p.status;
         return {
           ...p,
           status: status === "submitted" && assignedProposalIds.has(p.id) ? "in_review" : status,
         };
       }),
-    [assignedProposalIds, statusOverrides],
+    [assignedProposalIds, statusOverrides, deletedIds],
   );
 
   const counts = useMemo(() => {
