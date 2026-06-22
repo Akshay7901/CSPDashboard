@@ -401,6 +401,17 @@ function ReviewerSubmission() {
           <h1 className="mt-3 font-serif text-base font-bold leading-snug text-[#2C1A0E] line-clamp-2">
             {proposal.cd.main_title || proposal.ticket}
           </h1>
+          {((proposal.cd as Record<string, unknown>).proposed_title as string | undefined) && (
+            <p className="mt-1 font-sans text-[10px] font-semibold uppercase tracking-wider text-[#7A6A5A]">
+              Proposed:{" "}
+              <span className="font-serif text-xs font-normal normal-case tracking-normal text-[#2C1A0E]">
+                {(proposal.cd as Record<string, unknown>).proposed_title as string}
+                {((proposal.cd as Record<string, unknown>).proposed_subtitle as string | undefined)
+                  ? ` — ${(proposal.cd as Record<string, unknown>).proposed_subtitle as string}`
+                  : ""}
+              </span>
+            </p>
+          )}
           <p className="mt-1 font-sans text-xs text-[#7A6A5A]">
             {proposal.cd.corresponding_author_name || "—"} · {proposal.cd.institution || "—"}
           </p>
