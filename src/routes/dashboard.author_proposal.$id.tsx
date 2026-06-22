@@ -1397,7 +1397,7 @@ function ContractIssuedView({
       className={`mt-6 overflow-hidden rounded-2xl border shadow-sm ${
         isSigned
           ? "border-emerald-200 bg-gradient-to-b from-emerald-50/70 to-white"
-          : "border-violet-200 bg-gradient-to-b from-violet-50/70 to-white"
+          : "border-stone-200 bg-white"
       }`}
     >
       {/* Header */}
@@ -1480,13 +1480,14 @@ function ContractIssuedView({
         </div>
         )}
 
-        {editorNote && !isSigned && (
+        {!isSigned && (
           <div className="mt-5">
             <p className="font-sans text-[11px] font-bold uppercase tracking-wider text-stone-500">
               Note from your editor
             </p>
             <p className="mt-2 whitespace-pre-line font-sans text-[15px] leading-relaxed text-stone-700">
-              {editorNote}
+              {editorNote ||
+                "Your editor did not attach a personal note with this contract. Please review the reviewer's feedback above and the contract below."}
             </p>
           </div>
         )}
