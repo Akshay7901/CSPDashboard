@@ -1566,7 +1566,7 @@ function ProposalDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF6EE] font-sans text-stone-800">
+    <div className="min-h-screen bg-white font-sans text-stone-800">
       <header className="border-b border-stone-200 bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-8 py-4">
           <div className="flex items-center gap-3">
