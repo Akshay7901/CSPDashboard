@@ -857,19 +857,30 @@ function DecisionReviewerDashboard() {
                       Review
                       <ChevronRight className="h-4 w-4" />
                     </Link>
-                    <button
-                      type="button"
-                      onClick={() => openAssign(p)}
-                      className="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-2.5 py-1 font-sans text-xs font-medium text-stone-700 hover:bg-stone-50"
-                      title={
-                        p.currentReviewerEmail
-                          ? `Currently: ${p.currentReviewerEmail}`
-                          : "Assign a peer reviewer"
-                      }
-                    >
-                      <UserCog className="h-3.5 w-3.5" />
-                      {p.currentReviewerEmail ? "Reassign" : "Assign"}
-                    </button>
+                    {(() => {
+                      const hasReviewer =
+                        Boolean(p.currentReviewerEmail) ||
+                        p.status === "in_review" ||
+                        p.status === "review_returned" ||
+                        p.status === "revisions";
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => openAssign(p)}
+                          className="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-2.5 py-1 font-sans text-xs font-medium text-stone-700 hover:bg-stone-50"
+                          title={
+                            p.currentReviewerEmail
+                              ? `Currently: ${p.currentReviewerEmail}`
+                              : hasReviewer
+                                ? "Reassign peer reviewer"
+                                : "Assign a peer reviewer"
+                          }
+                        >
+                          <UserCog className="h-3.5 w-3.5" />
+                          {hasReviewer ? "Reassign" : "Assign"}
+                        </button>
+                      );
+                    })()}
                     {isAdmin && (
                       <button
                         type="button"
