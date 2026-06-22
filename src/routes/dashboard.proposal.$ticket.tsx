@@ -2008,12 +2008,10 @@ function ProposalDetailPage() {
                           <h2 className="font-serif text-base font-bold text-indigo-900">
                             Review Returned
                           </h2>
-                          <p className="mt-1 font-sans text-sm text-indigo-700/80">
-                            <span className="font-semibold text-[#0E3D2F]">
-                              {reviewerDisplayName}
-                            </span>
+                          <p className="mt-0.5 font-sans text-xs text-indigo-600">
+                            <span>{reviewerDisplayName}</span>
                             {reviewerInstitution && (
-                              <span className="text-indigo-700/70"> · {reviewerInstitution}</span>
+                              <span> · {reviewerInstitution}</span>
                             )}
                           </p>
                         </div>
