@@ -13,7 +13,9 @@ import {
   History,
 } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
-import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
+import { portalLogout, getPortalSession, getPortalToken, isAdmin as checkIsAdmin } from "@/lib/auth";
+import { deleteProposal } from "@/lib/adminApi";
+import { toast } from "sonner";
 import {
   STATUS_META,
   type StatusKey,
@@ -235,6 +237,10 @@ function DecisionReviewerDashboard() {
   const [newReviewer, setNewReviewer] = useState({ name: "", email: "" });
   const [adding, setAdding] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [confirmDeleteTicket, setConfirmDeleteTicket] = useState<string | null>(null);
+  const [deletingTicket, setDeletingTicket] = useState<string | null>(null);
+  const [deletedTickets, setDeletedTickets] = useState<Set<string>>(new Set());
 
   // Events / audit trail modal
   type ProposalEvent = {
@@ -454,6 +460,7 @@ function DecisionReviewerDashboard() {
       }
       setUserEmail(session.email);
       setUserName(session.name || "");
+      setIsAdmin(checkIsAdmin());
     } catch {
       navigate({ to: "/login" });
     }
@@ -478,13 +485,13 @@ function DecisionReviewerDashboard() {
 
   const mergedProposals = useMemo<ProposalRow[]>(
     () =>
-      apiProposals.map((p) => {
+      apiProposals.filter((p) => !deletedTickets.has(p.id)).map((p) => {
         const override = statusOverrides[p.id];
         let status: StatusKey = override ?? p.status;
         if (status === "submitted" && assignedProposalIds.has(p.id)) status = "in_review";
         return { ...p, status };
       }),
-    [apiProposals, assignedProposalIds, statusOverrides],
+    [apiProposals, assignedProposalIds, statusOverrides, deletedTickets],
   );
 
   const counts = useMemo(() => {
@@ -772,6 +779,17 @@ function DecisionReviewerDashboard() {
                       Review
                       <ChevronRight className="h-4 w-4" />
                     </Link>
+                    {isAdmin && (
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDeleteTicket(p.id)}
+                        className="inline-flex items-center gap-1 rounded-lg border border-red-200 px-2.5 py-1 font-sans text-xs font-medium text-red-700 hover:bg-red-50"
+                        title="Permanently delete proposal (admin only)"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Delete
+                      </button>
+                    )}
                   </div>
                 </li>
               );
@@ -792,6 +810,64 @@ function DecisionReviewerDashboard() {
           </div>
         </div>
       </main>
+
+      {confirmDeleteTicket && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 p-4"
+          onClick={() => deletingTicket === null && setConfirmDeleteTicket(null)}
+        >
+          <div
+            className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="border-b border-stone-200 px-6 py-4">
+              <h2 className="font-serif text-xl font-bold text-stone-900">Delete proposal?</h2>
+              <p className="mt-1 font-sans text-sm text-stone-600">
+                This will permanently delete proposal{" "}
+                <span className="font-semibold">{confirmDeleteTicket}</span> and all related data
+                (contracts, queries, reviews, metadata, events). This action cannot be undone.
+              </p>
+            </div>
+            <div className="flex items-center justify-end gap-2 bg-stone-50 px-6 py-3">
+              <button
+                type="button"
+                onClick={() => setConfirmDeleteTicket(null)}
+                disabled={deletingTicket !== null}
+                className="rounded-lg px-3 py-2 font-sans text-sm text-stone-700 hover:bg-stone-100 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const t = confirmDeleteTicket;
+                  if (!t) return;
+                  setDeletingTicket(t);
+                  try {
+                    await deleteProposal(t);
+                    setDeletedTickets((prev) => {
+                      const next = new Set(prev);
+                      next.add(t);
+                      return next;
+                    });
+                    toast.success(`Proposal ${t} deleted.`);
+                    setConfirmDeleteTicket(null);
+                  } catch (err) {
+                    toast.error(err instanceof Error ? err.message : "Failed to delete proposal.");
+                  } finally {
+                    setDeletingTicket(null);
+                  }
+                }}
+                disabled={deletingTicket !== null}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-2 font-sans text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                <Trash2 className="h-4 w-4" />
+                {deletingTicket ? "Deleting…" : "Delete permanently"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {reviewersOpen && (
         <div

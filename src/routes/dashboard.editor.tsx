@@ -12,9 +12,7 @@ import {
   Trash2,
 } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
-import { portalLogout, getPortalSession, isAdmin as checkIsAdmin } from "@/lib/auth";
-import { deleteProposal } from "@/lib/adminApi";
-import { toast } from "sonner";
+import { portalLogout, getPortalSession } from "@/lib/auth";
 import { ChangePasswordButton } from "@/components/change-password-dialog";
 import {
   PROPOSALS,
@@ -49,18 +47,6 @@ function EditorDashboard() {
   const navigate = useNavigate();
   const matchRoute = useMatchRoute();
   const [userEmail, setUserEmail] = useState<string>("");
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
-  const [deletedIds, setDeletedIds] = useState<Set<string>>(() => {
-    if (typeof window === "undefined") return new Set();
-    try {
-      const raw = localStorage.getItem("csp.deletedProposalIds");
-      return new Set(raw ? (JSON.parse(raw) as string[]) : []);
-    } catch {
-      return new Set();
-    }
-  });
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [confirmId, setConfirmId] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<"all" | StatusKey>("all");
   const [search, setSearch] = useState("");
   const [field, setField] = useState<"all" | "title" | "author" | "country">("all");
@@ -138,7 +124,6 @@ function EditorDashboard() {
         return;
       }
       setUserEmail(session.email);
-      setIsAdmin(checkIsAdmin());
     } catch {
       navigate({ to: "/login" });
     }
@@ -163,14 +148,14 @@ function EditorDashboard() {
 
   const mergedProposals = useMemo(
     () =>
-      PROPOSALS.filter((p) => !deletedIds.has(p.id)).map((p) => {
+      PROPOSALS.map((p) => {
         const status = statusOverrides[p.id] ?? p.status;
         return {
           ...p,
           status: status === "submitted" && assignedProposalIds.has(p.id) ? "in_review" : status,
         };
       }),
-    [assignedProposalIds, statusOverrides, deletedIds],
+    [assignedProposalIds, statusOverrides],
   );
 
   const counts = useMemo(() => {
@@ -206,29 +191,6 @@ function EditorDashboard() {
   const onLogout = async () => {
     await portalLogout();
     navigate({ to: "/login" });
-  };
-
-  const onConfirmDelete = async () => {
-    const id = confirmId;
-    if (!id) return;
-    setDeletingId(id);
-    try {
-      await deleteProposal(id);
-      const next = new Set(deletedIds);
-      next.add(id);
-      setDeletedIds(next);
-      try {
-        localStorage.setItem("csp.deletedProposalIds", JSON.stringify([...next]));
-      } catch {
-        // ignore
-      }
-      toast.success(`Proposal ${id} deleted.`);
-      setConfirmId(null);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete proposal.");
-    } finally {
-      setDeletingId(null);
-    }
   };
 
   const displayName = displayNameFromEmail(userEmail);
@@ -433,17 +395,6 @@ function EditorDashboard() {
                       Review
                       <ChevronRight className="h-4 w-4" />
                     </Link>
-                    {isAdmin && (
-                      <button
-                        type="button"
-                        onClick={() => setConfirmId(p.id)}
-                        className="inline-flex items-center gap-1 rounded-lg border border-red-200 px-2.5 py-1 font-sans text-xs font-medium text-red-700 hover:bg-red-50"
-                        title="Permanently delete proposal (admin only)"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                        Delete
-                      </button>
-                    )}
                   </div>
                 </li>
               );
@@ -461,45 +412,6 @@ function EditorDashboard() {
         </div>
       </main>
 
-      {confirmId && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 p-4"
-          onClick={() => deletingId === null && setConfirmId(null)}
-        >
-          <div
-            className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="border-b border-stone-200 px-6 py-4">
-              <h2 className="font-serif text-xl font-bold text-stone-900">
-                Delete proposal?
-              </h2>
-              <p className="mt-1 font-sans text-sm text-stone-600">
-                This will permanently delete proposal <span className="font-semibold">{confirmId}</span> and all related data (contracts, queries, reviews, metadata, events). This action cannot be undone.
-              </p>
-            </div>
-            <div className="flex items-center justify-end gap-2 bg-stone-50 px-6 py-3">
-              <button
-                type="button"
-                onClick={() => setConfirmId(null)}
-                disabled={deletingId !== null}
-                className="rounded-lg px-3 py-2 font-sans text-sm text-stone-700 hover:bg-stone-100 disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={onConfirmDelete}
-                disabled={deletingId !== null}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-2 font-sans text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
-              >
-                <Trash2 className="h-4 w-4" />
-                {deletingId ? "Deleting…" : "Delete permanently"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       {reviewersOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 p-4"
