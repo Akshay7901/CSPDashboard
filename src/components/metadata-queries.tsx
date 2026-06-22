@@ -56,6 +56,9 @@ export function MetadataQueries({
 
   const [responseText, setResponseText] = useState("");
   const [fieldEdits, setFieldEdits] = useState<Record<string, string>>({});
+  const [rowEdits, setRowEdits] = useState<Record<string, string>>({});
+  const [applying, setApplying] = useState<string | null>(null);
+  const [appliedKeys, setAppliedKeys] = useState<Record<string, boolean>>({});
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -239,51 +242,105 @@ export function MetadataQueries({
               <p className="font-sans text-xs font-semibold uppercase tracking-[0.1em] text-emerald-800">
                 Respond to {openIds.length} open {openIds.length === 1 ? "query" : "queries"}
               </p>
-              {onSaveFields && unionFields.length > 0 && (
-                <div className="space-y-2 rounded-lg border border-stone-200 bg-white px-3 py-2">
-                  <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.1em] text-stone-500">
-                    Update tagged metadata fields
-                  </p>
-                  {unionFields.map((fkey) => {
-                    if (fkey === "cover_image" || fkey === "authors") {
+              {onSaveFields && (() => {
+                const rows: { qid: number; fkey: string; queryText: string }[] = [];
+                for (const q of openQueries) {
+                  for (const fkey of q.fields || []) {
+                    rows.push({ qid: q.id, fkey, queryText: q.text });
+                  }
+                }
+                if (rows.length === 0) return null;
+                return (
+                  <div className="space-y-2 rounded-lg border border-stone-200 bg-white px-3 py-2">
+                    <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.1em] text-stone-500">
+                      Apply requested metadata changes
+                    </p>
+                    {rows.map(({ qid, fkey, queryText }) => {
+                      const key = `${qid}:${fkey}`;
+                      if (fkey === "cover_image" || fkey === "authors") {
+                        return (
+                          <p key={key} className="font-sans text-xs text-stone-500">
+                            <span className="font-medium text-stone-700">
+                              {fieldLabels?.[fkey] || fkey}:
+                            </span>{" "}
+                            {queryText} — edit in the metadata form above.
+                          </p>
+                        );
+                      }
+                      const current = rowEdits[key] ?? queryText;
+                      const multiline =
+                        fkey === "display_bios" || fkey === "book_description";
+                      const isApplied = !!appliedKeys[key];
                       return (
-                        <p key={fkey} className="font-sans text-xs text-stone-500">
-                          {(fieldLabels?.[fkey] || fkey)} — edit in the metadata form above.
-                        </p>
+                        <div
+                          key={key}
+                          className="flex flex-col gap-2 sm:flex-row sm:items-start"
+                        >
+                          <label className="font-sans text-xs font-medium text-stone-700 sm:w-32 sm:pt-2">
+                            {fieldLabels?.[fkey] || fkey}
+                          </label>
+                          {multiline ? (
+                            <textarea
+                              rows={2}
+                              value={current}
+                              onChange={(e) =>
+                                setRowEdits((prev) => ({ ...prev, [key]: e.target.value }))
+                              }
+                              className="flex-1 resize-none rounded-md border border-stone-300 bg-white px-2 py-1.5 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
+                            />
+                          ) : (
+                            <input
+                              type="text"
+                              value={current}
+                              onChange={(e) =>
+                                setRowEdits((prev) => ({ ...prev, [key]: e.target.value }))
+                              }
+                              className="flex-1 rounded-md border border-stone-300 bg-white px-2 py-1.5 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
+                            />
+                          )}
+                          <button
+                            type="button"
+                            disabled={applying === key}
+                            onClick={async () => {
+                              if (!onSaveFields) return;
+                              setApplying(key);
+                              setError(null);
+                              try {
+                                await onSaveFields({ [fkey]: current });
+                                setAppliedKeys((p) => ({ ...p, [key]: true }));
+                                window.setTimeout(
+                                  () =>
+                                    setAppliedKeys((p) => {
+                                      const n = { ...p };
+                                      delete n[key];
+                                      return n;
+                                    }),
+                                  1800,
+                                );
+                              } catch (e) {
+                                setError((e as Error).message);
+                              } finally {
+                                setApplying(null);
+                              }
+                            }}
+                            className={`rounded-md px-3 py-1.5 font-sans text-xs font-semibold transition ${
+                              isApplied
+                                ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-300"
+                                : "bg-[#5B2EBA] text-white hover:bg-[#4a2599] disabled:opacity-50"
+                            }`}
+                          >
+                            {applying === key
+                              ? "Applying…"
+                              : isApplied
+                                ? "Applied ✓"
+                                : "Apply"}
+                          </button>
+                        </div>
                       );
-                    }
-                    const current = fieldEdits[fkey] ?? fieldValues?.[fkey] ?? "";
-                    const multiline =
-                      fkey === "display_bios" || fkey === "book_description";
-                    return (
-                      <div key={fkey}>
-                        <label className="block font-sans text-[11px] font-medium text-stone-600">
-                          {fieldLabels?.[fkey] || fkey}
-                        </label>
-                        {multiline ? (
-                          <textarea
-                            rows={3}
-                            value={current}
-                            onChange={(e) =>
-                              setFieldEdits((prev) => ({ ...prev, [fkey]: e.target.value }))
-                            }
-                            className="mt-1 w-full resize-none rounded-md border border-stone-300 bg-white px-2 py-1.5 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
-                          />
-                        ) : (
-                          <input
-                            type="text"
-                            value={current}
-                            onChange={(e) =>
-                              setFieldEdits((prev) => ({ ...prev, [fkey]: e.target.value }))
-                            }
-                            className="mt-1 w-full rounded-md border border-stone-300 bg-white px-2 py-1.5 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
-                          />
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+                    })}
+                  </div>
+                );
+              })()}
               <textarea
                 value={responseText}
                 onChange={(e) => setResponseText(e.target.value)}
