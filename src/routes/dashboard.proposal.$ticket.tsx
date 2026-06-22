@@ -517,6 +517,8 @@ function ProposalDetailPage() {
   const [contractSuccess, setContractSuccess] = useState<string | null>(null);
   const [contractStep, setContractStep] = useState<1 | 2>(1);
   const [contractFields, setContractFields] = useState({
+    title: "",
+    subtitle: "",
     language: "in all languages",
     author_copies: "two copies",
     if_two_author_copies: "two copies",
@@ -535,6 +537,11 @@ function ProposalDetailPage() {
     setContractError(null);
     setContractSuccess(null);
     setContractStep(1);
+    setContractFields((f) => ({
+      ...f,
+      title: cd.main_title || title || "",
+      subtitle: cd.sub_title || "",
+    }));
     setContractOpen(true);
   };
 
@@ -601,7 +608,7 @@ function ProposalDetailPage() {
 
       const payload: Record<string, unknown> = {
         contract_type: contractType,
-        title: cd.main_title || title,
+        title: (contractFields.title || cd.main_title || title || "").trim(),
         expiry_days: contractExpiryDays,
         language: contractFields.language,
         author_copies: contractFields.author_copies,
@@ -611,7 +618,8 @@ function ProposalDetailPage() {
         secondary_rights_revenue: Number(contractFields.secondary_rights_revenue) || 0,
         publishing_agreement: contractFields.publishing_agreement,
       };
-      if (cd.sub_title) payload.subtitle = cd.sub_title;
+      const subtitleValue = (contractFields.subtitle || cd.sub_title || "").trim();
+      if (subtitleValue) payload.subtitle = subtitleValue;
       if (contractAmendments.trim()) payload.addendum = contractAmendments.trim();
       if (contractNote.trim()) {
         payload.notes = contractNote.trim();
@@ -3295,6 +3303,34 @@ function ProposalDetailPage() {
                     Contract Details
                   </h3>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="sm:col-span-2">
+                      <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
+                        Title <span className="text-rose-600">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={contractFields.title}
+                        onChange={(e) =>
+                          setContractFields((f) => ({ ...f, title: e.target.value }))
+                        }
+                        placeholder="Book title"
+                        className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 focus:border-[#5B2EBA] focus:outline-none focus:ring-2 focus:ring-[#EDE7FA]"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
+                        Subtitle
+                      </label>
+                      <input
+                        type="text"
+                        value={contractFields.subtitle}
+                        onChange={(e) =>
+                          setContractFields((f) => ({ ...f, subtitle: e.target.value }))
+                        }
+                        placeholder="Optional subtitle"
+                        className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 focus:border-[#5B2EBA] focus:outline-none focus:ring-2 focus:ring-[#EDE7FA]"
+                      />
+                    </div>
                     <div>
                       <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
                         Language <span className="text-rose-600">*</span>
