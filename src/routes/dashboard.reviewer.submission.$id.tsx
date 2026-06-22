@@ -738,8 +738,32 @@ function ProposalDetails({
     ...additional.map((f) => ({ ...f, label: "Additional" })),
   ];
 
+  const additionalNotes =
+    ((cd as Record<string, unknown>).additional_notes as string | undefined) ||
+    ((cd as Record<string, unknown>).additional_comments as string | undefined) ||
+    ((cd as Record<string, unknown>).permissions_notes as string | undefined) ||
+    "";
+
+  const toc = (cd.table_of_contents || "")
+    .split(/\r?\n/)
+    .map((s) => s.replace(/^\s*\d+[.)]\s*/, "").trim())
+    .filter(Boolean);
+
+  const isNonEnglish = !!cd.language && !/english/i.test(cd.language);
+  const illTables =
+    (cd.has_illustrations
+      ? `${cd.illustration_count ? cd.illustration_count : "Yes"} illustrations`
+      : "No illustrations") +
+    " · " +
+    (cd.has_tables ? "Tables: Yes" : "Tables: No");
+
+  const suggestedReviewers = (cd.recommended_reviewers || "")
+    .split(/\r?\n|;/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
   return (
-    <section className="min-h-0 space-y-4 overflow-y-auto px-6 py-4">
+    <section className="min-h-0 space-y-6 overflow-y-auto px-6 py-4">
       {/* Title card */}
       <div className="rounded-2xl border border-stone-200 bg-white p-6">
         <div className="flex flex-wrap items-center gap-2">
@@ -761,27 +785,23 @@ function ProposalDetails({
         {cd.sub_title && (
           <p className="mt-1 font-sans text-sm font-medium text-[#A6814A]">{cd.sub_title}</p>
         )}
-        <div className="mt-4 flex flex-wrap gap-2">
-          {cd.book_type && <Pill>{cd.book_type}</Pill>}
-          {cd.subject && <Pill>{cd.subject}</Pill>}
-          {cd.language && <Pill>{cd.language}</Pill>}
-          {typeof cd.estimated_word_count === "number" && (
-            <Pill>{cd.estimated_word_count.toLocaleString()} words</Pill>
-          )}
-          {cd.estimated_pages != null && <Pill>{cd.estimated_pages} pages</Pill>}
-          {cd.estimated_completion_date && (
-            <Pill>Due {formatDate(cd.estimated_completion_date)}</Pill>
-          )}
-        </div>
-        {cd.secondary_subjects && cd.secondary_subjects.length > 0 && (
-          <p className="mt-3 font-sans text-xs text-stone-500">
-            Also in: {cd.secondary_subjects.join(", ")}
-          </p>
-        )}
       </div>
 
-      {/* Primary Author */}
-      <Section title="Primary Author">
+      {/* Primary Author / Editor */}
+      <Section title="Primary Author / Editor">
+        <div className="-mt-2 mb-4 flex flex-wrap gap-x-8 gap-y-2 font-sans text-sm">
+          <Field label="Type" value={cd.book_type || "—"} />
+          <Field
+            label="Words"
+            value={
+              typeof cd.estimated_word_count === "number"
+                ? cd.estimated_word_count.toLocaleString()
+                : "—"
+            }
+          />
+          <Field label="Completion" value={formatDate(cd.estimated_completion_date)} />
+        </div>
+        <hr className="my-4 border-stone-100" />
         <div className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
           <Field
             label="Name"
@@ -794,86 +814,113 @@ function ProposalDetails({
             }
           />
           <Field label="Email" value={cd.email || "—"} />
-          <Field label="Phone" value={cd.phone || "—"} />
           <Field label="Institution" value={cd.institution || "—"} />
           <Field label="Country" value={cd.country || "—"} />
-          <Field label="Address" value={cd.address || "—"} />
+        </div>
+        <hr className="my-4 border-stone-100" />
+        <div>
+          <div className="font-sans text-xs uppercase tracking-wide text-stone-500">
+            Mailing Address
+          </div>
+          <p className="mt-2 font-sans text-sm text-stone-800">{cd.address || "—"}</p>
         </div>
         <Para label="Biography" value={cd.biography} />
-        {cd.co_authors && cd.co_authors.length > 0 && (
-          <Para label="Co-authors / Editors" value={JSON.stringify(cd.co_authors, null, 2)} />
-        )}
       </Section>
 
-      {/* Description */}
-      <Section title="Description">
-        <Para label="Detailed description" value={cd.detailed_description} />
-        <Para label="Key features" value={cd.key_features} />
-        <Para label="Unique selling points" value={cd.unique_selling_points} />
-        <Para label="Table of contents" value={cd.table_of_contents} />
-      </Section>
-
-      {/* Market */}
-      <Section title="Market & Audience">
-        <Para label="Target audience" value={cd.target_audience} />
-        <Para label="Primary market" value={cd.primary_market} />
-        <Para label="Competing titles" value={cd.competing_titles} />
-        <Para label="Conferences" value={cd.conferences} />
-        <Para label="Promotional channels" value={cd.promotional_channels} />
-        <Para label="Recommended reviewers" value={cd.recommended_reviewers} />
-      </Section>
-
-      {/* Production details */}
-      <Section title="Production Details">
-        <div className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
+      {/* Manuscript Details */}
+      <Section title="Manuscript Details">
+        <div className="grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-4">
           <Field
-            label="Estimated word count"
+            label="Word Count"
             value={
               typeof cd.estimated_word_count === "number"
                 ? cd.estimated_word_count.toLocaleString()
                 : "—"
             }
           />
-          <Field
-            label="Estimated pages"
-            value={cd.estimated_pages != null ? String(cd.estimated_pages) : "—"}
-          />
-          <Field
-            label="Expected completion"
-            value={formatDate(cd.estimated_completion_date)}
-          />
-          <Field
-            label="Has tables"
-            value={cd.has_tables ? "Yes" : "No"}
-          />
-          <Field
-            label="Has illustrations"
-            value={
-              cd.has_illustrations
-                ? `Yes${cd.illustration_count ? ` (${cd.illustration_count})` : ""}`
-                : "No"
-            }
-          />
-          <Field
-            label="Previously published"
-            value={cd.is_previously_published ? "Yes" : "No"}
-          />
+          <Field label="Illustrations / Tables" value={illTables} />
+          <Field label="Non-English Content" value={isNonEnglish ? "Yes" : "No"} />
+          <Field label="Est. Completion" value={formatDate(cd.estimated_completion_date)} />
         </div>
       </Section>
 
-      {/* Files */}
+      {/* Summary & Description */}
+      <Section title="Summary & Description">
+        {(cd.subject || (cd.secondary_subjects && cd.secondary_subjects.length > 0)) && (
+          <p className="-mt-2 mb-4 font-sans text-xs text-stone-500">
+            {[cd.subject, (cd.secondary_subjects || []).join(", ")]
+              .filter(Boolean)
+              .join(" · ")}
+          </p>
+        )}
+        <Para label="Overview" value={cd.detailed_description} />
+        <Para
+          label="Key Features & Unique Contribution"
+          value={[cd.key_features, cd.unique_selling_points].filter(Boolean).join("\n\n")}
+        />
+        <Para label="Intended Audience" value={cd.target_audience} />
+      </Section>
+
+      {/* Table of Contents */}
+      {toc.length > 0 && (
+        <Section title="Table of Contents">
+          <ol className="space-y-2 rounded-xl bg-[#FAF6EE] p-5">
+            {toc.map((chapter, idx) => (
+              <li key={idx} className="font-sans text-sm leading-relaxed text-stone-800">
+                <span className="mr-1.5 text-stone-500">{idx + 1}.</span>
+                {chapter}
+              </li>
+            ))}
+          </ol>
+        </Section>
+      )}
+
+      {/* Market & Competition */}
+      <Section title="Market & Competition">
+        <Para label="Why is this book needed?" value={cd.primary_market} />
+        <Para label="Competing Titles" value={cd.competing_titles} />
+      </Section>
+
+      {/* Author-Suggested Reviewers */}
+      <Section title="Author-Suggested Reviewers">
+        {suggestedReviewers.length === 0 ? (
+          <p className="font-sans text-sm text-stone-500">No reviewers suggested.</p>
+        ) : (
+          <ol className="divide-y divide-stone-100">
+            {suggestedReviewers.map((r, idx) => (
+              <li key={idx} className="flex gap-4 py-3 first:pt-0">
+                <span className="font-sans text-sm font-semibold text-stone-500">
+                  {idx + 1}.
+                </span>
+                <p className="font-sans text-sm text-stone-800">{r}</p>
+              </li>
+            ))}
+          </ol>
+        )}
+      </Section>
+
+      {/* Additional Notes */}
+      <Section title="Additional Notes">
+        <p className="font-sans text-sm leading-relaxed text-stone-800">
+          {additionalNotes || "—"}
+        </p>
+      </Section>
+
+      {/* Supporting Documents */}
       {allFiles.length > 0 && (
-        <Section title="Manuscript Files">
+        <Section title="Supporting Documents">
           <ul className="divide-y divide-stone-100">
             {allFiles.map((f, i) => (
-              <li key={i} className="flex items-center justify-between gap-3 py-3">
+              <li key={i} className="flex items-center justify-between gap-3 py-3 first:pt-0">
                 <div className="flex min-w-0 items-start gap-3">
-                  <FileText className="mt-0.5 h-5 w-5 flex-shrink-0 text-sky-600" />
+                  <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-50 text-orange-600">
+                    <FileText className="h-5 w-5" />
+                  </span>
                   <div className="min-w-0">
-                    <p className="truncate font-sans text-sm font-medium text-stone-800">
+                    <p className="truncate font-sans text-sm font-semibold text-stone-900">
                       {f.filename}
                     </p>
-                    <p className="font-sans text-xs text-stone-500">
+                    <p className="mt-0.5 font-sans text-xs text-stone-500">
                       {f.label}
                       {f.size_bytes ? ` · ${formatBytes(f.size_bytes)}` : ""}
                     </p>
@@ -883,9 +930,9 @@ function ProposalDetails({
                   href={f.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-white px-3 py-1.5 font-sans text-xs font-semibold text-stone-700 hover:bg-stone-50"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-stone-200 bg-white px-3 py-1.5 font-sans text-sm font-medium text-stone-700 hover:bg-stone-50"
                 >
-                  <Download className="h-3.5 w-3.5" />
+                  <Download className="h-4 w-4" />
                   Download
                 </a>
               </li>
@@ -894,13 +941,13 @@ function ProposalDetails({
         </Section>
       )}
 
-      {/* Assignment & Submission Meta */}
+      {/* Submission Info */}
       <Section title="Submission Info">
         <div className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
+          <Field label="Ref" value={cd.website_reference_number || proposal.ticket} />
+          <Field label="Type" value={cd.book_type || "—"} />
           <Field label="Submitted" value={formatDate(proposal.submittedAt)} />
-          <Field label="Last updated" value={formatDate(proposal.updatedAt)} />
-          <Field label="Website ref." value={cd.website_reference_number || "—"} />
-          <Field label="Source" value={cd.source || "—"} />
+          <Field label="Updated" value={formatDate(proposal.updatedAt)} />
         </div>
         {proposal.assignments && proposal.assignments.length > 0 && (
           <div className="mt-5 space-y-3">
