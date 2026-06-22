@@ -407,7 +407,7 @@ function ReviewerSubmission() {
               <span className="font-serif text-xs font-normal normal-case tracking-normal text-[#2C1A0E]">
                 {(proposal.cd as Record<string, unknown>).proposed_title as string}
                 {((proposal.cd as Record<string, unknown>).proposed_subtitle as string | undefined)
-                  ? ` — ${(proposal.cd as Record<string, unknown>).proposed_subtitle as string}`
+                  ? `: ${(proposal.cd as Record<string, unknown>).proposed_subtitle as string}`
                   : ""}
               </span>
             </p>
@@ -805,7 +805,7 @@ function ProposalDetails({
             Proposed title:{" "}
             <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
               {cd.proposed_title}
-              {cd.proposed_subtitle ? ` — ${cd.proposed_subtitle}` : ""}
+              {cd.proposed_subtitle ? `: ${cd.proposed_subtitle}` : ""}
             </span>
           </p>
         )}

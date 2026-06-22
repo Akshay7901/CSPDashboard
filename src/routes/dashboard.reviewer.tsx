@@ -529,7 +529,7 @@ function ReviewCard({
           Proposed title:{" "}
           <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
             {item.proposedTitle}
-            {item.proposedSubtitle ? ` — ${item.proposedSubtitle}` : ""}
+            {item.proposedSubtitle ? `: ${item.proposedSubtitle}` : ""}
           </span>
         </p>
       )}

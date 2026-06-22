@@ -734,7 +734,7 @@ function DecisionReviewerDashboard() {
                         Proposed:{" "}
                         <span className="font-serif text-xs font-normal normal-case tracking-normal text-[#2C1A0E]">
                           {p.proposedTitle}
-                          {p.proposedSubtitle ? ` — ${p.proposedSubtitle}` : ""}
+                          {p.proposedSubtitle ? `: ${p.proposedSubtitle}` : ""}
                         </span>
                       </p>
                     )}

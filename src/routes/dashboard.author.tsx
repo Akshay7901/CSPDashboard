@@ -857,7 +857,7 @@ function ProposalCard({ p }: { p: LocalProposalWithInfo }) {
                 Proposed:{" "}
                 <span className="font-serif text-xs font-normal normal-case tracking-normal text-text">
                   {p.proposedTitle}
-                  {p.proposedSubtitle ? ` — ${p.proposedSubtitle}` : ""}
+                  {p.proposedSubtitle ? `: ${p.proposedSubtitle}` : ""}
                 </span>
               </p>
             )}

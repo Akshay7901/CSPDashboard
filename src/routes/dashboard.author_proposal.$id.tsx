@@ -759,7 +759,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                 Proposed title:{" "}
                 <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
                   {cd.proposed_title}
-                  {cd.proposed_subtitle ? ` — ${cd.proposed_subtitle}` : ""}
+                  {cd.proposed_subtitle ? `: ${cd.proposed_subtitle}` : ""}
                 </span>
               </p>
             )}
