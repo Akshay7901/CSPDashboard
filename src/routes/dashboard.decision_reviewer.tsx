@@ -11,6 +11,7 @@ import {
   X,
   Trash2,
   History,
+  UserCog,
 } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
 import { portalLogout, getPortalSession, getPortalToken, isAdmin as checkIsAdmin } from "@/lib/auth";
@@ -69,6 +70,8 @@ type ProposalRow = {
   rawStatus: string;
   displayStatus?: string;
   actionRequired?: boolean;
+  currentReviewerEmail?: string;
+  currentReviewerStatus?: string;
 };
 
 const STATUS_MAP: Record<string, StatusKey> = {
@@ -143,6 +146,9 @@ const mapApiProposal = (p: ApiProposal): ProposalRow => {
   const cd = p.current_data || {};
   const institution = cd.affiliation || cd.institution || "";
   const subject = cd.discipline || cd.subject_area || cd.subject || "";
+  const activeAssign = (p.assignments || []).find(
+    (a) => !/complete|returned|done/i.test(a.peer_reviewer_status || a.display_status || ""),
+  ) || (p.assignments || [])[0];
   return {
     id: p.ticket_number,
     title: p.title,
@@ -164,6 +170,8 @@ const mapApiProposal = (p: ApiProposal): ProposalRow => {
     rawStatus: p.status,
     displayStatus: deriveDisplayStatus(p),
     actionRequired: p.action_required,
+    currentReviewerEmail: activeAssign?.reviewer_email,
+    currentReviewerStatus: activeAssign?.peer_reviewer_status || activeAssign?.display_status,
   };
 };
 
