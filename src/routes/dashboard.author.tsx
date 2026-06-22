@@ -11,6 +11,7 @@ import {
   HelpCircle,
   FileText,
   XCircle,
+  LogOut,
 } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
 import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
