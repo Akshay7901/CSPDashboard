@@ -1568,7 +1568,7 @@ function ProposalDetailPage() {
   return (
     <div className="min-h-screen bg-[#F9F7F2] font-sans text-stone-800">
       <header className="border-b border-stone-200 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-8 py-4">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
           <div className="flex items-center gap-3">
             <Link to="/dashboard/decision_reviewer" className="flex items-center gap-3">
               <img src={cspLogo} alt="CSP" width={32} height={32} />
@@ -1597,7 +1597,7 @@ function ProposalDetailPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-8 py-8">
+      <main className="mx-auto max-w-6xl px-6 py-8">
         <Link
           to="/dashboard/decision_reviewer"
           className="inline-flex items-center gap-1.5 font-sans text-sm font-medium text-[#0E3D2F] hover:underline"
