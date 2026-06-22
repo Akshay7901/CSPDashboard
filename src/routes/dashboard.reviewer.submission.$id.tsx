@@ -48,6 +48,8 @@ function ReviewerSubmission() {
   type CurrentData = Record<string, unknown> & {
     main_title?: string;
     sub_title?: string;
+    proposed_title?: string;
+    proposed_subtitle?: string;
     book_type?: string;
     subject?: string;
     language?: string;
