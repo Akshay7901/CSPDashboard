@@ -1142,7 +1142,11 @@ function ProposalDetailPage() {
     permissions_required: pick("permissions_required"),
     table_of_contents: pick("table_of_contents"),
   };
-  const title = cd.main_title || ticket;
+  // Prefer the title/subtitle from the most recent contract (the DR may
+  // have edited them at /contract/send time); fall back to the proposal's
+  // current_data values.
+  const latestContractForHeader = contracts[0];
+  const title = latestContractForHeader?.title || cd.main_title || ticket;
   const proposalDocuments = extractProposalDocuments(rawCd);
 
   const keywords = useMemo(
