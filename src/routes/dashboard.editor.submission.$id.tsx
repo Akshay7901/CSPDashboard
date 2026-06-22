@@ -493,27 +493,6 @@ function SubmissionDetail() {
                   </div>
                 </Card>
 
-                {/* Your Editorial Notes */}
-                <Card>
-                  <div className="px-7 pt-6">
-                    <h2 className="font-serif text-xl font-bold text-stone-900">
-                      Your Editorial Notes
-                    </h2>
-                    <p className="mt-1 font-sans text-sm text-stone-500">
-                      These will be sent to the author along with the review comments
-                    </p>
-                  </div>
-                  <div className="px-7 py-6">
-                    <textarea
-                      value={editorialSummary}
-                      onChange={(e) => setEditorialSummary(e.target.value)}
-                      rows={6}
-                      placeholder="Add your editorial summary, guidance, or context for the author before sending…"
-                      className="w-full resize-y rounded-xl border border-[#0E3D2F]/50 bg-white px-4 py-3 font-sans text-sm leading-relaxed text-stone-800 placeholder:text-stone-400 focus:border-[#0E3D2F] focus:outline-none focus:ring-2 focus:ring-[#0E3D2F]/20"
-                    />
-                  </div>
-                </Card>
-
                 {/* Collapsible: View original proposal details */}
                 <Card>
                   <button
