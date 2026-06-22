@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronDown, FileText, Check, X, Calendar, Send, Save, AlertCircle, Upload, Paperclip, Download, HelpCircle, CheckCircle2, LogOut } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
 import { initialsFromName, type StatusKey } from "@/lib/proposals";
@@ -626,9 +626,28 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
   const [contractSigned, setContractSigned] = useState(false);
   const [contractTitleOverride, setContractTitleOverride] = useState<string | undefined>();
   const [contractSubtitleOverride, setContractSubtitleOverride] = useState<string | undefined>();
+  const lastContractKeyRef = useRef<string | null>(null);
   useEffect(() => {
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
+    const refetchProposalTitles = async () => {
+      try {
+        const token = getPortalToken();
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        };
+        const res = await proposalApiFetch(`/${encodeURIComponent(proposal.ticket)}`, { headers });
+        if (!res.ok) return;
+        const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+        const cdLatest = (body.current_data as CurrentData) || {};
+        if (cancelled) return;
+        if (cdLatest.main_title) setContractTitleOverride(cdLatest.main_title);
+        if (cdLatest.sub_title) setContractSubtitleOverride(cdLatest.sub_title);
+      } catch {
+        // ignore
+      }
+    };
     const load = async () => {
       try {
         const list = await getContract(proposal.ticket);
@@ -636,6 +655,16 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
         const latest = list[0];
         if (latest?.title) setContractTitleOverride(latest.title);
         if (latest?.subtitle) setContractSubtitleOverride(latest.subtitle);
+        // When a new contract version is detected, refetch the proposal so the
+        // title/subtitle that the DR reviewer edited at send time appear here
+        // without requiring a manual refresh.
+        const key = latest
+          ? `${latest.id ?? ""}:${latest.contract_version ?? ""}:${latest.updated_at ?? ""}`
+          : "";
+        if (key && key !== lastContractKeyRef.current) {
+          lastContractKeyRef.current = key;
+          await refetchProposalTitles();
+        }
         const s = (latest?.status || "").toLowerCase();
         const completed = !!latest?.docusign_completed_at;
         if (s === "signed" || s === "completed" || completed) {
