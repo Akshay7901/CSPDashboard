@@ -1686,15 +1686,17 @@ function ProposalDetailPage() {
                     </p>
                   )}
                   {(() => {
+                    const candidateTitle =
+                      optimisticProposed?.title || latestContractForHeader?.title;
+                    const candidateSubtitle =
+                      optimisticProposed?.subtitle || latestContractForHeader?.subtitle;
                     const proposedTitle =
-                      latestContractForHeader?.title &&
-                      latestContractForHeader.title !== (cd.main_title || title)
-                        ? latestContractForHeader.title
+                      candidateTitle && candidateTitle !== (cd.main_title || title)
+                        ? candidateTitle
                         : null;
                     const proposedSubtitle =
-                      latestContractForHeader?.subtitle &&
-                      latestContractForHeader.subtitle !== cd.sub_title
-                        ? latestContractForHeader.subtitle
+                      candidateSubtitle && candidateSubtitle !== cd.sub_title
+                        ? candidateSubtitle
                         : null;
                     if (!proposedTitle && !proposedSubtitle) return null;
                     return (
