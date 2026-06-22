@@ -3622,6 +3622,109 @@ function formatNumber(s?: string): string {
   return n.toLocaleString();
 }
 
+// Camel/PascalCase → snake_case (preserves digits)
+function toSnake(key: string): string {
+  return key
+    .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
+    .replace(/([A-Z]+)([A-Z][a-z])/g, "$1_$2")
+    .toLowerCase();
+}
+
+// Flatten the nested submission shape (authors[], mailing{}, book{},
+// description{}, marketing{}, agreement{}, manuscript{}) into the flat
+// snake_case shape the rest of the detail page expects. Existing flat
+// fields always win — we never overwrite values already on the payload.
+function normalizeProposalData(
+  raw: Record<string, unknown>,
+): Record<string, unknown> {
+  const out: Record<string, unknown> = { ...raw };
+  const setIfEmpty = (key: string, value: unknown) => {
+    if (value === null || value === undefined || value === "") return;
+    const existing = out[key];
+    if (existing === undefined || existing === null || existing === "") {
+      out[key] = value;
+    }
+  };
+
+  const isObj = (v: unknown): v is Record<string, unknown> =>
+    !!v && typeof v === "object" && !Array.isArray(v);
+
+  // authors[] — first entry maps onto the primary author fields,
+  // the rest become co_authors.
+  const authors = raw.authors;
+  if (Array.isArray(authors) && authors.length > 0) {
+    const primary = authors.find(
+      (a) => isObj(a) && String(a.role || "").toLowerCase() === "author",
+    ) || authors[0];
+    if (isObj(primary)) {
+      const first = (primary.firstName || primary.first_name) as
+        | string
+        | undefined;
+      const last = (primary.lastName || primary.last_name) as
+        | string
+        | undefined;
+      setIfEmpty("author_first_name", first);
+      setIfEmpty("author_last_name", last);
+      setIfEmpty(
+        "corresponding_author_name",
+        [first, last].filter(Boolean).join(" ").trim() || undefined,
+      );
+      setIfEmpty("email", primary.email);
+      setIfEmpty("phone", primary.phone);
+      setIfEmpty("institution", primary.institution);
+      setIfEmpty("country", primary.country);
+      setIfEmpty("biography", primary.biography);
+      setIfEmpty("author_title", primary.position || primary.title);
+    }
+    const others = (authors as unknown[]).filter((a) => a !== primary);
+    if (others.length > 0) {
+      setIfEmpty("co_authors", others);
+    }
+  }
+
+  // mailing{} → address (single line)
+  const mailing = raw.mailing;
+  if (isObj(mailing)) {
+    const parts = [
+      mailing.addressLine1 || mailing.address_line_1,
+      mailing.addressLine2 || mailing.address_line_2,
+      mailing.city,
+      mailing.state,
+      mailing.postalCode || mailing.postal_code,
+      mailing.country,
+    ]
+      .map((v) => (typeof v === "string" ? v.trim() : ""))
+      .filter(Boolean);
+    if (parts.length) setIfEmpty("address", parts.join(", "));
+    setIfEmpty("country", mailing.country);
+  }
+
+  // book{}, description{}, marketing{}, manuscript{}, agreement{}
+  // — copy each leaf field across with snake_case keys.
+  const flatGroups = ["book", "description", "marketing", "manuscript", "agreement"];
+  for (const group of flatGroups) {
+    const g = raw[group];
+    if (!isObj(g)) continue;
+    for (const [k, v] of Object.entries(g)) {
+      setIfEmpty(toSnake(k), v);
+    }
+  }
+
+  // Aliases so the existing pick() lookups resolve.
+  if (isObj(raw.book)) {
+    setIfEmpty("main_title", (raw.book as Record<string, unknown>).title);
+    setIfEmpty("sub_title", (raw.book as Record<string, unknown>).subtitle);
+    setIfEmpty("book_type", (raw.book as Record<string, unknown>).type);
+  }
+  if (isObj(raw.description)) {
+    const d = raw.description as Record<string, unknown>;
+    setIfEmpty("abstract_blurb", d.abstract);
+    setIfEmpty("detailed_description", d.abstract);
+  }
+
+  return out;
+}
+
 const ADDITIONAL_DETAILS_SKIP = new Set<string>([
   "main_title",
   "title",
