@@ -2136,33 +2136,32 @@ function ProposalDetailPage() {
                     <div className="grid grid-cols-1 gap-5 px-7 py-6 sm:grid-cols-3">
                       <DataField label="Name" value={cd.corresponding_author_name} />
                       <DataField label="Email" value={cd.email} />
-                      <DataField label="Phone" value={cd.phone} />
                       <DataField label="Institution" value={cd.institution} />
-                      <DataField label="Position" value={cd.job_title} />
-                      <DataField label="Qualifications" value={cd.qualifications} />
-                      <DataField label="Secondary Email" value={cd.secondary_email} />
+                      {cd.country && <DataField label="Country" value={cd.country} />}
                     </div>
                     {(cd.address || cd.address_line_1 || cd.city || cd.state || cd.postal_code || cd.country) && (
                       <div className="px-7 py-6">
                         <SectionLabel>Mailing Address</SectionLabel>
-                        <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                          <DataField label="Address Line 1" value={cd.address_line_1} />
-                          <DataField label="Address Line 2" value={cd.address_line_2} />
-                          <DataField label="City" value={cd.city} />
-                          <DataField label="State / Region" value={cd.state} />
-                          <DataField label="Postal Code" value={cd.postal_code} />
-                          <DataField label="Country" value={cd.country} />
-                        </div>
-                        {!cd.address_line_1 && cd.address && (
-                          <p className="mt-3 whitespace-pre-line font-sans text-sm text-stone-700">
-                            {cd.address}
-                          </p>
-                        )}
+                        <p className="mt-2 font-sans text-sm text-stone-800">
+                          {[
+                            cd.address_line_1,
+                            cd.address_line_2,
+                            cd.city,
+                            cd.state,
+                            cd.postal_code,
+                            cd.country,
+                          ]
+                            .filter(Boolean)
+                            .join(", ") || cd.address}
+                        </p>
                       </div>
                     )}
                     {cd.biography && (
                       <div className="px-7 py-6">
-                        <DataField label="Biography" value={cd.biography} multiline />
+                        <SectionLabel>Biography</SectionLabel>
+                        <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-800">
+                          {cd.biography}
+                        </p>
                       </div>
                     )}
                   </div>
