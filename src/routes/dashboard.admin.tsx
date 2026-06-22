@@ -192,7 +192,7 @@ function deriveDisplayStatus(p: ApiProposal): string | undefined {
 
 export const Route = createFileRoute("/dashboard/admin")({
   head: () => ({
-    meta: [{ title: "Admin Portal — Proposal Intake" }],
+    meta: [{ title: "Editor Portal — Proposal Intake" }],
   }),
   component: AdminDashboard,
 });
@@ -595,7 +595,7 @@ function AdminDashboard() {
               </span>
             </Link>
             <span className="mx-2 h-5 w-px bg-stone-300" />
-            <span className="font-sans text-sm font-medium text-[#00422F]">Admin Portal</span>
+            <span className="font-sans text-sm font-medium text-[#00422F]">Editor Portal</span>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#00422F] font-sans text-xs font-bold text-white">
