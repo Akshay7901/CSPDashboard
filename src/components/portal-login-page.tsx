@@ -241,7 +241,7 @@ function PortalLoginForm({ portal, onBack }: { portal: PortalConfig; onBack: () 
   const isRoleAllowedForPortal = (apiRole: ApiRole | undefined): boolean => {
     const allowed: Record<Role, string[]> = {
       author: ["author"],
-      editor: ["editor", "decision_reviewer"],
+      editor: ["editor", "decision_reviewer", "admin"],
       reviewer: ["reviewer", "peer_reviewer"],
       decision_reviewer: ["decision_reviewer"],
       admin: ["admin"],
