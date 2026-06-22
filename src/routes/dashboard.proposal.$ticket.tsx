@@ -539,7 +539,10 @@ function ProposalDetailPage() {
     setContractExpiryDays(14);
     setContractError(null);
     setContractSuccess(null);
-    setContractStep(1);
+    // Only show the "Note to Author" step on the first contract issuance.
+    // For resends (e.g. after the author raised a query), skip straight to
+    // the contract summary.
+    setContractStep(contracts.length > 0 ? 2 : 1);
     setContractFields((f) => ({
       ...f,
       title: cd.main_title || title || "",
