@@ -3694,7 +3694,7 @@ function Stat({
 }) {
   return (
     <div>
-      <p className="font-sans text-[11px] font-semibold uppercase tracking-wider text-stone-500">
+      <p className="font-sans text-xs uppercase tracking-wide text-stone-500">
         {label}
       </p>
       <p
