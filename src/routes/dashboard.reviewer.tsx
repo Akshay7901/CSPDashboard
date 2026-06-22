@@ -524,7 +524,16 @@ function ReviewCard({
         </button>
       </div>
 
-      <h3 className="mt-3 font-serif text-xl font-bold leading-snug text-stone-900">
+      {item.proposedTitle && (
+        <p className="mt-3 font-sans text-[11px] font-semibold uppercase tracking-wider text-stone-500">
+          Proposed title:{" "}
+          <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
+            {item.proposedTitle}
+            {item.proposedSubtitle ? ` — ${item.proposedSubtitle}` : ""}
+          </span>
+        </p>
+      )}
+      <h3 className={`${item.proposedTitle ? "mt-1" : "mt-3"} font-serif text-xl font-bold leading-snug text-stone-900`}>
         {item.title}
       </h3>
       {item.subtitle && (
