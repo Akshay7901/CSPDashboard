@@ -579,7 +579,6 @@ function ProposalDetailPage() {
             reviewPayload[key] = v;
           }
         });
-        if (editorialSummary.trim()) reviewPayload.dr_note = editorialSummary.trim();
         // Only push a review if there's actually content beyond the recommendation
         if (Object.keys(reviewPayload).length > 1) {
           await proposalApiFetch(
