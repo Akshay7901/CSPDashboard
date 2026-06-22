@@ -654,36 +654,38 @@ function AuthorDashboard() {
   return (
     <main className="min-h-screen bg-[#FAF6EE] font-sans text-stone-900">
       {/* Header */}
-      <header className="border-b border-stone-200 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-8 py-4">
+      <header className="bg-white">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-8 py-4">
           <div className="flex items-center gap-3">
-            <img src={cspLogo} alt="CSP" className="h-10 w-10" />
-            <div className="flex items-center gap-3">
-              <span className="font-serif text-base font-bold text-text">
+            <Link to="/login" className="flex items-center gap-3">
+              <img src={cspLogo} alt="CSP" width={32} height={32} />
+              <span className="font-serif text-base font-bold leading-none text-[#2C1A0E]">
                 Cambridge Scholars Publishing
               </span>
-              <span className="text-stone-300">|</span>
-              <span className="font-sans text-sm font-medium text-portal-author">Author Portal</span>
-            </div>
+            </Link>
+            <span className="mx-1 text-stone-300">|</span>
+            <span className="font-sans text-sm font-medium text-portal-author">Author Portal</span>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="grid h-9 w-9 place-items-center rounded-full bg-orange-100 text-sm font-semibold text-orange-700">
-                {initials}
-              </span>
-              <span className="font-sans text-sm text-text">{displayName}</span>
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-orange-100 font-sans text-xs font-semibold text-orange-700">
+              {initials}
             </div>
+            <span className="font-sans text-sm text-[#2C1A0E]">{displayName}</span>
             <span className="text-stone-300">|</span>
             <ChangePasswordButton
-              triggerClassName="font-sans text-sm text-text-muted transition-colors hover:text-text inline-flex items-center gap-1.5"
+              triggerClassName="inline-flex items-center gap-1.5 font-sans text-sm text-[#7A6A5A] hover:text-stone-900 transition-colors"
             />
             <span className="text-stone-300">|</span>
-            <button onClick={onLogout} className="font-sans text-sm text-text-muted transition-colors hover:text-text">
+            <button
+              type="button"
+              onClick={onLogout}
+              className="inline-flex items-center gap-1.5 font-sans text-sm text-[#7A6A5A] hover:text-stone-900 transition-colors"
+            >
+              <LogOut className="h-4 w-4" />
               Logout
             </button>
           </div>
         </div>
-        <div className="h-[3px] bg-orange-500/80" />
       </header>
 
       <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
