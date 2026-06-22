@@ -2325,35 +2325,42 @@ function ProposalDetailPage() {
                     ) : (
                       <ul className="divide-y divide-stone-100 px-2 py-2">
                         {proposalDocuments.map((doc, i) => {
-                          const content = (
-                            <>
-                              <FileText className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
-                              <div className="min-w-0">
-                                <p className="truncate font-sans text-sm font-semibold text-stone-900">
-                                  {doc.filename}
-                                </p>
-                                {(doc.label || doc.size_bytes) && (
-                                  <p className="mt-1 font-sans text-xs text-stone-500">
-                                    {[doc.label, formatFileSize(doc.size_bytes)].filter(Boolean).join(" · ")}
-                                  </p>
-                                )}
-                              </div>
-                            </>
-                          );
                           return (
                             <li key={`${doc.url || doc.filename}-${i}`} className="px-5 py-4">
-                              {doc.url ? (
-                                <a
-                                  href={doc.url}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="flex items-start gap-3 rounded-lg border border-transparent p-2 transition-colors hover:border-stone-200 hover:bg-stone-50"
-                                >
-                                  {content}
-                                </a>
-                              ) : (
-                                <div className="flex items-start gap-3 p-2">{content}</div>
-                              )}
+                              <div className="flex items-start gap-3 rounded-lg border border-transparent p-2 transition-colors hover:border-stone-200 hover:bg-stone-50">
+                                {doc.url && (
+                                  <button
+                                    type="button"
+                                    onClick={() => window.open(doc.url, "_blank")}
+                                    className="mt-0.5 shrink-0 rounded-md p-1 text-stone-500 hover:bg-stone-100 hover:text-stone-800"
+                                    title="Open document"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </button>
+                                )}
+                                <FileText className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
+                                <div className="min-w-0 flex-1">
+                                  {doc.url ? (
+                                    <a
+                                      href={doc.url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="block truncate font-sans text-sm font-semibold text-stone-900 hover:underline"
+                                    >
+                                      {doc.filename}
+                                    </a>
+                                  ) : (
+                                    <p className="truncate font-sans text-sm font-semibold text-stone-900">
+                                      {doc.filename}
+                                    </p>
+                                  )}
+                                  {(doc.label || doc.size_bytes) && (
+                                    <p className="mt-1 font-sans text-xs text-stone-500">
+                                      {[doc.label, formatFileSize(doc.size_bytes)].filter(Boolean).join(" · ")}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
                             </li>
                           );
                         })}
