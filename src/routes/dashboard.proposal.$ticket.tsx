@@ -2043,6 +2043,32 @@ function ProposalDetailPage() {
                           </div>
 
                           <form onSubmit={submitQueryResponse} className="space-y-3">
+                            <div className="grid gap-3 sm:grid-cols-2">
+                              <div>
+                                <label className="block font-sans text-xs font-semibold uppercase tracking-wider text-stone-600">
+                                  Title
+                                </label>
+                                <input
+                                  type="text"
+                                  value={queryResponseTitle}
+                                  onChange={(e) => setQueryResponseTitle(e.target.value)}
+                                  placeholder="Contract title"
+                                  className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 placeholder:text-stone-400 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100"
+                                />
+                              </div>
+                              <div>
+                                <label className="block font-sans text-xs font-semibold uppercase tracking-wider text-stone-600">
+                                  Subtitle
+                                </label>
+                                <input
+                                  type="text"
+                                  value={queryResponseSubtitle}
+                                  onChange={(e) => setQueryResponseSubtitle(e.target.value)}
+                                  placeholder="Contract subtitle (optional)"
+                                  className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 placeholder:text-stone-400 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100"
+                                />
+                              </div>
+                            </div>
                             <label className="block font-sans text-sm font-semibold text-stone-800">
                               Your response
                             </label>
