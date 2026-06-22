@@ -393,6 +393,8 @@ function ProposalDetailPage() {
   const [queryThread, setQueryThread] = useState<ContractQueryEntry[]>([]);
   const [queryProposalStatus, setQueryProposalStatus] = useState<string>("");
   const [queryResponseText, setQueryResponseText] = useState("");
+  const [queryResponseTitle, setQueryResponseTitle] = useState("");
+  const [queryResponseSubtitle, setQueryResponseSubtitle] = useState("");
   const [queryResponseSubmitting, setQueryResponseSubmitting] = useState(false);
   const [queryResponseError, setQueryResponseError] = useState<string | null>(null);
   const [queryResponseSuccess, setQueryResponseSuccess] = useState<string | null>(null);
@@ -1227,10 +1229,65 @@ function ProposalDetailPage() {
     setQueryResponseSuccess(null);
     try {
       await respondQuery(ticket, openQuery.id, queryResponseText.trim());
+
+      // Also resend the contract so the author gets the (possibly edited)
+      // title/subtitle alongside the DR's response.
+      const token = getPortalToken();
+      const titleValue = (queryResponseTitle || cd.main_title || title || "").trim();
+      const subtitleValue = (queryResponseSubtitle || cd.sub_title || "").trim();
+      const payload: Record<string, unknown> = {
+        contract_type: contractType,
+        title: titleValue,
+        expiry_days: contractExpiryDays,
+        language: contractFields.language,
+        author_copies: contractFields.author_copies,
+        if_two_author_copies: contractFields.if_two_author_copies,
+        if_three_or_four_author_copies: contractFields.if_three_or_four_author_copies,
+        copies_sold_revenue: Number(contractFields.copies_sold_revenue) || 0,
+        secondary_rights_revenue: Number(contractFields.secondary_rights_revenue) || 0,
+        publishing_agreement: contractFields.publishing_agreement,
+      };
+      if (subtitleValue) payload.subtitle = subtitleValue;
+      const sendRes = await proposalApiFetch(
+        `/${encodeURIComponent(ticket)}/contract/send`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify(payload),
+        },
+      );
+      const sendBody = (await sendRes.json().catch(() => ({}))) as Record<string, unknown>;
+      if (!sendRes.ok) {
+        throw new Error(
+          (sendBody.error as string) ||
+            (sendBody.message as string) ||
+            `Failed to resend contract (${sendRes.status}).`,
+        );
+      }
+
       setQueryResponseText("");
-      setQueryResponseSuccess("Response sent to the author.");
+      setQueryResponseSuccess("Response sent and contract reissued to the author.");
       setContractsReloadKey((k) => k + 1);
-      setContractResendPrompt("prompt");
+      // Skip the follow-up "Send Contract Again?" prompt — it just happened.
+      setContractResendPrompt("skip");
+      try {
+        const refreshed = await proposalApiFetch(`/${encodeURIComponent(ticket)}`, {
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+        const refreshedBody = (await refreshed.json().catch(() => ({}))) as Record<
+          string,
+          unknown
+        >;
+        if (refreshed.ok) setData(refreshedBody as unknown as ProposalDetail);
+      } catch {
+        // ignore refresh errors
+      }
     } catch (err) {
       setQueryResponseError(
         (err as Error).message || "Failed to send response.",
@@ -1254,6 +1311,19 @@ function ProposalDetailPage() {
     const cs = (latestContract?.status || "").toLowerCase();
     return cs === "signed";
   }, [latestContract]);
+
+  // Seed the response-form title/subtitle from the latest contract or proposal
+  // data when a new author question appears, so the DR can tweak before resending.
+  useEffect(() => {
+    if (!openQuery) return;
+    setQueryResponseTitle((prev) =>
+      prev ? prev : (latestContract?.title || cd.main_title || ""),
+    );
+    setQueryResponseSubtitle((prev) =>
+      prev ? prev : (latestContract?.subtitle || cd.sub_title || ""),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openQuery?.id, latestContract?.id]);
 
   useEffect(() => {
     if (!isContractSigned || !ticket) return;
@@ -1973,6 +2043,32 @@ function ProposalDetailPage() {
                           </div>
 
                           <form onSubmit={submitQueryResponse} className="space-y-3">
+                            <div className="grid gap-3 sm:grid-cols-2">
+                              <div>
+                                <label className="block font-sans text-xs font-semibold uppercase tracking-wider text-stone-600">
+                                  Title
+                                </label>
+                                <input
+                                  type="text"
+                                  value={queryResponseTitle}
+                                  onChange={(e) => setQueryResponseTitle(e.target.value)}
+                                  placeholder="Contract title"
+                                  className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 placeholder:text-stone-400 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100"
+                                />
+                              </div>
+                              <div>
+                                <label className="block font-sans text-xs font-semibold uppercase tracking-wider text-stone-600">
+                                  Subtitle
+                                </label>
+                                <input
+                                  type="text"
+                                  value={queryResponseSubtitle}
+                                  onChange={(e) => setQueryResponseSubtitle(e.target.value)}
+                                  placeholder="Contract subtitle (optional)"
+                                  className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 placeholder:text-stone-400 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100"
+                                />
+                              </div>
+                            </div>
                             <label className="block font-sans text-sm font-semibold text-stone-800">
                               Your response
                             </label>
