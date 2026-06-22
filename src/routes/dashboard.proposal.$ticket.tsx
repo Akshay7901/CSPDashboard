@@ -1643,14 +1643,12 @@ function ProposalDetailPage() {
             <section className="mt-6 rounded-2xl border border-stone-200 bg-white px-8 py-7">
               <div className="flex items-start justify-between gap-6">
                 <div>
-                  {(latestContract?.title || cd.proposed_title) && (
+                  {latestContract?.title && (
                     <p className="mb-2 font-sans text-xs font-semibold uppercase tracking-wider text-stone-500">
                       Proposed Title:{" "}
                       <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
-                        {latestContract?.title || cd.proposed_title}
-                        {(latestContract?.subtitle || cd.proposed_subtitle)
-                          ? `: ${latestContract?.subtitle || cd.proposed_subtitle}`
-                          : ""}
+                        {latestContract.title}
+                        {latestContract.subtitle ? `: ${latestContract.subtitle}` : ""}
                       </span>
                     </p>
                   )}
