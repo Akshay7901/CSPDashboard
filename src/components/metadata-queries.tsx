@@ -16,6 +16,8 @@ type Props = {
   /** Optional list of metadata field keys the author can tag a query against. */
   raisableFields?: { key: string; label: string }[];
   onChanged?: () => void;
+  /** Notified whenever the open-query state changes (author has an unanswered query). */
+  onOpenQueryChange?: (hasOpen: boolean) => void;
 };
 
 export function MetadataQueries({
@@ -24,6 +26,7 @@ export function MetadataQueries({
   canRaise = true,
   raisableFields,
   onChanged,
+  onOpenQueryChange,
 }: Props) {
   const [thread, setThread] = useState<MetadataQueryEntry[]>([]);
   const [loading, setLoading] = useState(false);
@@ -103,6 +106,10 @@ export function MetadataQueries({
   const hasOpenQuery = thread.some(
     (t) => t.type === "query" && !answered.has(t.id),
   );
+
+  useEffect(() => {
+    onOpenQueryChange?.(hasOpenQuery);
+  }, [hasOpenQuery, onOpenQueryChange]);
 
   if (viewer === "dr" && !loading && thread.length === 0) {
     return null;
@@ -232,7 +239,15 @@ export function MetadataQueries({
         )}
       </div>
 
-      {viewer === "author" && canRaise && (
+      {viewer === "author" && canRaise && hasOpenQuery && (
+        <div className="border-t border-stone-200 px-5 py-4">
+          <p className="rounded-lg bg-amber-50 px-3 py-2 font-sans text-xs text-amber-800 ring-1 ring-amber-200">
+            You have an open query awaiting a response. You can raise a new query
+            once the publisher has responded.
+          </p>
+        </div>
+      )}
+      {viewer === "author" && canRaise && !hasOpenQuery && (
         <form onSubmit={onRaise} className="space-y-3 border-t border-stone-200 px-5 py-4">
           <div>
             <label className="block font-sans text-xs font-semibold uppercase tracking-[0.1em] text-stone-500">
