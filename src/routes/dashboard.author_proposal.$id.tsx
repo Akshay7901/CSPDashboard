@@ -1329,53 +1329,16 @@ function ContractIssuedView({
           </div>
 
           {/* Metadata Rows */}
-          <div className="space-y-5 border-t border-stone-200/70 pt-6">
-            <div className="flex items-baseline justify-between gap-4">
-              <span className="font-sans text-sm text-stone-600">Author</span>
-              <span className="font-sans text-sm font-medium text-stone-800">
-                {contract.recipient_name || authorFullName}
-              </span>
-            </div>
-            <div className="flex items-baseline justify-between gap-4">
-              <span className="font-sans text-sm text-stone-600">Title</span>
-              <span className="truncate font-sans text-sm font-medium text-stone-800 max-w-[60%] text-right">
-                {contractTitle}
-              </span>
-            </div>
-            {contractSubtitle && (
-              <div className="flex items-baseline justify-between gap-4">
-                <span className="font-sans text-sm text-stone-600">Subtitle</span>
-                <span className="max-w-[60%] text-right font-sans text-sm font-medium text-stone-800">
-                  {contractSubtitle}
-                </span>
-              </div>
-            )}
-            <div className="flex items-baseline justify-between gap-4">
-              <span className="font-sans text-sm text-stone-600">Format</span>
-              <span className="font-sans text-sm font-medium text-stone-800">{formatLabel}</span>
-            </div>
-            <div className="flex items-baseline justify-between gap-4">
-              <span className="font-sans text-sm text-stone-600">Expected Completion</span>
-              <span className="font-sans text-sm font-medium text-stone-800">
-                {expectedCompletion}
-              </span>
-            </div>
+          <div className="divide-y divide-stone-200/70 border-t border-stone-200/70">
+            <StackedRow label="Author" value={contract.recipient_name || authorFullName} />
+            <StackedRow label="Title" value={contractTitle} />
+            {contractSubtitle && <StackedRow label="Subtitle" value={contractSubtitle} />}
+            <StackedRow label="Format" value={formatLabel} />
+            <StackedRow label="Expected Completion" value={expectedCompletion} />
             {contractFieldRows.map((row) => (
-              <div key={row.label} className="flex items-baseline justify-between gap-4">
-                <span className="font-sans text-sm text-stone-600">{row.label}</span>
-                <span className="max-w-[60%] text-right font-sans text-sm font-medium text-stone-800">
-                  {row.value}
-                </span>
-              </div>
+              <StackedRow key={row.label} label={row.label} value={row.value} />
             ))}
-            {contract.addendum && (
-              <div className="flex items-baseline justify-between gap-4">
-                <span className="font-sans text-sm text-stone-600">Addendum</span>
-                <span className="max-w-[60%] whitespace-pre-line text-right font-sans text-sm font-medium text-stone-800">
-                  {contract.addendum}
-                </span>
-              </div>
-            )}
+            {contract.addendum && <StackedRow label="Addendum" value={contract.addendum} />}
           </div>
 
           {editorNote && (
