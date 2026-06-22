@@ -2113,7 +2113,7 @@ function ProposalDetailPage() {
 
                 {((!isReviewReturned && !isContractIssued) || originalOpen) && (
                   <>
-                <div className="space-y-6 rounded-3xl border border-stone-200 bg-stone-100/60 p-4 sm:p-5">
+                <div className="space-y-6 rounded-3xl border border-stone-200 bg-white p-4 sm:p-5">
                 {/* Primary Author */}
                 <Card>
                   <div className="flex flex-wrap items-start justify-between gap-6 px-7 pt-6">
