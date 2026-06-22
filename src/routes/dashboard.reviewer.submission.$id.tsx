@@ -800,6 +800,15 @@ function ProposalDetails({
         {cd.sub_title && (
           <p className="mt-1 font-sans text-sm font-medium text-[#A6814A]">{cd.sub_title}</p>
         )}
+        {cd.proposed_title && (
+          <p className="mt-2 font-sans text-[11px] font-semibold uppercase tracking-wider text-stone-500">
+            Proposed title:{" "}
+            <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
+              {cd.proposed_title}
+              {cd.proposed_subtitle ? ` — ${cd.proposed_subtitle}` : ""}
+            </span>
+          </p>
+        )}
       </div>
 
       {/* Primary Author / Editor */}
