@@ -1754,6 +1754,10 @@ function ProposalDetailPage() {
                 <MetaItem icon="calendar" text={formatDate(data.submitted_at)} />
               </div>
             </section>
+
+            <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px]">
+              {/* Main column */}
+              <div className="space-y-6">
                 {isContractSigned && (
                   <Card className="mt-6 overflow-hidden border-stone-200">
                     {/* Header */}
@@ -2013,10 +2017,6 @@ function ProposalDetailPage() {
                     </div>
                   </Card>
                 )}
-
-            <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px]">
-              {/* Main column */}
-              <div className="space-y-6">
                 {isContractIssued && (
                   <>
                     {/* Contract & Feedback preview */}
