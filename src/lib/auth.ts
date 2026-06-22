@@ -5,6 +5,7 @@ export type PortalSession = {
   email: string;
   name?: string;
   role: PortalRole | string;
+  apiRole?: string;
 };
 
 const SESSION_KEY = "csp.session";
@@ -68,6 +69,11 @@ export function clearPortalSession() {
       // ignore storage failures
     }
   }
+}
+
+export function isAdmin(): boolean {
+  const session = getPortalSession();
+  return (session?.apiRole || "").toLowerCase() === "admin";
 }
 
 /**
