@@ -13,7 +13,9 @@ import {
   History,
 } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
-import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
+import { portalLogout, getPortalSession, getPortalToken, isAdmin as checkIsAdmin } from "@/lib/auth";
+import { deleteProposal } from "@/lib/adminApi";
+import { toast } from "sonner";
 import {
   STATUS_META,
   type StatusKey,
