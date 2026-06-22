@@ -459,9 +459,6 @@ function EditorDashboard() {
         </div>
       </main>
 
-      {reviewersOpen && (
-        null
-      )}
       {confirmId && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 p-4"
