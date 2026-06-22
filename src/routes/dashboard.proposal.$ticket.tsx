@@ -2420,6 +2420,7 @@ function ProposalDetailPage() {
                     </div>
                   </Card>
                 )}
+                </div>
                   </>
                 )}
 
