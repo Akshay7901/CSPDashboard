@@ -28,6 +28,8 @@ interface ReviewItem {
   kind: string;
   title: string;
   subtitle?: string;
+  proposedTitle?: string;
+  proposedSubtitle?: string;
   authorName: string;
   authorAffiliation: string;
   wordCount: string;
@@ -221,6 +223,15 @@ function ReviewerDashboard() {
             kind: cd.book_type || cd.proposal_type || "Proposal",
             title: cd.main_title || d.ticket_number,
             subtitle: cd.subtitle,
+            proposedTitle:
+              (cd as Record<string, string | undefined>).proposed_title ||
+              (cd as Record<string, string | undefined>).proposed_book_title ||
+              undefined,
+            proposedSubtitle:
+              (cd as Record<string, string | undefined>).proposed_subtitle ||
+              (cd as Record<string, string | undefined>).proposed_sub_title ||
+              (cd as Record<string, string | undefined>).proposed_book_subtitle ||
+              undefined,
             authorName: cd.author_name || cd.primary_author_name || "—",
             authorAffiliation: cd.affiliation || cd.institution || "—",
             wordCount: wc ? `${wc} words` : "—",
@@ -513,7 +524,16 @@ function ReviewCard({
         </button>
       </div>
 
-      <h3 className="mt-3 font-serif text-xl font-bold leading-snug text-stone-900">
+      {item.proposedTitle && (
+        <p className="mt-3 font-sans text-[11px] font-semibold uppercase tracking-wider text-stone-500">
+          Proposed title:{" "}
+          <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
+            {item.proposedTitle}
+            {item.proposedSubtitle ? ` — ${item.proposedSubtitle}` : ""}
+          </span>
+        </p>
+      )}
+      <h3 className={`${item.proposedTitle ? "mt-1" : "mt-3"} font-serif text-xl font-bold leading-snug text-stone-900`}>
         {item.title}
       </h3>
       {item.subtitle && (

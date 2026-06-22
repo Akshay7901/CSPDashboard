@@ -341,6 +341,8 @@ type InfoRequest = {
 type CurrentData = Record<string, unknown> & {
   main_title?: string;
   sub_title?: string;
+  proposed_title?: string;
+  proposed_subtitle?: string;
   book_type?: string;
   subject?: string;
   secondary_subjects?: string[];
@@ -752,6 +754,15 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
       <section id="section-hero" className="mt-6 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm scroll-mt-24">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
+            {cd.proposed_title && (
+              <p className="mb-1.5 font-sans text-[11px] font-semibold uppercase tracking-wider text-stone-500">
+                Proposed title:{" "}
+                <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
+                  {cd.proposed_title}
+                  {cd.proposed_subtitle ? ` — ${cd.proposed_subtitle}` : ""}
+                </span>
+              </p>
+            )}
             <h1 className="font-serif text-2xl font-bold leading-tight md:text-3xl" style={{ color: "#2C1A0E" }}>
               {title}
             </h1>

@@ -1093,6 +1093,7 @@ function ProposalDetailPage() {
     main_title: pick("main_title", "title"),
     sub_title: pick("sub_title", "subtitle"),
     proposed_title: pick("proposed_title", "proposed_book_title", "proposed"),
+    proposed_subtitle: pick("proposed_subtitle", "proposed_sub_title", "proposed_book_subtitle"),
     book_type: pick("book_type"),
     corresponding_author_name:
       pick("corresponding_author_name") ||
@@ -1645,6 +1646,7 @@ function ProposalDetailPage() {
                       Proposed title:{" "}
                       <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
                         {cd.proposed_title}
+                        {cd.proposed_subtitle ? ` — ${cd.proposed_subtitle}` : ""}
                       </span>
                     </p>
                   )}

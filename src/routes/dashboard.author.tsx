@@ -51,7 +51,12 @@ function isAwaitingInfoRaw(raw?: string, display?: string) {
   );
 }
 
-type LocalProposal = Proposal & { rawStatus?: string; rawDisplayStatus?: string };
+type LocalProposal = Proposal & {
+  rawStatus?: string;
+  rawDisplayStatus?: string;
+  proposedTitle?: string;
+  proposedSubtitle?: string;
+};
 
 type InfoRequestItem = { key?: string; label?: string; response_text?: string };
 type InfoRequest = {
@@ -196,6 +201,13 @@ function toProposal(p: ApiProposalItem): LocalProposal {
     ref: p.ticket_number,
     title,
     kind,
+    proposedTitle:
+      cd.proposed_title || cd.proposed_book_title || undefined,
+    proposedSubtitle:
+      cd.proposed_subtitle ||
+      cd.proposed_sub_title ||
+      cd.proposed_book_subtitle ||
+      undefined,
     status: normalizeStatus(p.status, p.display_status),
     rawStatus: p.status,
     rawDisplayStatus: p.display_status,
@@ -840,6 +852,15 @@ function ProposalCard({ p }: { p: LocalProposalWithInfo }) {
           </span>
           <div className="min-w-0 flex-1">
             <p className={`font-sans text-xs font-semibold ${cfg.eyebrowColor}`}>{cfg.eyebrow}</p>
+            {p.proposedTitle && (
+              <p className="mt-0.5 font-sans text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+                Proposed:{" "}
+                <span className="font-serif text-xs font-normal normal-case tracking-normal text-text">
+                  {p.proposedTitle}
+                  {p.proposedSubtitle ? ` — ${p.proposedSubtitle}` : ""}
+                </span>
+              </p>
+            )}
             <h3 className="mt-0.5 font-serif text-base font-bold leading-snug text-text">{p.title}</h3>
             <p className="mt-1 font-sans text-xs text-text-muted">{p.kind}</p>
           </div>

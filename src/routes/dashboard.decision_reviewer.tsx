@@ -54,6 +54,8 @@ type ApiProposal = {
 type ProposalRow = {
   id: string;
   title: string;
+  proposedTitle?: string;
+  proposedSubtitle?: string;
   kind: string;
   authorName: string;
   authorAffiliation: string;
@@ -142,6 +144,13 @@ const mapApiProposal = (p: ApiProposal): ProposalRow => {
   return {
     id: p.ticket_number,
     title: p.title,
+    proposedTitle:
+      cd.proposed_title || cd.proposed_book_title || undefined,
+    proposedSubtitle:
+      cd.proposed_subtitle ||
+      cd.proposed_sub_title ||
+      cd.proposed_book_subtitle ||
+      undefined,
     kind: "Proposal",
     authorName: p.corresponding_author || displayNameFromEmail(p.email || ""),
     authorAffiliation: institution || p.email || "",
@@ -720,6 +729,15 @@ function DecisionReviewerDashboard() {
                     aria-hidden="true"
                   />
                   <div className="pl-2">
+                    {p.proposedTitle && (
+                      <p className="mb-0.5 font-sans text-[10px] font-semibold uppercase tracking-wider text-[#7A6A5A]">
+                        Proposed:{" "}
+                        <span className="font-serif text-xs font-normal normal-case tracking-normal text-[#2C1A0E]">
+                          {p.proposedTitle}
+                          {p.proposedSubtitle ? ` — ${p.proposedSubtitle}` : ""}
+                        </span>
+                      </p>
+                    )}
                     <p className="font-sans text-sm font-medium leading-snug text-[#2C1A0E]">
                       {p.title}
                     </p>
