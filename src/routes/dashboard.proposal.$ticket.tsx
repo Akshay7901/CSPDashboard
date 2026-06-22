@@ -393,6 +393,8 @@ function ProposalDetailPage() {
   const [queryThread, setQueryThread] = useState<ContractQueryEntry[]>([]);
   const [queryProposalStatus, setQueryProposalStatus] = useState<string>("");
   const [queryResponseText, setQueryResponseText] = useState("");
+  const [queryResponseTitle, setQueryResponseTitle] = useState("");
+  const [queryResponseSubtitle, setQueryResponseSubtitle] = useState("");
   const [queryResponseSubmitting, setQueryResponseSubmitting] = useState(false);
   const [queryResponseError, setQueryResponseError] = useState<string | null>(null);
   const [queryResponseSuccess, setQueryResponseSuccess] = useState<string | null>(null);
