@@ -1655,7 +1655,7 @@ function ProposalDetailPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-6 py-8">
+      <main className="mx-auto w-full max-w-[1600px] px-6 py-8">
         <Link
           to="/dashboard/decision_reviewer"
           className="inline-flex items-center gap-1.5 font-sans text-sm font-medium text-[#0E3D2F] hover:underline"
