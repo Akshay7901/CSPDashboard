@@ -390,6 +390,8 @@ function ProposalDetailPage() {
   const [voidLoading, setVoidLoading] = useState(false);
   const [voidError, setVoidError] = useState<string | null>(null);
   const [contractsReloadKey, setContractsReloadKey] = useState(0);
+  const [contractCardOpen, setContractCardOpen] = useState(true);
+  const [contractQueriesOpen, setContractQueriesOpen] = useState(true);
   const [queryThread, setQueryThread] = useState<ContractQueryEntry[]>([]);
   const [queryProposalStatus, setQueryProposalStatus] = useState<string>("");
   const [queryResponseText, setQueryResponseText] = useState("");
