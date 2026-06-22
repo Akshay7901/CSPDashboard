@@ -1759,8 +1759,30 @@ function ProposalDetailPage() {
                               )}
                             <div className="overflow-hidden rounded-xl border border-stone-200 bg-white">
                               <MetaRow label="Title Full" value={metaForm.full_title} onChange={(v) => updateMetaField("full_title", v)} disabled={isMetaLocked} />
-                              <MetaRow label="Title" value={metaForm.title} onChange={(v) => updateMetaField("title", v)} disabled={isMetaLocked} />
-                              <MetaRow label="Subtitle" value={metaForm.subtitle} onChange={(v) => updateMetaField("subtitle", v)} disabled={isMetaLocked} />
+                              <MetaRow
+                                label="Title"
+                                value={metaForm.title}
+                                onChange={(v) => updateMetaField("title", v)}
+                                disabled={isMetaLocked}
+                                hint={
+                                  latestContractForHeader?.title &&
+                                  latestContractForHeader.title !== metaForm.title
+                                    ? latestContractForHeader.title
+                                    : undefined
+                                }
+                              />
+                              <MetaRow
+                                label="Subtitle"
+                                value={metaForm.subtitle}
+                                onChange={(v) => updateMetaField("subtitle", v)}
+                                disabled={isMetaLocked}
+                                hint={
+                                  latestContractForHeader?.subtitle &&
+                                  latestContractForHeader.subtitle !== metaForm.subtitle
+                                    ? latestContractForHeader.subtitle
+                                    : undefined
+                                }
+                              />
                               <MetaRow label="Category Auth/Ed" value={metaForm.category} onChange={(v) => updateMetaField("category", v)} disabled={isMetaLocked} />
                               <MetaRow label="Display Names" value={metaForm.display_names} onChange={(v) => updateMetaField("display_names", v)} disabled={isMetaLocked} />
                               <MetaRow label="Display Bios" value={metaForm.display_bios} onChange={(v) => updateMetaField("display_bios", v)} multiline disabled={isMetaLocked} />
