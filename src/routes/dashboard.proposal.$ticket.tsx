@@ -1175,7 +1175,18 @@ function ProposalDetailPage() {
   // Prefer the title/subtitle from the most recent contract (the DR may
   // have edited them at /contract/send time); fall back to the proposal's
   // current_data values.
-  const latestContractForHeader = contracts[0];
+  // Pick the most recent contract by created_at / contract_version so the hero
+  // always reflects what the DR last sent, regardless of API ordering.
+  const latestContractForHeader = (() => {
+    if (!contracts.length) return undefined;
+    const sorted = [...contracts].sort((a, b) => {
+      const ta = a.created_at ? Date.parse(a.created_at) : 0;
+      const tb = b.created_at ? Date.parse(b.created_at) : 0;
+      if (tb !== ta) return tb - ta;
+      return (b.contract_version || 0) - (a.contract_version || 0);
+    });
+    return sorted[0];
+  })();
   const title = latestContractForHeader?.title || cd.main_title || ticket;
   const proposalDocuments = extractProposalDocuments(rawCd);
 
