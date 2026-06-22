@@ -13,6 +13,7 @@ import {
   Check,
   ChevronDown,
   Clock,
+  Download,
   Eye,
   FileText,
   LogOut,
@@ -3332,11 +3333,24 @@ function ProposalDetailPage() {
       <ContractPdfModal ticket={ticket} open={pdfOpen} onClose={() => setPdfOpen(false)} />
       <Dialog open={!!previewDoc} onOpenChange={(open) => !open && setPreviewDoc(null)}>
         <DialogContent className="max-w-5xl p-0 sm:max-w-5xl">
-          <DialogHeader className="border-b border-stone-200 px-5 py-3">
-            <DialogTitle className="truncate font-sans text-sm font-semibold text-stone-900">
-              {previewDoc?.filename}
-            </DialogTitle>
-            <DialogDescription className="sr-only">Document preview</DialogDescription>
+          <DialogHeader className="flex flex-row items-center justify-between border-b border-stone-200 px-5 py-3">
+            <div className="flex-1">
+              <DialogTitle className="truncate font-sans text-sm font-semibold text-stone-900">
+                {previewDoc?.filename}
+              </DialogTitle>
+              <DialogDescription className="sr-only">Document preview</DialogDescription>
+            </div>
+            {previewDoc?.url && (
+              <a
+                href={previewDoc.url}
+                download={previewDoc.filename}
+                title="Download file"
+                className="ml-4 flex items-center gap-1.5 rounded-md bg-stone-900 px-3 py-1.5 font-sans text-xs font-semibold text-white hover:bg-stone-800"
+              >
+                <Download className="h-3.5 w-3.5" />
+                Download
+              </a>
+            )}
           </DialogHeader>
           {previewDoc && (() => {
             const url = previewDoc.url;
