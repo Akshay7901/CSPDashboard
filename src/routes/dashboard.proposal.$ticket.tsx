@@ -1257,19 +1257,6 @@ function ProposalDetailPage() {
     return cs === "signed";
   }, [latestContract]);
 
-  // Seed the response-form title/subtitle from the latest contract or proposal
-  // data when a new author question appears, so the DR can tweak before resending.
-  useEffect(() => {
-    if (!openQuery) return;
-    setQueryResponseTitle((prev) =>
-      prev ? prev : (latestContract?.title || cd.main_title || ""),
-    );
-    setQueryResponseSubtitle((prev) =>
-      prev ? prev : (latestContract?.subtitle || cd.sub_title || ""),
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [openQuery?.id, latestContract?.id]);
-
   useEffect(() => {
     if (!isContractSigned || !ticket) return;
     let cancelled = false;
