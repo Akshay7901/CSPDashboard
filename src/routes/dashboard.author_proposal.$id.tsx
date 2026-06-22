@@ -1867,6 +1867,12 @@ function truncate(s: string, n: number): string {
   return s.length > n ? s.slice(0, n - 1) + "…" : s;
 }
 
+function formatPercentValue(value?: string | number): string | undefined {
+  if (value === undefined || value === null || String(value).trim() === "") return undefined;
+  const text = String(value).trim();
+  return text.includes("%") ? text : `${text}%`;
+}
+
 function SubCard({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="border-t border-stone-200 pt-5 first:border-t-0 first:pt-0">
