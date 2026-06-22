@@ -789,7 +789,11 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
           )}
         </div>
 
-        <ProgressStepper timeline={proposal.timeline} status={status} />
+        <ProgressStepper
+          timeline={proposal.timeline}
+          status={status}
+          hasOpenInfoRequest={!!pickOpenInfoRequest(proposal.infoRequests)}
+        />
       </section>
 
       <AuthorMetadataPanel ticket={proposal.ticket} proposalStatus={proposal.status} />
