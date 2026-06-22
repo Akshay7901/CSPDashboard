@@ -57,12 +57,14 @@ function MetaRow({
   onChange,
   multiline,
   disabled,
+  hint,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   multiline?: boolean;
   disabled?: boolean;
+  hint?: string;
 }) {
   return (
     <div className="grid grid-cols-1 border-t border-stone-200 first:border-t-0 sm:grid-cols-[220px_1fr]">
@@ -87,6 +89,12 @@ function MetaRow({
             readOnly={disabled}
             className={`h-10 w-full border-stone-200 bg-white font-sans text-sm text-stone-800 ${disabled ? "bg-stone-50 text-stone-500" : ""}`}
           />
+        )}
+        {hint && (
+          <p className="mt-2 font-sans text-xs text-emerald-700">
+            <span className="font-semibold uppercase tracking-wide">Proposed:</span>{" "}
+            <span className="text-stone-700">{hint}</span>
+          </p>
         )}
       </div>
     </div>
