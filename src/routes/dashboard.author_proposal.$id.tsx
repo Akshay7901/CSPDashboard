@@ -1839,10 +1839,7 @@ function ContractIssuedView({
                   className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
                 >
                   <option value="contract">Contract terms</option>
-                  <option value="royalties">Royalties</option>
-                  <option value="rights">Rights & permissions</option>
-                  <option value="schedule">Schedule</option>
-                  <option value="other">Other</option>
+                  <option value="feedback">Feedback</option>
                 </select>
               </div>
               <div className="space-y-1.5">
