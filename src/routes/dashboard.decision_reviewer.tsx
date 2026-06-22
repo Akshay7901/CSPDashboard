@@ -750,9 +750,11 @@ function DecisionReviewerDashboard() {
                     </p>
                     <p className="mt-1 font-sans text-xs text-[#7A6A5A]">{p.kind}</p>
                   </div>
-                  <div>
-                    <p className="font-sans text-sm font-medium text-[#2C1A0E]">{p.authorName}</p>
-                    <p className="mt-0.5 font-sans text-xs text-[#7A6A5A]">{p.authorAffiliation}</p>
+                  <div className="min-w-0">
+                    <p className="truncate font-sans text-sm font-medium text-[#2C1A0E]">{p.authorName}</p>
+                    <p className="mt-0.5 truncate font-sans text-xs text-[#7A6A5A]" title={p.authorAffiliation}>
+                      {p.authorAffiliation}
+                    </p>
                   </div>
                   <div className="font-sans text-sm text-[#7A6A5A]">{p.country}</div>
                   <div className="font-sans text-sm text-[#7A6A5A]">
