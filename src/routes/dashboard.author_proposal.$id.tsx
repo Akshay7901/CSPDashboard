@@ -754,20 +754,22 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
       <section id="section-hero" className="mt-6 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm scroll-mt-24">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
-            {cd.proposed_title && (
+            {(contractTitleOverride || cd.proposed_title) && (
               <p className="mb-1.5 font-sans text-[11px] font-semibold uppercase tracking-wider text-stone-500">
                 Proposed Title:{" "}
                 <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
-                  {cd.proposed_title}
-                  {cd.proposed_subtitle ? `: ${cd.proposed_subtitle}` : ""}
+                  {contractTitleOverride || cd.proposed_title}
+                  {(contractSubtitleOverride || cd.proposed_subtitle)
+                    ? `: ${contractSubtitleOverride || cd.proposed_subtitle}`
+                    : ""}
                 </span>
               </p>
             )}
             <h1 className="font-serif text-2xl font-bold leading-tight md:text-3xl" style={{ color: "#2C1A0E" }}>
-              {title}
+              {cd.main_title || proposal.ticket}
             </h1>
-            {subtitle && (
-              <p className="mt-1.5 font-sans text-sm font-medium" style={{ color: "#A6814A" }}>{subtitle}</p>
+            {cd.sub_title && (
+              <p className="mt-1.5 font-sans text-sm font-medium" style={{ color: "#A6814A" }}>{cd.sub_title}</p>
             )}
             <p className="mt-2 inline-flex items-center gap-1.5 font-sans text-xs" style={{ color: "#7A6A5A" }}>
               <Calendar className="h-4 w-4" />
