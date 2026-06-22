@@ -1650,6 +1650,7 @@ function ProposalDetailPage() {
                 )}
                 {cd.email && <MetaItem icon="mail" text={cd.email} />}
                 {cd.institution && <MetaItem icon="building" text={cd.institution} />}
+                {cd.country && <MetaItem icon="globe" text={cd.country} />}
                 <MetaItem icon="calendar" text={formatDate(data.submitted_at)} />
               </div>
             </section>
@@ -3592,7 +3593,7 @@ function ProposalDetailPage() {
   );
 }
 
-function MetaItem({ icon, text }: { icon: "user" | "mail" | "building" | "calendar"; text: string }) {
+function MetaItem({ icon, text }: { icon: "user" | "mail" | "building" | "calendar" | "globe"; text: string }) {
   const paths: Record<typeof icon, string> = {
     user:
       "M12 12a4 4 0 100-8 4 4 0 000 8zm-7 8a7 7 0 0114 0",
@@ -3600,6 +3601,8 @@ function MetaItem({ icon, text }: { icon: "user" | "mail" | "building" | "calend
     building: "M4 21V5a2 2 0 012-2h8a2 2 0 012 2v16M9 9h2M9 13h2M9 17h2",
     calendar:
       "M4 7h16M4 7v12a2 2 0 002 2h12a2 2 0 002-2V7M4 7l1-3h14l1 3M9 11h6M9 15h6",
+    globe:
+      "M12 21a9 9 0 100-18 9 9 0 000 18zM3 12h18M12 3a13.5 13.5 0 010 18M12 3a13.5 13.5 0 000 18",
   };
   return (
     <span className="inline-flex items-center gap-2 text-stone-600">
