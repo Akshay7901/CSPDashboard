@@ -729,6 +729,15 @@ function DecisionReviewerDashboard() {
                     aria-hidden="true"
                   />
                   <div className="pl-2">
+                    {p.proposedTitle && (
+                      <p className="mb-0.5 font-sans text-[10px] font-semibold uppercase tracking-wider text-[#7A6A5A]">
+                        Proposed:{" "}
+                        <span className="font-serif text-xs font-normal normal-case tracking-normal text-[#2C1A0E]">
+                          {p.proposedTitle}
+                          {p.proposedSubtitle ? ` — ${p.proposedSubtitle}` : ""}
+                        </span>
+                      </p>
+                    )}
                     <p className="font-sans text-sm font-medium leading-snug text-[#2C1A0E]">
                       {p.title}
                     </p>
