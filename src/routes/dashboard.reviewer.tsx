@@ -223,6 +223,15 @@ function ReviewerDashboard() {
             kind: cd.book_type || cd.proposal_type || "Proposal",
             title: cd.main_title || d.ticket_number,
             subtitle: cd.subtitle,
+            proposedTitle:
+              (cd as Record<string, string | undefined>).proposed_title ||
+              (cd as Record<string, string | undefined>).proposed_book_title ||
+              undefined,
+            proposedSubtitle:
+              (cd as Record<string, string | undefined>).proposed_subtitle ||
+              (cd as Record<string, string | undefined>).proposed_sub_title ||
+              (cd as Record<string, string | undefined>).proposed_book_subtitle ||
+              undefined,
             authorName: cd.author_name || cd.primary_author_name || "—",
             authorAffiliation: cd.affiliation || cd.institution || "—",
             wordCount: wc ? `${wc} words` : "—",
