@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { MessageSquare, Send } from "lucide-react";
+import { ChevronDown, MessageSquare, Send } from "lucide-react";
 import {
   getQueries,
   raiseQuery,
@@ -12,10 +12,16 @@ export function ContractQueries({
   ticket,
   viewer,
   onChanged,
+  collapsible = false,
+  defaultOpen = true,
+  onOpenChange,
 }: {
   ticket: string;
   viewer: "author" | "dr";
   onChanged?: () => void;
+  collapsible?: boolean;
+  defaultOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
   const [thread, setThread] = useState<ContractQueryEntry[]>([]);
   const [proposalStatus, setProposalStatus] = useState<string>("");
