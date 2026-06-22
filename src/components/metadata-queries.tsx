@@ -54,7 +54,6 @@ export function MetadataQueries({
   const [drafts, setDrafts] = useState<DraftRow[]>([{ field: "", text: "" }]);
   const [submitting, setSubmitting] = useState(false);
 
-  const [respondingTo, setRespondingTo] = useState<number | null>(null);
   const [responseText, setResponseText] = useState("");
   const [fieldEdits, setFieldEdits] = useState<Record<string, string>>({});
 
@@ -109,8 +108,9 @@ export function MetadataQueries({
     }
   };
 
-  const onRespond = async (queryId: number) => {
+  const onRespond = async (queryIds: number[]) => {
     if (!responseText.trim()) return;
+    if (queryIds.length === 0) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -125,8 +125,9 @@ export function MetadataQueries({
           await onSaveFields(updates);
         }
       }
-      await respondMetadataQuery(ticket, queryId, responseText.trim());
-      setRespondingTo(null);
+      for (const id of queryIds) {
+        await respondMetadataQuery(ticket, id, responseText.trim());
+      }
       setResponseText("");
       setFieldEdits({});
       await reload();
@@ -222,116 +223,88 @@ export function MetadataQueries({
               <p className="mt-2 whitespace-pre-line font-sans text-sm text-stone-800">
                 {entry.text}
               </p>
-              {viewer === "dr" && isQuery && !answered.has(entry.id) && (
-                <div className="mt-3">
-                  {respondingTo === entry.id ? (
-                    <div className="space-y-2">
-                      {onSaveFields && entry.fields && entry.fields.length > 0 && (
-                        <div className="space-y-2 rounded-lg border border-stone-200 bg-white px-3 py-2">
-                          <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.1em] text-stone-500">
-                            Update tagged metadata fields
-                          </p>
-                          {entry.fields.map((fkey) => {
-                            // Skip non-text fields — they have their own UI elsewhere.
-                            if (fkey === "cover_image" || fkey === "authors") {
-                              return (
-                                <p
-                                  key={fkey}
-                                  className="font-sans text-xs text-stone-500"
-                                >
-                                  {(fieldLabels?.[fkey] || fkey)} — edit in the
-                                  metadata form above.
-                                </p>
-                              );
-                            }
-                            const current =
-                              fieldEdits[fkey] ?? fieldValues?.[fkey] ?? "";
-                            const multiline =
-                              fkey === "display_bios" ||
-                              fkey === "book_description";
-                            return (
-                              <div key={fkey}>
-                                <label className="block font-sans text-[11px] font-medium text-stone-600">
-                                  {fieldLabels?.[fkey] || fkey}
-                                </label>
-                                {multiline ? (
-                                  <textarea
-                                    rows={3}
-                                    value={current}
-                                    onChange={(e) =>
-                                      setFieldEdits((prev) => ({
-                                        ...prev,
-                                        [fkey]: e.target.value,
-                                      }))
-                                    }
-                                    className="mt-1 w-full resize-none rounded-md border border-stone-300 bg-white px-2 py-1.5 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
-                                  />
-                                ) : (
-                                  <input
-                                    type="text"
-                                    value={current}
-                                    onChange={(e) =>
-                                      setFieldEdits((prev) => ({
-                                        ...prev,
-                                        [fkey]: e.target.value,
-                                      }))
-                                    }
-                                    className="mt-1 w-full rounded-md border border-stone-300 bg-white px-2 py-1.5 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
-                                  />
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                      <textarea
-                        value={responseText}
-                        onChange={(e) => setResponseText(e.target.value)}
-                        rows={3}
-                        placeholder="Type a response to the author…"
-                        className="w-full resize-none rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
-                      />
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          disabled={submitting || !responseText.trim()}
-                          onClick={() => onRespond(entry.id)}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-3 py-1.5 font-sans text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
-                        >
-                          <Send className="h-3.5 w-3.5" />
-                          {submitting ? "Sending…" : "Send Response"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setRespondingTo(null);
-                            setResponseText("");
-                            setFieldEdits({});
-                          }}
-                          className="rounded-lg border border-stone-300 bg-white px-3 py-1.5 font-sans text-xs font-semibold text-stone-700 hover:bg-stone-50"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setRespondingTo(entry.id);
-                        setResponseText("");
-                      }}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-white px-3 py-1.5 font-sans text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
-                    >
-                      <Send className="h-3.5 w-3.5" />
-                      Respond
-                    </button>
-                  )}
-                </div>
-              )}
             </div>
           );
         })}
+        {viewer === "dr" && hasOpenQuery && (() => {
+          const openQueries = thread.filter(
+            (t) => t.type === "query" && !answered.has(t.id),
+          );
+          const openIds = openQueries.map((q) => q.id);
+          const unionFields = Array.from(
+            new Set(openQueries.flatMap((q) => q.fields || [])),
+          );
+          return (
+            <div className="space-y-3 rounded-xl border border-emerald-200 bg-emerald-50/40 px-4 py-3">
+              <p className="font-sans text-xs font-semibold uppercase tracking-[0.1em] text-emerald-800">
+                Respond to {openIds.length} open {openIds.length === 1 ? "query" : "queries"}
+              </p>
+              {onSaveFields && unionFields.length > 0 && (
+                <div className="space-y-2 rounded-lg border border-stone-200 bg-white px-3 py-2">
+                  <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.1em] text-stone-500">
+                    Update tagged metadata fields
+                  </p>
+                  {unionFields.map((fkey) => {
+                    if (fkey === "cover_image" || fkey === "authors") {
+                      return (
+                        <p key={fkey} className="font-sans text-xs text-stone-500">
+                          {(fieldLabels?.[fkey] || fkey)} — edit in the metadata form above.
+                        </p>
+                      );
+                    }
+                    const current = fieldEdits[fkey] ?? fieldValues?.[fkey] ?? "";
+                    const multiline =
+                      fkey === "display_bios" || fkey === "book_description";
+                    return (
+                      <div key={fkey}>
+                        <label className="block font-sans text-[11px] font-medium text-stone-600">
+                          {fieldLabels?.[fkey] || fkey}
+                        </label>
+                        {multiline ? (
+                          <textarea
+                            rows={3}
+                            value={current}
+                            onChange={(e) =>
+                              setFieldEdits((prev) => ({ ...prev, [fkey]: e.target.value }))
+                            }
+                            className="mt-1 w-full resize-none rounded-md border border-stone-300 bg-white px-2 py-1.5 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
+                          />
+                        ) : (
+                          <input
+                            type="text"
+                            value={current}
+                            onChange={(e) =>
+                              setFieldEdits((prev) => ({ ...prev, [fkey]: e.target.value }))
+                            }
+                            className="mt-1 w-full rounded-md border border-stone-300 bg-white px-2 py-1.5 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              <textarea
+                value={responseText}
+                onChange={(e) => setResponseText(e.target.value)}
+                rows={3}
+                placeholder="Type one response — it will be sent for all open queries…"
+                className="w-full resize-none rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
+              />
+              <button
+                type="button"
+                disabled={submitting || !responseText.trim()}
+                onClick={() => onRespond(openIds)}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-3 py-1.5 font-sans text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
+              >
+                <Send className="h-3.5 w-3.5" />
+                {submitting
+                  ? "Sending…"
+                  : `Send Response${openIds.length > 1 ? ` to ${openIds.length}` : ""}`}
+              </button>
+            </div>
+          );
+        })()}
         {error && (
           <p className="rounded-lg bg-rose-50 px-3 py-2 font-sans text-xs text-rose-700 ring-1 ring-rose-200">
             {error}
