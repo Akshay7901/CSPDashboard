@@ -144,6 +144,13 @@ const mapApiProposal = (p: ApiProposal): ProposalRow => {
   return {
     id: p.ticket_number,
     title: p.title,
+    proposedTitle:
+      cd.proposed_title || cd.proposed_book_title || undefined,
+    proposedSubtitle:
+      cd.proposed_subtitle ||
+      cd.proposed_sub_title ||
+      cd.proposed_book_subtitle ||
+      undefined,
     kind: "Proposal",
     authorName: p.corresponding_author || displayNameFromEmail(p.email || ""),
     authorAffiliation: institution || p.email || "",
