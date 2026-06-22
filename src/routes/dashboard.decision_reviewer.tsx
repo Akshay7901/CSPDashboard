@@ -250,6 +250,74 @@ function DecisionReviewerDashboard() {
   const [deletingTicket, setDeletingTicket] = useState<string | null>(null);
   const [deletedTickets, setDeletedTickets] = useState<Set<string>>(new Set());
 
+  // Reassign / assign peer reviewer modal
+  const [assignFor, setAssignFor] = useState<ProposalRow | null>(null);
+  const [assignSelectedId, setAssignSelectedId] = useState<number | null>(null);
+  const [assignNote, setAssignNote] = useState("");
+  const [assignSubmitting, setAssignSubmitting] = useState(false);
+  const [assignError, setAssignError] = useState<string | null>(null);
+  const [assignSuccess, setAssignSuccess] = useState<string | null>(null);
+
+  const openAssign = (row: ProposalRow) => {
+    setAssignFor(row);
+    setAssignSelectedId(null);
+    setAssignNote("");
+    setAssignError(null);
+    setAssignSuccess(null);
+    if (reviewers.length === 0) void fetchReviewers();
+  };
+
+  const closeAssign = () => {
+    if (assignSubmitting) return;
+    setAssignFor(null);
+  };
+
+  const submitAssign = async () => {
+    if (!assignFor) return;
+    const reviewer = reviewers.find((r) => r.id === assignSelectedId);
+    if (!reviewer) {
+      setAssignError("Please select a reviewer.");
+      return;
+    }
+    setAssignSubmitting(true);
+    setAssignError(null);
+    setAssignSuccess(null);
+    try {
+      const res = await proposalApiFetch(
+        `/${encodeURIComponent(assignFor.id)}/assign`,
+        {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify({
+            reviewer_email: reviewer.email,
+            ...(assignNote.trim() ? { note: assignNote.trim() } : {}),
+          }),
+        },
+      );
+      const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+      if (!res.ok) {
+        setAssignError(
+          (body.error as string) ||
+            (body.message as string) ||
+            `Failed to assign reviewer (${res.status}).`,
+        );
+        return;
+      }
+      setAssignSuccess(
+        (body.message as string) ||
+          `Assigned to ${reviewer.name || reviewer.email}.`,
+      );
+      toast.success(`Reviewer assigned to ${reviewer.name || reviewer.email}.`);
+      void fetchProposals(true);
+      void fetchReviewers();
+      setTimeout(() => setAssignFor(null), 1000);
+    } catch {
+      setAssignError("Network error. Please try again.");
+    } finally {
+      setAssignSubmitting(false);
+    }
+  };
+
   // Events / audit trail modal
   type ProposalEvent = {
     id: number;
