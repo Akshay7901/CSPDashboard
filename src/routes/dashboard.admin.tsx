@@ -235,6 +235,35 @@ function AdminDashboard() {
   const [newReviewer, setNewReviewer] = useState({ name: "", email: "" });
   const [adding, setAdding] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deletingProposalId, setDeletingProposalId] = useState<string | null>(null);
+  const [proposalDeleteError, setProposalDeleteError] = useState<string | null>(null);
+
+  const deleteProposalRow = async (ticket: string) => {
+    if (!confirm(
+      `Permanently delete proposal ${ticket} and ALL related data?\n\nThis action is irreversible.`,
+    )) return;
+    setDeletingProposalId(ticket);
+    setProposalDeleteError(null);
+    try {
+      const res = await proposalApiFetch(`/${encodeURIComponent(ticket)}`, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
+      const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+      if (!res.ok) {
+        setProposalDeleteError(
+          (data.error as string) || `Failed to delete proposal (${res.status}).`,
+        );
+        return;
+      }
+      setApiProposals((prev) => prev.filter((p) => p.id !== ticket));
+      void fetchProposals(true);
+    } catch {
+      setProposalDeleteError("Network error. Please try again.");
+    } finally {
+      setDeletingProposalId(null);
+    }
+  };
 
   // Events / audit trail modal
   type ProposalEvent = {
