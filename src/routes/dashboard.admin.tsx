@@ -448,7 +448,7 @@ function AdminDashboard() {
         navigate({ to: "/login" });
         return;
       }
-      if (session.role !== "decision_reviewer") {
+      if (session.role !== "admin") {
         navigate({ to: "/login" });
         return;
       }
@@ -566,7 +566,7 @@ function AdminDashboard() {
               </span>
             </Link>
             <span className="mx-2 h-5 w-px bg-stone-300" />
-            <span className="font-sans text-sm font-medium text-[#00422F]">Editor Portal</span>
+            <span className="font-sans text-sm font-medium text-[#00422F]">Admin Portal</span>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#00422F] font-sans text-xs font-bold text-white">
