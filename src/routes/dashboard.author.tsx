@@ -51,7 +51,12 @@ function isAwaitingInfoRaw(raw?: string, display?: string) {
   );
 }
 
-type LocalProposal = Proposal & { rawStatus?: string; rawDisplayStatus?: string };
+type LocalProposal = Proposal & {
+  rawStatus?: string;
+  rawDisplayStatus?: string;
+  proposedTitle?: string;
+  proposedSubtitle?: string;
+};
 
 type InfoRequestItem = { key?: string; label?: string; response_text?: string };
 type InfoRequest = {
@@ -196,6 +201,13 @@ function toProposal(p: ApiProposalItem): LocalProposal {
     ref: p.ticket_number,
     title,
     kind,
+    proposedTitle:
+      cd.proposed_title || cd.proposed_book_title || undefined,
+    proposedSubtitle:
+      cd.proposed_subtitle ||
+      cd.proposed_sub_title ||
+      cd.proposed_book_subtitle ||
+      undefined,
     status: normalizeStatus(p.status, p.display_status),
     rawStatus: p.status,
     rawDisplayStatus: p.display_status,
