@@ -81,7 +81,7 @@ function SubmissionDetail() {
   const [submittedReview, setSubmittedReview] = useState<SubmittedReview | null>(null);
   type EditorComment = { type: string; section: string; page: string; text: string };
   const [editorComments, setEditorComments] = useState<EditorComment[]>([]);
-  const [editorialSummary, setEditorialSummary] = useState("");
+  
   const [proposalDetailsOpen, setProposalDetailsOpen] = useState(false);
   const [revisionModalOpen, setRevisionModalOpen] = useState(false);
   const [revisionAreas, setRevisionAreas] = useState<string[]>([]);
