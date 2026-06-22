@@ -395,17 +395,6 @@ function EditorDashboard() {
                       Review
                       <ChevronRight className="h-4 w-4" />
                     </Link>
-                    {isAdmin && (
-                      <button
-                        type="button"
-                        onClick={() => setConfirmId(p.id)}
-                        className="inline-flex items-center gap-1 rounded-lg border border-red-200 px-2.5 py-1 font-sans text-xs font-medium text-red-700 hover:bg-red-50"
-                        title="Permanently delete proposal (admin only)"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                        Delete
-                      </button>
-                    )}
                   </div>
                 </li>
               );
@@ -423,45 +412,6 @@ function EditorDashboard() {
         </div>
       </main>
 
-      {confirmId && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 p-4"
-          onClick={() => deletingId === null && setConfirmId(null)}
-        >
-          <div
-            className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="border-b border-stone-200 px-6 py-4">
-              <h2 className="font-serif text-xl font-bold text-stone-900">
-                Delete proposal?
-              </h2>
-              <p className="mt-1 font-sans text-sm text-stone-600">
-                This will permanently delete proposal <span className="font-semibold">{confirmId}</span> and all related data (contracts, queries, reviews, metadata, events). This action cannot be undone.
-              </p>
-            </div>
-            <div className="flex items-center justify-end gap-2 bg-stone-50 px-6 py-3">
-              <button
-                type="button"
-                onClick={() => setConfirmId(null)}
-                disabled={deletingId !== null}
-                className="rounded-lg px-3 py-2 font-sans text-sm text-stone-700 hover:bg-stone-100 disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={onConfirmDelete}
-                disabled={deletingId !== null}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-2 font-sans text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
-              >
-                <Trash2 className="h-4 w-4" />
-                {deletingId ? "Deleting…" : "Delete permanently"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       {reviewersOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 p-4"
