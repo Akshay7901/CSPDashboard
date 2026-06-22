@@ -1697,20 +1697,14 @@ function ProposalDetailPage() {
                     </p>
                   )}
                   {(() => {
-                    const candidateTitle =
-                      optimisticProposed?.title || latestContractForHeader?.title;
-                    const candidateSubtitle =
-                      optimisticProposed?.subtitle || latestContractForHeader?.subtitle;
-                    const baseTitle = (cd.main_title || "").trim();
-                    const baseSubtitle = (cd.sub_title || "").trim();
-                    const proposedTitle =
-                      candidateTitle && candidateTitle.trim() && candidateTitle.trim() !== baseTitle
-                        ? candidateTitle
-                        : null;
-                    const proposedSubtitle =
-                      candidateSubtitle && candidateSubtitle.trim() && candidateSubtitle.trim() !== baseSubtitle
-                        ? candidateSubtitle
-                        : null;
+                    // Always show the latest title/subtitle from the contract
+                    // API (or the value the DR just submitted) under the hero.
+                    const proposedTitle = (
+                      latestContractForHeader?.title || optimisticProposed?.title || ""
+                    ).trim() || null;
+                    const proposedSubtitle = (
+                      latestContractForHeader?.subtitle || optimisticProposed?.subtitle || ""
+                    ).trim() || null;
                     if (!proposedTitle && !proposedSubtitle) return null;
                     return (
                       <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50/60 px-4 py-2.5">
