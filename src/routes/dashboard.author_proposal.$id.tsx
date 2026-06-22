@@ -1222,8 +1222,24 @@ function ContractIssuedView({
       ? "Edited Collection Agreement"
       : "Publishing Agreement";
 
-  const editorNote = contract.notes || "";
+  const editorNote =
+    contract.note_to_author ||
+    contract.author_note ||
+    contract.message_to_author ||
+    contract.notes ||
+    "";
   const editorialFeedback = contract.addendum || "";
+  const contractTitle = contract.title || titleStr;
+  const contractSubtitle = contract.subtitle || cd.sub_title || "";
+  const contractFieldRows = [
+    { label: "Language", value: contract.language },
+    { label: "Author Copies", value: contract.author_copies },
+    { label: "If Two Authors — Copies Each", value: contract.if_two_author_copies },
+    { label: "If 3–4 Authors — Copies Each", value: contract.if_three_or_four_author_copies },
+    { label: "Copies Sold Revenue", value: formatPercentValue(contract.copies_sold_revenue) },
+    { label: "Secondary Rights Revenue", value: formatPercentValue(contract.secondary_rights_revenue) },
+    { label: "Publishing Agreement", value: contract.publishing_agreement },
+  ].filter((row): row is { label: string; value: string | number } => row.value !== undefined && row.value !== null && String(row.value).trim() !== "");
 
   const cd = proposal.cd;
   const titleStr = cd.main_title || proposal.ticket;
@@ -1531,9 +1547,14 @@ function ContractIssuedView({
 
           <dl className="mt-4 divide-y divide-stone-100">
             <PreviewRow label="Author" value={contract.recipient_name || authorFullName} />
-            <PreviewRow label="Title" value={truncate(titleStr, 36)} />
+            <PreviewRow label="Title" value={truncate(contractTitle, 36)} />
+            {contractSubtitle && <PreviewRow label="Subtitle" value={truncate(contractSubtitle, 42)} />}
             <PreviewRow label="Format" value={formatLabel} />
             <PreviewRow label="Expected Completion" value={expectedCompletion} />
+            {contractFieldRows.map((row) => (
+              <PreviewRow key={row.label} label={row.label} value={String(row.value)} />
+            ))}
+            {contract.addendum && <PreviewRow label="Addendum" value={contract.addendum} />}
             {isSigned && (
               <>
                 <PreviewRow label="Contract Version" value={`v${contract.contract_version}`} />
