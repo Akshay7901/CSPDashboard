@@ -28,6 +28,8 @@ interface ReviewItem {
   kind: string;
   title: string;
   subtitle?: string;
+  proposedTitle?: string;
+  proposedSubtitle?: string;
   authorName: string;
   authorAffiliation: string;
   wordCount: string;
