@@ -100,6 +100,7 @@ function ReviewerDashboard() {
   const navigate = useNavigate();
   const matchRoute = useMatchRoute();
   const [userEmail, setUserEmail] = useState<string>("");
+  const [reviewerName, setReviewerName] = useState<string>("");
   const [assigned, setAssigned] = useState<ReviewItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -247,6 +248,28 @@ function ReviewerDashboard() {
       }
       setUserEmail(session.email);
       void loadReviewerProposals(session.email);
+      // Fetch reviewer's display name from API
+      (async () => {
+        try {
+          const token = getPortalToken();
+          const res = await proposalApiFetch("/users/peer-reviewers", {
+            headers: {
+              "Content-Type": "application/json",
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+          });
+          if (!res.ok) return;
+          const body = (await res.json()) as {
+            peer_reviewers?: Array<{ name?: string; email?: string }>;
+          };
+          const me = (body.peer_reviewers || []).find(
+            (r) => r.email?.toLowerCase() === session.email.toLowerCase(),
+          );
+          if (me?.name) setReviewerName(me.name);
+        } catch {
+          // ignore
+        }
+      })();
     } catch {
       navigate({ to: "/login" });
     }
@@ -265,9 +288,8 @@ function ReviewerDashboard() {
     navigate({ to: "/login" });
   };
 
-  // Always show full reviewer profile name to match design
-  void userEmail;
-  const displayName = REVIEWER_PROFILE.name;
+  const displayName =
+    reviewerName || (userEmail ? displayNameFromEmail(userEmail) : REVIEWER_PROFILE.name);
 
   const allReviews = [...assigned, ...REVIEWS];
   const assignedCount = allReviews.length;
