@@ -2314,6 +2314,11 @@ function ProposalDetailPage() {
                 )}
 
                 {/* Supporting Documents */}
+                {((!isReviewReturned && !isContractIssued) || originalOpen) && (
+                  <AdditionalProposalDetails rawCd={rawCd} />
+                )}
+
+                {/* Supporting Documents */}
                 {!isReviewReturned && !isContractIssued && (
                   <Card>
                     <CardHeader
@@ -3613,4 +3618,113 @@ function formatNumber(s?: string): string {
   const n = Number(s.replace(/[^0-9.]/g, ""));
   if (!Number.isFinite(n) || n === 0) return s;
   return n.toLocaleString();
+}
+
+const ADDITIONAL_DETAILS_SKIP = new Set<string>([
+  "main_title",
+  "title",
+  "sub_title",
+  "subtitle",
+  "book_type",
+  "corresponding_author_name",
+  "author_first_name",
+  "author_last_name",
+  "email",
+  "secondary_email",
+  "email_2",
+  "institution",
+  "job_title",
+  "author_title",
+  "address",
+  "biography",
+  "co_authors_editors",
+  "co_authors",
+  "word_count",
+  "estimated_word_count",
+  "figures_tables_count",
+  "illustration_count",
+  "under_review_elsewhere",
+  "is_previously_published",
+  "expected_completion_date",
+  "estimated_completion_date",
+  "short_description",
+  "detailed_description",
+  "detailed_description_extra",
+  "key_features",
+  "unique_selling_points",
+  "keywords",
+  "marketing_info",
+  "primary_market",
+  "target_audience",
+  "competing_titles",
+  "referees_reviewers",
+  "recommended_reviewers",
+  "additional_info",
+  "conferences",
+  "promotional_channels",
+  "permissions_required",
+  "table_of_contents",
+  "manuscript_files",
+  "documents",
+  "supporting_documents",
+  "files",
+  "attachments",
+  "source",
+  "website_reference_number",
+]);
+
+function humanizeKey(key: string): string {
+  return key
+    .replace(/[_-]+/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function formatDetailValue(value: unknown): string | null {
+  if (value === null || value === undefined || value === "") return null;
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (typeof value === "number") return String(value);
+  if (typeof value === "string") return value;
+  if (Array.isArray(value)) {
+    const parts = value
+      .map((v) => (typeof v === "object" ? JSON.stringify(v) : String(v ?? "")))
+      .filter((s) => s && s !== "[]" && s !== "{}");
+    return parts.length ? parts.join(", ") : null;
+  }
+  if (typeof value === "object") {
+    try {
+      const s = JSON.stringify(value);
+      return s && s !== "{}" && s !== "[]" ? s : null;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+function AdditionalProposalDetails({ rawCd }: { rawCd: Record<string, unknown> }) {
+  const entries = Object.entries(rawCd)
+    .filter(([k]) => !ADDITIONAL_DETAILS_SKIP.has(k))
+    .map(([k, v]) => [k, formatDetailValue(v)] as const)
+    .filter(([, v]) => v !== null) as Array<[string, string]>;
+
+  if (entries.length === 0) return null;
+
+  return (
+    <Card>
+      <CardHeader
+        title="Additional Proposal Information"
+        subtitle="All other details submitted with this proposal"
+      />
+      <div className="grid grid-cols-1 gap-5 px-7 py-6 sm:grid-cols-2">
+        {entries.map(([key, value]) => (
+          <DataField
+            key={key}
+            label={humanizeKey(key)}
+            value={value}
+            multiline={value.length > 80 || value.includes("\n")}
+          />
+        ))}
+      </div>
+    </Card>
+  );
 }
