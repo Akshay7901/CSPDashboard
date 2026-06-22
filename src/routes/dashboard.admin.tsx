@@ -3,6 +3,8 @@ import { useCallback, useEffect, useState } from "react";
 import { getPortalSession, getPortalToken, portalLogout } from "@/lib/auth";
 import {
   fetchAiEnrichStatus,
+  deleteProposal,
+  type DeleteProposalResponse,
   type AiEnrichStatusResponse,
 } from "@/lib/adminApi";
 
@@ -17,6 +19,10 @@ function AdminDashboardPage() {
   const [data, setData] = useState<AiEnrichStatusResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [ticketInput, setTicketInput] = useState("");
+  const [deletingTicket, setDeletingTicket] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteResult, setDeleteResult] = useState<DeleteProposalResponse | null>(null);
 
   useEffect(() => {
     const session = getPortalSession();
@@ -43,6 +49,31 @@ function AdminDashboardPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const onDelete = useCallback(
+    async (ticket: string) => {
+      const t = ticket.trim();
+      if (!t) return;
+      const confirmed = window.confirm(
+        `Permanently delete proposal ${t} and ALL related data? This cannot be undone.`,
+      );
+      if (!confirmed) return;
+      setDeletingTicket(t);
+      setDeleteError(null);
+      setDeleteResult(null);
+      try {
+        const res = await deleteProposal(t, getPortalToken());
+        setDeleteResult(res);
+        setTicketInput("");
+        void load();
+      } catch (e) {
+        setDeleteError(e instanceof Error ? e.message : "Failed to delete proposal");
+      } finally {
+        setDeletingTicket(null);
+      }
+    },
+    [load],
+  );
 
   const onLogout = async () => {
     await portalLogout();
@@ -149,6 +180,7 @@ function AdminDashboardPage() {
                           <th className="px-3 py-2">Status</th>
                           <th className="px-3 py-2">Attempts</th>
                           <th className="px-3 py-2">Error</th>
+                          <th className="px-3 py-2"></th>
                         </tr>
                       </thead>
                       <tbody>
@@ -169,6 +201,16 @@ function AdminDashboardPage() {
                             <td className="px-3 py-2 text-foreground/70">
                               {item.ai_enrichment_error || "—"}
                             </td>
+                            <td className="px-3 py-2 text-right">
+                              <button
+                                type="button"
+                                onClick={() => void onDelete(item.ticket_number)}
+                                disabled={deletingTicket === item.ticket_number}
+                                className="rounded-lg bg-red-600/90 px-2.5 py-1 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                              >
+                                {deletingTicket === item.ticket_number ? "Deleting…" : "Delete"}
+                              </button>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -177,6 +219,60 @@ function AdminDashboardPage() {
                 )}
               </div>
             </>
+          )}
+        </section>
+
+        <section className="mt-6 rounded-2xl border border-red-500/20 bg-red-500/5 p-6">
+          <h2 className="font-serif text-lg font-semibold text-red-700">
+            Delete proposal
+          </h2>
+          <p className="mt-1 font-sans text-sm text-foreground/60">
+            Permanently deletes a proposal and all related data (contracts,
+            queries, reviews, metadata, events…). This action is irreversible.
+          </p>
+          <form
+            className="mt-4 flex flex-col gap-3 sm:flex-row"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void onDelete(ticketInput);
+            }}
+          >
+            <input
+              type="text"
+              value={ticketInput}
+              onChange={(e) => setTicketInput(e.target.value)}
+              placeholder="EIP-2025-12345-1"
+              className="flex-1 rounded-xl border border-foreground/15 bg-background px-3 py-2 font-sans text-sm outline-none focus:border-foreground/40"
+            />
+            <button
+              type="submit"
+              disabled={!ticketInput.trim() || deletingTicket === ticketInput.trim()}
+              className="rounded-xl bg-red-600 px-4 py-2 font-sans text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+            >
+              {deletingTicket === ticketInput.trim() ? "Deleting…" : "Delete proposal"}
+            </button>
+          </form>
+
+          {deleteError && (
+            <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3 font-sans text-sm text-red-700">
+              {deleteError}
+            </div>
+          )}
+
+          {deleteResult && (
+            <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 font-sans text-sm text-emerald-800">
+              <p className="font-medium">{deleteResult.message}</p>
+              {deleteResult.deleted_counts && (
+                <ul className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:grid-cols-3">
+                  {Object.entries(deleteResult.deleted_counts).map(([k, v]) => (
+                    <li key={k} className="flex justify-between">
+                      <span className="text-foreground/60">{k}</span>
+                      <span className="font-medium">{v}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           )}
         </section>
       </div>
