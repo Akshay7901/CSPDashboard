@@ -1206,12 +1206,22 @@ function ContractIssuedView({
   if (loading || !contract) return null;
 
   const cstatus = (contract.status || "").toLowerCase();
+  const dsStatus = (contract.docusign_status || "").toLowerCase();
   const isSigned =
     cstatus === "signed" ||
     cstatus === "completed" ||
+    dsStatus === "signed" ||
+    dsStatus === "completed" ||
     !!contract.docusign_completed_at;
-  const isDeclined = cstatus === "declined" || cstatus === "voided";
-  const canSign = cstatus === "sent" && !isSigned && !isDeclined;
+  const isDeclined =
+    cstatus === "declined" ||
+    cstatus === "voided" ||
+    dsStatus === "declined" ||
+    dsStatus === "voided";
+  const canSign =
+    (cstatus === "sent" || dsStatus === "sent" || dsStatus === "delivered") &&
+    !isSigned &&
+    !isDeclined;
   const hasOpenQuery =
     proposalStatus === "queries_raised" || proposalStatus === "question_raised";
   const signDisabled = !canSign || hasOpenQuery;
