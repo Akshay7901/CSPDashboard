@@ -1092,6 +1092,7 @@ function ProposalDetailPage() {
   const cd: Record<string, string | undefined> = {
     main_title: pick("main_title", "title"),
     sub_title: pick("sub_title", "subtitle"),
+    proposed_title: pick("proposed_title", "proposed_book_title", "proposed"),
     book_type: pick("book_type"),
     corresponding_author_name:
       pick("corresponding_author_name") ||
@@ -1639,6 +1640,14 @@ function ProposalDetailPage() {
             <section className="mt-6 rounded-2xl border border-stone-200 bg-white px-8 py-7">
               <div className="flex items-start justify-between gap-6">
                 <div>
+                  {cd.proposed_title && (
+                    <p className="mb-2 font-sans text-xs font-semibold uppercase tracking-wider text-stone-500">
+                      Proposed title:{" "}
+                      <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
+                        {cd.proposed_title}
+                      </span>
+                    </p>
+                  )}
                   <h1 className="font-serif text-3xl font-bold leading-tight text-stone-900">
                     {latestContract?.title || title}
                   </h1>
