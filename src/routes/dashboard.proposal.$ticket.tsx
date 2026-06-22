@@ -665,6 +665,13 @@ function ProposalDetailPage() {
       setContractSuccess(
         (body.message as string) || "Contract sent to author.",
       );
+      // Optimistically remember what we just sent so the hero card shows the
+      // proposed title/subtitle immediately, without waiting for the contracts
+      // list to refetch.
+      setOptimisticProposed({
+        title: (contractFields.title || "").trim() || undefined,
+        subtitle: (contractFields.subtitle || "").trim() || undefined,
+      });
       // Force the contracts list to refetch so the header/hero pick up the
       // new title/subtitle/addendum the DR just submitted.
       setContractsReloadKey((k) => k + 1);
