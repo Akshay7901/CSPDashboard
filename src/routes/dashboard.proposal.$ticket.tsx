@@ -57,12 +57,14 @@ function MetaRow({
   onChange,
   multiline,
   disabled,
+  hint,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   multiline?: boolean;
   disabled?: boolean;
+  hint?: string;
 }) {
   return (
     <div className="grid grid-cols-1 border-t border-stone-200 first:border-t-0 sm:grid-cols-[220px_1fr]">
@@ -87,6 +89,12 @@ function MetaRow({
             readOnly={disabled}
             className={`h-10 w-full border-stone-200 bg-white font-sans text-sm text-stone-800 ${disabled ? "bg-stone-50 text-stone-500" : ""}`}
           />
+        )}
+        {hint && (
+          <p className="mt-2 font-sans text-xs text-emerald-700">
+            <span className="font-semibold uppercase tracking-wide">Proposed:</span>{" "}
+            <span className="text-stone-700">{hint}</span>
+          </p>
         )}
       </div>
     </div>
@@ -1751,8 +1759,30 @@ function ProposalDetailPage() {
                               )}
                             <div className="overflow-hidden rounded-xl border border-stone-200 bg-white">
                               <MetaRow label="Title Full" value={metaForm.full_title} onChange={(v) => updateMetaField("full_title", v)} disabled={isMetaLocked} />
-                              <MetaRow label="Title" value={metaForm.title} onChange={(v) => updateMetaField("title", v)} disabled={isMetaLocked} />
-                              <MetaRow label="Subtitle" value={metaForm.subtitle} onChange={(v) => updateMetaField("subtitle", v)} disabled={isMetaLocked} />
+                              <MetaRow
+                                label="Title"
+                                value={metaForm.title}
+                                onChange={(v) => updateMetaField("title", v)}
+                                disabled={isMetaLocked}
+                                hint={
+                                  latestContractForHeader?.title &&
+                                  latestContractForHeader.title !== metaForm.title
+                                    ? latestContractForHeader.title
+                                    : undefined
+                                }
+                              />
+                              <MetaRow
+                                label="Subtitle"
+                                value={metaForm.subtitle}
+                                onChange={(v) => updateMetaField("subtitle", v)}
+                                disabled={isMetaLocked}
+                                hint={
+                                  latestContractForHeader?.subtitle &&
+                                  latestContractForHeader.subtitle !== metaForm.subtitle
+                                    ? latestContractForHeader.subtitle
+                                    : undefined
+                                }
+                              />
                               <MetaRow label="Category Auth/Ed" value={metaForm.category} onChange={(v) => updateMetaField("category", v)} disabled={isMetaLocked} />
                               <MetaRow label="Display Names" value={metaForm.display_names} onChange={(v) => updateMetaField("display_names", v)} disabled={isMetaLocked} />
                               <MetaRow label="Display Bios" value={metaForm.display_bios} onChange={(v) => updateMetaField("display_bios", v)} multiline disabled={isMetaLocked} />
