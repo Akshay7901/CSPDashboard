@@ -398,6 +398,10 @@ function ProposalDetailPage() {
   const [voidLoading, setVoidLoading] = useState(false);
   const [voidError, setVoidError] = useState<string | null>(null);
   const [contractsReloadKey, setContractsReloadKey] = useState(0);
+  const [optimisticProposed, setOptimisticProposed] = useState<{
+    title?: string;
+    subtitle?: string;
+  } | null>(null);
   const [contractCardOpen, setContractCardOpen] = useState(true);
   const [contractQueriesOpen, setContractQueriesOpen] = useState(true);
   const [queryThread, setQueryThread] = useState<ContractQueryEntry[]>([]);
@@ -661,6 +665,13 @@ function ProposalDetailPage() {
       setContractSuccess(
         (body.message as string) || "Contract sent to author.",
       );
+      // Optimistically remember what we just sent so the hero card shows the
+      // proposed title/subtitle immediately, without waiting for the contracts
+      // list to refetch.
+      setOptimisticProposed({
+        title: (contractFields.title || "").trim() || undefined,
+        subtitle: (contractFields.subtitle || "").trim() || undefined,
+      });
       // Force the contracts list to refetch so the header/hero pick up the
       // new title/subtitle/addendum the DR just submitted.
       setContractsReloadKey((k) => k + 1);
@@ -1675,15 +1686,17 @@ function ProposalDetailPage() {
                     </p>
                   )}
                   {(() => {
+                    const candidateTitle =
+                      optimisticProposed?.title || latestContractForHeader?.title;
+                    const candidateSubtitle =
+                      optimisticProposed?.subtitle || latestContractForHeader?.subtitle;
                     const proposedTitle =
-                      latestContractForHeader?.title &&
-                      latestContractForHeader.title !== (cd.main_title || title)
-                        ? latestContractForHeader.title
+                      candidateTitle && candidateTitle !== (cd.main_title || title)
+                        ? candidateTitle
                         : null;
                     const proposedSubtitle =
-                      latestContractForHeader?.subtitle &&
-                      latestContractForHeader.subtitle !== cd.sub_title
-                        ? latestContractForHeader.subtitle
+                      candidateSubtitle && candidateSubtitle !== cd.sub_title
+                        ? candidateSubtitle
                         : null;
                     if (!proposedTitle && !proposedSubtitle) return null;
                     return (
