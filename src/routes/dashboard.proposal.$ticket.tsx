@@ -390,6 +390,8 @@ function ProposalDetailPage() {
   const [voidLoading, setVoidLoading] = useState(false);
   const [voidError, setVoidError] = useState<string | null>(null);
   const [contractsReloadKey, setContractsReloadKey] = useState(0);
+  const [contractCardOpen, setContractCardOpen] = useState(true);
+  const [contractQueriesOpen, setContractQueriesOpen] = useState(true);
   const [queryThread, setQueryThread] = useState<ContractQueryEntry[]>([]);
   const [queryProposalStatus, setQueryProposalStatus] = useState<string>("");
   const [queryResponseText, setQueryResponseText] = useState("");
@@ -2721,16 +2723,27 @@ function ProposalDetailPage() {
                 {/* Contract — shown again once the query is resolved */}
                 {contracts.length > 0 && !hasOpenQuery && contractResendPrompt !== "prompt" && contractResendPrompt !== "skip" && (
                   <Card>
-                    <div className="border-b border-stone-200 px-5 py-3.5">
-                      <h2 className="font-serif text-base font-bold text-stone-900">
-                        Contract
-                      </h2>
-                      <p className="mt-1 font-sans text-sm text-stone-500">
-                        {contracts.length === 1
-                          ? "Latest contract issued for this proposal"
-                          : `${contracts.length} contract versions issued`}
-                      </p>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setContractCardOpen((v) => !v)}
+                      aria-expanded={contractCardOpen}
+                      className="flex w-full items-center justify-between border-b border-stone-200 px-5 py-3.5 text-left hover:bg-stone-50"
+                    >
+                      <div>
+                        <h2 className="font-serif text-base font-bold text-stone-900">
+                          Contract
+                        </h2>
+                        <p className="mt-1 font-sans text-sm text-stone-500">
+                          {contracts.length === 1
+                            ? "Latest contract issued for this proposal"
+                            : `${contracts.length} contract versions issued`}
+                        </p>
+                      </div>
+                      <ChevronDown
+                        className={`h-4 w-4 shrink-0 text-stone-500 transition-transform ${contractCardOpen ? "rotate-180" : ""}`}
+                      />
+                    </button>
+                    {contractCardOpen && (
                     <div className="space-y-4 px-5 py-4">
                       {contracts.map((c) => {
                         const statusKey = (c.status || "").toLowerCase();
@@ -2850,6 +2863,7 @@ function ProposalDetailPage() {
                         );
                       })}
                     </div>
+                    )}
                   </Card>
                 )}
 
@@ -2857,6 +2871,9 @@ function ProposalDetailPage() {
                   <ContractQueries
                     ticket={ticket}
                     viewer="dr"
+                    collapsible
+                    defaultOpen={contractQueriesOpen}
+                    onOpenChange={setContractQueriesOpen}
                     onChanged={() => setContractsReloadKey((k) => k + 1)}
                   />
                 )}

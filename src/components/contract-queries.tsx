@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { MessageSquare, Send } from "lucide-react";
+import { ChevronDown, MessageSquare, Send } from "lucide-react";
 import {
   getQueries,
   raiseQuery,
@@ -12,10 +12,16 @@ export function ContractQueries({
   ticket,
   viewer,
   onChanged,
+  collapsible = false,
+  defaultOpen = true,
+  onOpenChange,
 }: {
   ticket: string;
   viewer: "author" | "dr";
   onChanged?: () => void;
+  collapsible?: boolean;
+  defaultOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
   const [thread, setThread] = useState<ContractQueryEntry[]>([]);
   const [proposalStatus, setProposalStatus] = useState<string>("");
@@ -86,10 +92,23 @@ export function ContractQueries({
   );
 
   const queriesRaised = proposalStatus === "queries_raised";
+  const [open, setOpen] = useState(defaultOpen);
+  const toggleOpen = () => {
+    setOpen((prev) => {
+      const next = !prev;
+      onOpenChange?.(next);
+      return next;
+    });
+  };
 
   return (
     <div className="rounded-2xl border border-stone-200 bg-white">
-      <div className="flex items-center justify-between border-b border-stone-200 px-5 py-3.5">
+      <div
+        className={`flex items-center justify-between ${open ? "border-b border-stone-200" : ""} px-5 py-3.5 ${collapsible ? "cursor-pointer hover:bg-stone-50" : ""}`}
+        onClick={collapsible ? toggleOpen : undefined}
+        role={collapsible ? "button" : undefined}
+        aria-expanded={collapsible ? open : undefined}
+      >
         <div>
           <h2 className="flex items-center gap-2 font-serif text-base font-bold text-stone-900">
             <MessageSquare className="h-4 w-4 text-stone-500" />
@@ -101,13 +120,22 @@ export function ContractQueries({
               : "Author questions about the contract"}
           </p>
         </div>
-        {queriesRaised && viewer === "dr" && (
-          <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-1 font-sans text-[11px] font-semibold uppercase tracking-wide text-amber-700 ring-1 ring-amber-200">
-            Action needed
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {queriesRaised && viewer === "dr" && (
+            <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-1 font-sans text-[11px] font-semibold uppercase tracking-wide text-amber-700 ring-1 ring-amber-200">
+              Action needed
+            </span>
+          )}
+          {collapsible && (
+            <ChevronDown
+              className={`h-4 w-4 shrink-0 text-stone-500 transition-transform ${open ? "rotate-180" : ""}`}
+            />
+          )}
+        </div>
       </div>
 
+      {open && (
+      <>
       <div className="space-y-3 px-5 py-4">
         {loading && thread.length === 0 && (
           <p className="font-sans text-sm text-stone-500">Loading…</p>
@@ -196,8 +224,10 @@ export function ContractQueries({
           </p>
         )}
       </div>
+      </>
+      )}
 
-      {viewer === "author" && (
+      {open && viewer === "author" && (
         (() => {
           const hasOpenQuery = thread.some(
             (t) => t.type === "query" && !answered.has(t.id),
