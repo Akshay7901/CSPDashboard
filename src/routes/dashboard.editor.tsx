@@ -12,7 +12,7 @@ import {
   Trash2,
 } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
-import { portalLogout, getPortalSession } from "@/lib/auth";
+import { portalLogout, getPortalSession, isAdmin as checkIsAdmin } from "@/lib/auth";
 import { ChangePasswordButton } from "@/components/change-password-dialog";
 import {
   PROPOSALS,
@@ -117,6 +117,10 @@ function EditorDashboard() {
       const session = getPortalSession();
       if (!session) {
         navigate({ to: "/login" });
+        return;
+      }
+      if (checkIsAdmin()) {
+        navigate({ to: "/dashboard/decision_reviewer" });
         return;
       }
       if (session.role !== "editor") {
