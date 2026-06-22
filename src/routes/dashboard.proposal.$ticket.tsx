@@ -2868,28 +2868,14 @@ function ProposalDetailPage() {
                 )}
 
                 {contracts.length > 0 && !hasOpenQuery && contractResendPrompt !== "prompt" && contractResendPrompt !== "skip" && (
-                  <Card>
-                    <button
-                      type="button"
-                      onClick={() => setContractQueriesOpen((v) => !v)}
-                      aria-expanded={contractQueriesOpen}
-                      className="flex w-full items-center justify-between border-b border-stone-200 px-5 py-3.5 text-left hover:bg-stone-50"
-                    >
-                      <h2 className="font-serif text-base font-bold text-stone-900">
-                        Contract Queries
-                      </h2>
-                      <ChevronDown
-                        className={`h-4 w-4 shrink-0 text-stone-500 transition-transform ${contractQueriesOpen ? "rotate-180" : ""}`}
-                      />
-                    </button>
-                    {contractQueriesOpen && (
-                      <ContractQueries
-                        ticket={ticket}
-                        viewer="dr"
-                        onChanged={() => setContractsReloadKey((k) => k + 1)}
-                      />
-                    )}
-                  </Card>
+                  <ContractQueries
+                    ticket={ticket}
+                    viewer="dr"
+                    collapsible
+                    defaultOpen={contractQueriesOpen}
+                    onOpenChange={setContractQueriesOpen}
+                    onChanged={() => setContractsReloadKey((k) => k + 1)}
+                  />
                 )}
 
                 {/* Internal Notes */}
