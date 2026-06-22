@@ -18,6 +18,21 @@ type Props = {
   onChanged?: () => void;
   /** Notified whenever the open-query state changes (author has an unanswered query). */
   onOpenQueryChange?: (hasOpen: boolean) => void;
+  /**
+   * DR only: current value snapshot for each metadata field key. Used to seed
+   * inline editors when responding to a query that targets specific fields.
+   */
+  fieldValues?: Record<string, string>;
+  /**
+   * DR only: human-readable labels per field key. Falls back to the raw key.
+   */
+  fieldLabels?: Record<string, string>;
+  /**
+   * DR only: persist field updates alongside a response. The component will
+   * await this before submitting the response text, so the metadata snapshot
+   * stays in sync with the query thread.
+   */
+  onSaveFields?: (updates: Record<string, string>) => Promise<void>;
 };
 
 export function MetadataQueries({
@@ -27,6 +42,9 @@ export function MetadataQueries({
   raisableFields,
   onChanged,
   onOpenQueryChange,
+  fieldValues,
+  fieldLabels,
+  onSaveFields,
 }: Props) {
   const [thread, setThread] = useState<MetadataQueryEntry[]>([]);
   const [loading, setLoading] = useState(false);
@@ -38,6 +56,7 @@ export function MetadataQueries({
 
   const [respondingTo, setRespondingTo] = useState<number | null>(null);
   const [responseText, setResponseText] = useState("");
+  const [fieldEdits, setFieldEdits] = useState<Record<string, string>>({});
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -85,9 +104,21 @@ export function MetadataQueries({
     setSubmitting(true);
     setError(null);
     try {
+      // Persist any field updates first so the metadata snapshot reflects
+      // the change before the response is recorded.
+      if (onSaveFields) {
+        const updates: Record<string, string> = {};
+        for (const [k, v] of Object.entries(fieldEdits)) {
+          if ((fieldValues?.[k] ?? "") !== v) updates[k] = v;
+        }
+        if (Object.keys(updates).length > 0) {
+          await onSaveFields(updates);
+        }
+      }
       await respondMetadataQuery(ticket, queryId, responseText.trim());
       setRespondingTo(null);
       setResponseText("");
+      setFieldEdits({});
       await reload();
       onChanged?.();
     } catch (e) {
