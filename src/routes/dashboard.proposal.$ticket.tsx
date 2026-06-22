@@ -3408,6 +3408,18 @@ function ProposalDetailPage() {
                         className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 focus:border-[#5B2EBA] focus:outline-none focus:ring-2 focus:ring-[#EDE7FA]"
                       />
                     </div>
+                    <div className="sm:col-span-2">
+                      <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
+                        Addendum <span className="font-normal text-[#7A6A5A]">(optional)</span>
+                      </label>
+                      <textarea
+                        value={contractAmendments}
+                        onChange={(e) => setContractAmendments(e.target.value)}
+                        rows={3}
+                        placeholder="This agreement is subject to the following additional terms: ..."
+                        className="mt-2 w-full resize-none rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 placeholder:text-stone-400 focus:border-[#5B2EBA] focus:outline-none focus:ring-2 focus:ring-[#EDE7FA]"
+                      />
+                    </div>
                   </div>
                 </div>
               )}
