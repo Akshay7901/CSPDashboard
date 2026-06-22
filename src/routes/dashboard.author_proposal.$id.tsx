@@ -1229,6 +1229,8 @@ function ContractIssuedView({
     contract.notes ||
     "";
   const editorialFeedback = contract.addendum || "";
+  const cd = proposal.cd;
+  const titleStr = cd.main_title || proposal.ticket;
   const contractTitle = contract.title || titleStr;
   const contractSubtitle = contract.subtitle || cd.sub_title || "";
   const contractFieldRows = [
@@ -1241,8 +1243,6 @@ function ContractIssuedView({
     { label: "Publishing Agreement", value: contract.publishing_agreement },
   ].filter((row): row is { label: string; value: string | number } => row.value !== undefined && row.value !== null && String(row.value).trim() !== "");
 
-  const cd = proposal.cd;
-  const titleStr = cd.main_title || proposal.ticket;
   const formatLabel =
     contract.contract_type === "editor"
       ? "Edited Collection"
