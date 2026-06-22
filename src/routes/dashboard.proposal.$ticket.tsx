@@ -447,6 +447,7 @@ function ProposalDetailPage() {
   const [metadata, setMetadata] = useState<ProposalMetadata | null>(null);
   const [metadataLoading, setMetadataLoading] = useState(false);
   const [metadataError, setMetadataError] = useState<string | null>(null);
+  const [metadataHasOpenQuery, setMetadataHasOpenQuery] = useState(false);
   type MetaForm = {
     full_title: string;
     title: string;
@@ -1726,7 +1727,9 @@ function ProposalDetailPage() {
                       {!metadataLoading && !metadataError && metadata && (() => {
                         const coverUrl = metadata.cover_image?.s3_url;
                         const authorsList = metaForm.authors;
-                        const isMetaLocked = metadata.metadata_status === "sent_to_author";
+                         const isMetaLocked =
+                           metadata.metadata_status === "sent_to_author" &&
+                           !metadataHasOpenQuery;
                         const isMetaApproved = metadata.metadata_status === "approved" || !!metadata.approved_at;
                         return (
                           <div className="space-y-4">
@@ -1735,6 +1738,14 @@ function ProposalDetailPage() {
                                 Metadata has been sent to the author for approval. Editing is disabled until the author responds.
                               </div>
                             )}
+                            {metadata.metadata_status === "sent_to_author" &&
+                              metadataHasOpenQuery && (
+                                <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 font-sans text-sm text-emerald-800">
+                                  The author has raised a query — metadata fields
+                                  are editable so you can update them before
+                                  responding.
+                                </div>
+                              )}
                             <div className="overflow-hidden rounded-xl border border-stone-200 bg-white">
                               <MetaRow label="Title Full" value={metaForm.full_title} onChange={(v) => updateMetaField("full_title", v)} disabled={isMetaLocked} />
                               <MetaRow label="Title" value={metaForm.title} onChange={(v) => updateMetaField("title", v)} disabled={isMetaLocked} />
@@ -1820,6 +1831,7 @@ function ProposalDetailPage() {
                             <MetadataQueries
                               ticket={ticket}
                               viewer="dr"
+                              onOpenQueryChange={setMetadataHasOpenQuery}
                               fieldLabels={{
                                 full_title: "Title (full)",
                                 title: "Title",
