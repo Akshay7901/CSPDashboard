@@ -1086,21 +1086,39 @@ function ProposalDetailPage() {
       undefined,
     email: pick("email"),
     secondary_email: pick("secondary_email", "email_2"),
+    phone: pick("phone", "phone_number"),
     institution: pick("institution"),
     job_title: pick("job_title", "author_title"),
+    qualifications: pick("qualifications", "academic_qualifications", "professional_qualifications"),
     address: pick("address"),
+    address_line_1: pick("address_line_1", "address_line1"),
+    address_line_2: pick("address_line_2", "address_line2"),
+    city: pick("city"),
+    state: pick("state", "region", "province", "county"),
+    postal_code: pick("postal_code", "zip", "zip_code"),
+    country: pick("country"),
     biography: pick("biography"),
     co_authors_editors: pick("co_authors_editors", "co_authors"),
     word_count: pick("word_count", "estimated_word_count"),
     figures_tables_count: pick("figures_tables_count", "illustration_count"),
     under_review_elsewhere: pick("under_review_elsewhere", "is_previously_published"),
     expected_completion_date: pick("expected_completion_date", "estimated_completion_date"),
+    expected_submission_date: pick("expected_submission_date", "submission_date"),
+    manuscript_stage: pick("manuscript_stage", "stage", "current_stage"),
+    languages_used: pick("languages_used", "languages", "language"),
+    intended_audience: pick("intended_audience", "target_audience", "audience"),
     short_description: pick("short_description", "detailed_description"),
     detailed_description: pick(
       "detailed_description_extra",
       "key_features",
       "unique_selling_points",
     ),
+    key_features: pick("key_features", "selling_points", "unique_selling_points"),
+    competing_titles: pick("competing_titles"),
+    unique_contribution: pick("unique_contribution", "unique_selling_points"),
+    primary_market: pick("primary_market", "market"),
+    conferences: pick("conferences", "relevant_conferences"),
+    promotional_channels: pick("promotional_channels", "promotion_channels"),
     keywords: pick("keywords"),
     marketing_info: pick(
       "marketing_info",
@@ -1110,6 +1128,7 @@ function ProposalDetailPage() {
     ),
     referees_reviewers: pick("referees_reviewers", "recommended_reviewers"),
     additional_info: pick("additional_info", "conferences", "promotional_channels"),
+    additional_notes: pick("additional_notes", "additional_comments", "notes"),
     permissions_required: pick("permissions_required"),
     table_of_contents: pick("table_of_contents"),
   };
@@ -2134,13 +2153,28 @@ function ProposalDetailPage() {
                     <div className="grid grid-cols-1 gap-5 px-7 py-6 sm:grid-cols-3">
                       <DataField label="Name" value={cd.corresponding_author_name} />
                       <DataField label="Email" value={cd.email} />
+                      <DataField label="Phone" value={cd.phone} />
                       <DataField label="Institution" value={cd.institution} />
-                      <DataField label="Job Title" value={cd.job_title} />
+                      <DataField label="Position" value={cd.job_title} />
+                      <DataField label="Qualifications" value={cd.qualifications} />
                       <DataField label="Secondary Email" value={cd.secondary_email} />
                     </div>
-                    {cd.address && (
+                    {(cd.address || cd.address_line_1 || cd.city || cd.state || cd.postal_code || cd.country) && (
                       <div className="px-7 py-6">
-                        <DataField label="Mailing Address" value={cd.address} />
+                        <SectionLabel>Mailing Address</SectionLabel>
+                        <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                          <DataField label="Address Line 1" value={cd.address_line_1} />
+                          <DataField label="Address Line 2" value={cd.address_line_2} />
+                          <DataField label="City" value={cd.city} />
+                          <DataField label="State / Region" value={cd.state} />
+                          <DataField label="Postal Code" value={cd.postal_code} />
+                          <DataField label="Country" value={cd.country} />
+                        </div>
+                        {!cd.address_line_1 && cd.address && (
+                          <p className="mt-3 whitespace-pre-line font-sans text-sm text-stone-700">
+                            {cd.address}
+                          </p>
+                        )}
                       </div>
                     )}
                     {cd.biography && (
@@ -2152,7 +2186,34 @@ function ProposalDetailPage() {
                 </Card>
 
                 {/* Additional Authors */}
-                {cd.co_authors_editors && (
+                {(Array.isArray(rawCd.co_authors) && (rawCd.co_authors as unknown[]).length > 0) ? (
+                  <Card>
+                    <CardHeader
+                      title="Co-authors / Editors / Contributors / Translators"
+                      subtitle="Additional contributors listed on the proposal"
+                    />
+                    <ul className="divide-y divide-stone-200">
+                      {(rawCd.co_authors as Array<Record<string, unknown>>).map((c, i) => {
+                        const name =
+                          [c.firstName || c.first_name, c.lastName || c.last_name]
+                            .filter(Boolean)
+                            .join(" ")
+                            .trim() || (c.name as string) || `Contributor ${i + 1}`;
+                        return (
+                          <li key={i} className="grid grid-cols-1 gap-4 px-7 py-5 sm:grid-cols-4">
+                            <DataField label="Role" value={(c.role as string) || "—"} />
+                            <DataField label="Name" value={name} />
+                            <DataField label="Email" value={(c.email as string) || undefined} />
+                            <DataField
+                              label="Affiliation"
+                              value={(c.institution || c.affiliation) as string | undefined}
+                            />
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </Card>
+                ) : cd.co_authors_editors ? (
                   <Card>
                     <CardHeader
                       title="Additional Authors / Editors"
@@ -2164,7 +2225,7 @@ function ProposalDetailPage() {
                       </p>
                     </div>
                   </Card>
-                )}
+                ) : null}
 
                 {/* Manuscript Details */}
                 <Card>
@@ -2177,8 +2238,8 @@ function ProposalDetailPage() {
                       large
                     />
                     <Stat
-                      label="Under Review Elsewhere"
-                      value={cd.under_review_elsewhere || "—"}
+                      label="Languages"
+                      value={cd.languages_used || "—"}
                       large
                     />
                     <Stat
@@ -2187,6 +2248,16 @@ function ProposalDetailPage() {
                       large
                     />
                   </div>
+                  {(cd.intended_audience || cd.manuscript_stage || cd.under_review_elsewhere) && (
+                    <div className="grid grid-cols-1 gap-5 border-t border-stone-200 px-7 py-6 sm:grid-cols-3">
+                      <DataField label="Intended Audience" value={cd.intended_audience} multiline />
+                      <DataField label="Manuscript Stage" value={cd.manuscript_stage} />
+                      <DataField
+                        label="Under Review Elsewhere"
+                        value={cd.under_review_elsewhere}
+                      />
+                    </div>
+                  )}
                 </Card>
 
                 {/* Summary & Description */}
@@ -2225,6 +2296,14 @@ function ProposalDetailPage() {
                           </p>
                         </div>
                       )}
+                      {cd.key_features && cd.key_features !== cd.detailed_description && (
+                        <div className="-mx-7 border-t border-stone-300 px-7 pt-5">
+                          <SectionLabel>Key Features / Selling Points</SectionLabel>
+                          <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
+                            {cd.key_features}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </Card>
                 )}
@@ -2250,19 +2329,49 @@ function ProposalDetailPage() {
                 )}
 
                 {/* Market & Competition */}
-                {cd.marketing_info && (
+                {(cd.competing_titles || cd.unique_contribution || cd.primary_market || cd.conferences || cd.promotional_channels || cd.marketing_info) && (
                   <Card>
                     <CardHeader
-                      title="Market & Competition"
-                      subtitle="Commercial viability and competitive landscape"
+                      title="Marketing & Promotion"
+                      subtitle="Market positioning, competition and promotion plan"
                     />
-                    <div className="space-y-6 px-7 py-6">
-                      <div>
-                        <SectionLabel>Why is this book needed?</SectionLabel>
-                        <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
-                          {cd.marketing_info}
-                        </p>
-                      </div>
+                    <div className="space-y-5 px-7 py-6">
+                      {cd.primary_market && (
+                        <DataField label="Primary Market" value={cd.primary_market} />
+                      )}
+                      {cd.competing_titles && (
+                        <DataField label="Competing Titles" value={cd.competing_titles} multiline />
+                      )}
+                      {cd.unique_contribution && (
+                        <DataField
+                          label="Unique Contribution vs Competing Titles"
+                          value={cd.unique_contribution}
+                          multiline
+                        />
+                      )}
+                      {cd.conferences && (
+                        <DataField
+                          label="Relevant Conferences / Academic Events"
+                          value={cd.conferences}
+                          multiline
+                        />
+                      )}
+                      {cd.promotional_channels && (
+                        <DataField
+                          label="Promotional Channels"
+                          value={cd.promotional_channels}
+                          multiline
+                        />
+                      )}
+                      {cd.marketing_info &&
+                        cd.marketing_info !== cd.competing_titles &&
+                        cd.marketing_info !== cd.primary_market && (
+                          <DataField
+                            label="Additional Marketing Notes"
+                            value={cd.marketing_info}
+                            multiline
+                          />
+                        )}
                     </div>
                   </Card>
                 )}
@@ -2290,13 +2399,20 @@ function ProposalDetailPage() {
                 )}
 
                 {/* Additional Notes */}
-                {(cd.additional_info || cd.permissions_required) && (
+                {(cd.additional_info || cd.additional_notes || cd.permissions_required) && (
                   <Card>
                     <CardHeader
-                      title="Additional Notes"
+                      title="Additional Comments & Permissions"
                       subtitle="Copyright, permissions, special considerations"
                     />
                     <div className="space-y-4 px-7 py-6">
+                      {cd.additional_notes && (
+                        <DataField
+                          label="Additional Notes from Author"
+                          value={cd.additional_notes}
+                          multiline
+                        />
+                      )}
                       {cd.additional_info && (
                         <p className="whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
                           {cd.additional_info}
@@ -2304,7 +2420,7 @@ function ProposalDetailPage() {
                       )}
                       {cd.permissions_required && (
                         <DataField
-                          label="Permissions Required"
+                          label="Permissions Required from Copyright Holders"
                           value={cd.permissions_required}
                           multiline
                         />
@@ -3712,14 +3828,53 @@ function normalizeProposalData(
 
   // Aliases so the existing pick() lookups resolve.
   if (isObj(raw.book)) {
-    setIfEmpty("main_title", (raw.book as Record<string, unknown>).title);
-    setIfEmpty("sub_title", (raw.book as Record<string, unknown>).subtitle);
-    setIfEmpty("book_type", (raw.book as Record<string, unknown>).type);
+    const b = raw.book as Record<string, unknown>;
+    setIfEmpty("main_title", b.title);
+    setIfEmpty("sub_title", b.subtitle);
+    setIfEmpty("book_type", b.type);
+    setIfEmpty("word_count", b.wordCount || b.estimatedWordCount);
+    setIfEmpty("figures_tables_count", b.illustrationsCount || b.figuresCount || b.illustrationCount);
+    setIfEmpty("languages_used", b.languages || b.language);
   }
   if (isObj(raw.description)) {
     const d = raw.description as Record<string, unknown>;
-    setIfEmpty("abstract_blurb", d.abstract);
-    setIfEmpty("detailed_description", d.abstract);
+    setIfEmpty("abstract_blurb", d.abstract || d.summary);
+    setIfEmpty("short_description", d.summary || d.abstract);
+    setIfEmpty("key_features", d.keyFeatures || d.sellingPoints);
+    setIfEmpty("table_of_contents", d.tableOfContents || d.toc);
+    setIfEmpty("intended_audience", d.intendedAudience || d.audience);
+  }
+  if (isObj(raw.marketing)) {
+    const m = raw.marketing as Record<string, unknown>;
+    setIfEmpty("competing_titles", m.competingTitles);
+    setIfEmpty("unique_contribution", m.uniqueContribution);
+    setIfEmpty("primary_market", m.primaryMarket);
+    setIfEmpty("recommended_reviewers", m.recommendedReviewers);
+    setIfEmpty("conferences", m.conferences || m.relevantConferences);
+    setIfEmpty("promotional_channels", m.promotionalChannels);
+  }
+  if (isObj(raw.manuscript)) {
+    const m = raw.manuscript as Record<string, unknown>;
+    setIfEmpty("manuscript_stage", m.stage || m.currentStage);
+    setIfEmpty(
+      "expected_completion_date",
+      m.expectedSubmission || m.completionDate || m.expectedSubmissionDate,
+    );
+  }
+  if (isObj(raw.agreement)) {
+    const a = raw.agreement as Record<string, unknown>;
+    setIfEmpty("permissions_required", a.permissions || a.permissionsRequired);
+    setIfEmpty("additional_notes", a.notes || a.additionalNotes);
+  }
+  // primary author auxiliary fields from authors[0]
+  if (Array.isArray(raw.authors) && raw.authors.length > 0) {
+    const primary = (raw.authors as unknown[]).find(
+      (a) => isObj(a) && String((a as Record<string, unknown>).role || "").toLowerCase() === "author",
+    ) || raw.authors[0];
+    if (isObj(primary)) {
+      setIfEmpty("qualifications", primary.qualifications);
+      setIfEmpty("phone", primary.phone);
+    }
   }
 
   return out;
@@ -3737,10 +3892,56 @@ const ADDITIONAL_DETAILS_SKIP = new Set<string>([
   "email",
   "secondary_email",
   "email_2",
+  "phone",
+  "phone_number",
+  "qualifications",
+  "academic_qualifications",
+  "professional_qualifications",
   "institution",
   "job_title",
   "author_title",
   "address",
+  "address_line_1",
+  "address_line_2",
+  "address_line1",
+  "address_line2",
+  "city",
+  "state",
+  "region",
+  "province",
+  "county",
+  "postal_code",
+  "zip",
+  "zip_code",
+  "country",
+  "languages_used",
+  "languages",
+  "language",
+  "intended_audience",
+  "audience",
+  "manuscript_stage",
+  "stage",
+  "current_stage",
+  "expected_submission_date",
+  "submission_date",
+  "competing_titles",
+  "unique_contribution",
+  "primary_market",
+  "market",
+  "conferences",
+  "relevant_conferences",
+  "promotional_channels",
+  "promotion_channels",
+  "additional_notes",
+  "additional_comments",
+  "notes",
+  "authors",
+  "mailing",
+  "book",
+  "description",
+  "marketing",
+  "manuscript",
+  "agreement",
   "biography",
   "co_authors_editors",
   "co_authors",
