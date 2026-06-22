@@ -1368,7 +1368,26 @@ function ContractIssuedView({
                 </span>
               </div>
             ))}
+            {contract.addendum && (
+              <div className="flex items-baseline justify-between gap-4">
+                <span className="font-sans text-sm text-stone-600">Addendum</span>
+                <span className="max-w-[60%] whitespace-pre-line text-right font-sans text-sm font-medium text-stone-800">
+                  {contract.addendum}
+                </span>
+              </div>
+            )}
           </div>
+
+          {editorNote && (
+            <div className="mt-6 rounded-lg border border-violet-100 bg-violet-50/70 px-4 py-3">
+              <p className="font-sans text-[11px] font-bold uppercase tracking-wider text-violet-700">
+                Note from your editor
+              </p>
+              <p className="mt-1.5 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
+                {editorNote}
+              </p>
+            </div>
+          )}
 
           {/* Skeleton "terms" bars */}
           <div className="mt-10 space-y-3">
