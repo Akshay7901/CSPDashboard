@@ -2153,13 +2153,28 @@ function ProposalDetailPage() {
                     <div className="grid grid-cols-1 gap-5 px-7 py-6 sm:grid-cols-3">
                       <DataField label="Name" value={cd.corresponding_author_name} />
                       <DataField label="Email" value={cd.email} />
+                      <DataField label="Phone" value={cd.phone} />
                       <DataField label="Institution" value={cd.institution} />
-                      <DataField label="Job Title" value={cd.job_title} />
+                      <DataField label="Position" value={cd.job_title} />
+                      <DataField label="Qualifications" value={cd.qualifications} />
                       <DataField label="Secondary Email" value={cd.secondary_email} />
                     </div>
-                    {cd.address && (
+                    {(cd.address || cd.address_line_1 || cd.city || cd.state || cd.postal_code || cd.country) && (
                       <div className="px-7 py-6">
-                        <DataField label="Mailing Address" value={cd.address} />
+                        <SectionLabel>Mailing Address</SectionLabel>
+                        <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                          <DataField label="Address Line 1" value={cd.address_line_1} />
+                          <DataField label="Address Line 2" value={cd.address_line_2} />
+                          <DataField label="City" value={cd.city} />
+                          <DataField label="State / Region" value={cd.state} />
+                          <DataField label="Postal Code" value={cd.postal_code} />
+                          <DataField label="Country" value={cd.country} />
+                        </div>
+                        {!cd.address_line_1 && cd.address && (
+                          <p className="mt-3 whitespace-pre-line font-sans text-sm text-stone-700">
+                            {cd.address}
+                          </p>
+                        )}
                       </div>
                     )}
                     {cd.biography && (
@@ -2171,7 +2186,34 @@ function ProposalDetailPage() {
                 </Card>
 
                 {/* Additional Authors */}
-                {cd.co_authors_editors && (
+                {(Array.isArray(rawCd.co_authors) && (rawCd.co_authors as unknown[]).length > 0) ? (
+                  <Card>
+                    <CardHeader
+                      title="Co-authors / Editors / Contributors / Translators"
+                      subtitle="Additional contributors listed on the proposal"
+                    />
+                    <ul className="divide-y divide-stone-200">
+                      {(rawCd.co_authors as Array<Record<string, unknown>>).map((c, i) => {
+                        const name =
+                          [c.firstName || c.first_name, c.lastName || c.last_name]
+                            .filter(Boolean)
+                            .join(" ")
+                            .trim() || (c.name as string) || `Contributor ${i + 1}`;
+                        return (
+                          <li key={i} className="grid grid-cols-1 gap-4 px-7 py-5 sm:grid-cols-4">
+                            <DataField label="Role" value={(c.role as string) || "—"} />
+                            <DataField label="Name" value={name} />
+                            <DataField label="Email" value={(c.email as string) || undefined} />
+                            <DataField
+                              label="Affiliation"
+                              value={(c.institution || c.affiliation) as string | undefined}
+                            />
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </Card>
+                ) : cd.co_authors_editors ? (
                   <Card>
                     <CardHeader
                       title="Additional Authors / Editors"
@@ -2183,7 +2225,7 @@ function ProposalDetailPage() {
                       </p>
                     </div>
                   </Card>
-                )}
+                ) : null}
 
                 {/* Manuscript Details */}
                 <Card>
@@ -2196,8 +2238,8 @@ function ProposalDetailPage() {
                       large
                     />
                     <Stat
-                      label="Under Review Elsewhere"
-                      value={cd.under_review_elsewhere || "—"}
+                      label="Languages"
+                      value={cd.languages_used || "—"}
                       large
                     />
                     <Stat
@@ -2206,6 +2248,16 @@ function ProposalDetailPage() {
                       large
                     />
                   </div>
+                  {(cd.intended_audience || cd.manuscript_stage || cd.under_review_elsewhere) && (
+                    <div className="grid grid-cols-1 gap-5 border-t border-stone-200 px-7 py-6 sm:grid-cols-3">
+                      <DataField label="Intended Audience" value={cd.intended_audience} multiline />
+                      <DataField label="Manuscript Stage" value={cd.manuscript_stage} />
+                      <DataField
+                        label="Under Review Elsewhere"
+                        value={cd.under_review_elsewhere}
+                      />
+                    </div>
+                  )}
                 </Card>
 
                 {/* Summary & Description */}
