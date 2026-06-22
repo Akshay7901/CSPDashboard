@@ -2314,6 +2314,11 @@ function ProposalDetailPage() {
                 )}
 
                 {/* Supporting Documents */}
+                {((!isReviewReturned && !isContractIssued) || originalOpen) && (
+                  <AdditionalProposalDetails rawCd={rawCd} />
+                )}
+
+                {/* Supporting Documents */}
                 {!isReviewReturned && !isContractIssued && (
                   <Card>
                     <CardHeader
