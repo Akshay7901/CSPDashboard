@@ -12,9 +12,7 @@ import {
   Trash2,
 } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
-import { portalLogout, getPortalSession, isAdmin as checkIsAdmin } from "@/lib/auth";
-import { deleteProposal } from "@/lib/adminApi";
-import { toast } from "sonner";
+import { portalLogout, getPortalSession } from "@/lib/auth";
 import { ChangePasswordButton } from "@/components/change-password-dialog";
 import {
   PROPOSALS,
@@ -49,18 +47,6 @@ function EditorDashboard() {
   const navigate = useNavigate();
   const matchRoute = useMatchRoute();
   const [userEmail, setUserEmail] = useState<string>("");
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
-  const [deletedIds, setDeletedIds] = useState<Set<string>>(() => {
-    if (typeof window === "undefined") return new Set();
-    try {
-      const raw = localStorage.getItem("csp.deletedProposalIds");
-      return new Set(raw ? (JSON.parse(raw) as string[]) : []);
-    } catch {
-      return new Set();
-    }
-  });
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [confirmId, setConfirmId] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<"all" | StatusKey>("all");
   const [search, setSearch] = useState("");
   const [field, setField] = useState<"all" | "title" | "author" | "country">("all");
