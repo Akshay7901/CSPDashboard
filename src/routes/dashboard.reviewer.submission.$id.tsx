@@ -355,30 +355,28 @@ function ReviewerSubmission() {
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-[#FAF6EE] font-sans text-stone-800">
       {/* Header */}
-      <header className="border-b border-stone-200 bg-white">
+      <header className="bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-8 py-4">
           <div className="flex items-center gap-3">
             <Link to="/dashboard/reviewer" className="flex items-center gap-3">
               <img src={cspLogo} alt="CSP" width={32} height={32} />
-              <span className="font-serif text-xl font-bold text-stone-900">
+              <span className="font-serif text-base font-bold leading-none text-[#2C1A0E]">
                 Cambridge Scholars Publishing
               </span>
             </Link>
-            <span className="mx-2 h-5 w-px bg-stone-300" />
+            <span className="mx-1 text-stone-300">|</span>
             <span className="font-sans text-sm font-medium text-sky-600">Reviewer Portal</span>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-sky-100 font-sans text-xs font-semibold text-sky-700">
               {initialsFromName(reviewerName)}
             </div>
-            <span className="font-sans text-sm font-medium text-stone-800">
-              {reviewerName}
-            </span>
-            <span className="h-5 w-px bg-stone-300" />
+            <span className="font-sans text-sm text-[#2C1A0E]">{reviewerName}</span>
+            <span className="text-stone-300">|</span>
             <button
               type="button"
               onClick={onLogout}
-              className="inline-flex items-center gap-1.5 font-sans text-sm text-stone-600 hover:text-stone-900"
+              className="inline-flex items-center gap-1.5 font-sans text-sm text-[#7A6A5A] hover:text-stone-900 transition-colors"
             >
               <LogOut className="h-4 w-4" />
               Logout
