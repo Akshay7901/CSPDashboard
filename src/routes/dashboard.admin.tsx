@@ -792,7 +792,7 @@ function AdminDashboard() {
                       {p.displayStatus || meta.label}
                     </span>
                   </div>
-                  <div className="flex items-center gap-4 justify-self-end">
+                  <div className="flex items-center gap-2 justify-self-end">
                     <Link
                       to="/dashboard/proposal/$ticket"
                       params={{ ticket: p.id }}
@@ -801,6 +801,16 @@ function AdminDashboard() {
                       Review
                       <ChevronRight className="h-4 w-4" />
                     </Link>
+                    <button
+                      type="button"
+                      onClick={() => deleteProposalRow(p.id)}
+                      disabled={deletingProposalId === p.id}
+                      className="rounded-lg p-1.5 text-stone-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                      aria-label={`Delete proposal ${p.id}`}
+                      title="Delete proposal"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
                 </li>
               );
