@@ -258,13 +258,44 @@ function DecisionReviewerDashboard() {
   const [assignError, setAssignError] = useState<string | null>(null);
   const [assignSuccess, setAssignSuccess] = useState<string | null>(null);
 
-  const openAssign = (row: ProposalRow) => {
+  const openAssign = async (row: ProposalRow) => {
     setAssignFor(row);
     setAssignSelectedId(null);
     setAssignNote("");
     setAssignError(null);
     setAssignSuccess(null);
     if (reviewers.length === 0) void fetchReviewers();
+    // Fetch latest detail to know the current reviewer (list endpoint may omit assignments)
+    try {
+      const res = await proposalApiFetch(`/${encodeURIComponent(row.id)}`, {
+        headers: authHeaders(),
+      });
+      const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+      if (res.ok) {
+        const assigns = (body.assignments as ApiProposal["assignments"]) || [];
+        const active =
+          assigns.find(
+            (a) =>
+              !/complete|returned|done/i.test(
+                a.peer_reviewer_status || a.display_status || "",
+              ),
+          ) || assigns[0];
+        if (active?.reviewer_email) {
+          setAssignFor((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  currentReviewerEmail: active.reviewer_email,
+                  currentReviewerStatus:
+                    active.peer_reviewer_status || active.display_status,
+                }
+              : prev,
+          );
+        }
+      }
+    } catch {
+      // ignore — modal still works for fresh assignment
+    }
   };
 
   const closeAssign = () => {
