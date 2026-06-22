@@ -3673,8 +3673,8 @@ function DataField({
     <div>
       <SectionLabel>{label}</SectionLabel>
       <p
-        className={`mt-1.5 font-sans text-sm font-medium text-stone-900 ${
-          multiline ? "whitespace-pre-line font-normal text-stone-700 leading-relaxed" : ""
+        className={`mt-1.5 font-sans text-sm font-semibold text-stone-900 ${
+          multiline ? "whitespace-pre-line font-normal text-stone-800 leading-relaxed" : ""
         }`}
       >
         {value}
