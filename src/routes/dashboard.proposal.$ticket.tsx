@@ -124,7 +124,7 @@ type ProposalDetail = {
   internal_status?: string;
   submitted_at: string;
   updated_at?: string;
-  current_data: Record<string, string | undefined>;
+  current_data: Record<string, unknown>;
   assignments?: Assignment[];
   timeline?: TimelineStage[];
 };
@@ -150,6 +150,126 @@ type InfoRequestFile = {
   size_bytes?: number;
   field_key?: string;
 };
+
+type ProposalDocument = {
+  url?: string;
+  filename: string;
+  size_bytes?: number;
+  label?: string;
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+function stringFrom(obj: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    const value = obj[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return undefined;
+}
+
+function numberFrom(obj: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    const value = obj[key];
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value === "string" && value.trim() && !Number.isNaN(Number(value))) {
+      return Number(value);
+    }
+  }
+  return undefined;
+}
+
+function filenameFromUrl(url?: string) {
+  if (!url) return undefined;
+  try {
+    const parsed = new URL(url);
+    return decodeURIComponent(parsed.pathname.split("/").filter(Boolean).pop() || "");
+  } catch {
+    return decodeURIComponent(url.split("/").filter(Boolean).pop() || "");
+  }
+}
+
+function toProposalDocument(value: unknown, fallbackLabel?: string): ProposalDocument | null {
+  if (typeof value === "string" && /^https?:\/\//i.test(value.trim())) {
+    const url = value.trim();
+    return { url, filename: filenameFromUrl(url) || fallbackLabel || "Document", label: fallbackLabel };
+  }
+  if (!isRecord(value)) return null;
+  const url = stringFrom(value, ["url", "file_url", "download_url", "s3_url", "public_url"]);
+  const filename =
+    stringFrom(value, ["filename", "file_name", "name", "original_filename", "title"]) ||
+    filenameFromUrl(url) ||
+    fallbackLabel;
+  if (!filename) return null;
+  return {
+    url,
+    filename,
+    size_bytes: numberFrom(value, ["size_bytes", "file_size_bytes", "file_size", "size"]),
+    label: stringFrom(value, ["label", "type", "field_key", "category"]) || fallbackLabel,
+  };
+}
+
+function extractProposalDocuments(currentData: Record<string, unknown>) {
+  const documents: ProposalDocument[] = [];
+  const add = (value: unknown, label?: string) => {
+    if (!value) return;
+    if (Array.isArray(value)) {
+      value.forEach((item) => add(item, label));
+      return;
+    }
+    if (isRecord(value)) {
+      const groupedFields: Array<[string, string]> = [
+        ["sampleChapter", "Sample Chapter"],
+        ["sample_chapter", "Sample Chapter"],
+        ["additionalFiles", "Additional File"],
+        ["additional_files", "Additional File"],
+        ["supportingDocuments", "Supporting Document"],
+        ["supporting_documents", "Supporting Document"],
+      ];
+      let handledGroup = false;
+      groupedFields.forEach(([key, groupLabel]) => {
+        if (value[key]) {
+          handledGroup = true;
+          add(value[key], groupLabel);
+        }
+      });
+      const doc = toProposalDocument(value, label);
+      if (doc) documents.push(doc);
+      if (handledGroup) return;
+      return;
+    }
+    const doc = toProposalDocument(value, label);
+    if (doc) documents.push(doc);
+  };
+
+  [
+    ["manuscript_files", undefined],
+    ["supporting_documents", "Supporting Document"],
+    ["supportingDocs", "Supporting Document"],
+    ["documents", "Document"],
+    ["files", "Document"],
+    ["attachments", "Attachment"],
+    ["uploaded_files", "Document"],
+    ["supporting_materials", "Supporting Material"],
+  ].forEach(([key, label]) => add(currentData[key as string], label as string | undefined));
+
+  const seen = new Set<string>();
+  return documents.filter((doc) => {
+    const key = `${doc.url || ""}|${doc.filename}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function formatFileSize(bytes?: number) {
+  if (!bytes || bytes <= 0) return "";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 type InfoRequest = {
   id: string | number;
