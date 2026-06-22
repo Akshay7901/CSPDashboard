@@ -22,8 +22,18 @@ export type ContractDetail = {
   updated_at?: string;
   addendum?: string;
   notes?: string;
+  note_to_author?: string;
+  author_note?: string;
+  message_to_author?: string;
   title?: string;
   subtitle?: string;
+  language?: string;
+  author_copies?: string | number;
+  if_two_author_copies?: string | number;
+  if_three_or_four_author_copies?: string | number;
+  copies_sold_revenue?: string | number;
+  secondary_rights_revenue?: string | number;
+  publishing_agreement?: string;
 };
 
 export type ContractQueryEntry = {

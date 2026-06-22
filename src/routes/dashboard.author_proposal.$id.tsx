@@ -1222,11 +1222,27 @@ function ContractIssuedView({
       ? "Edited Collection Agreement"
       : "Publishing Agreement";
 
-  const editorNote = contract.notes || "";
+  const editorNote =
+    contract.note_to_author ||
+    contract.author_note ||
+    contract.message_to_author ||
+    contract.notes ||
+    "";
   const editorialFeedback = contract.addendum || "";
-
   const cd = proposal.cd;
   const titleStr = cd.main_title || proposal.ticket;
+  const contractTitle = contract.title || titleStr;
+  const contractSubtitle = contract.subtitle || cd.sub_title || "";
+  const contractFieldRows = [
+    { label: "Language", value: contract.language },
+    { label: "Author Copies", value: contract.author_copies },
+    { label: "If Two Authors — Copies Each", value: contract.if_two_author_copies },
+    { label: "If 3–4 Authors — Copies Each", value: contract.if_three_or_four_author_copies },
+    { label: "Copies Sold Revenue", value: formatPercentValue(contract.copies_sold_revenue) },
+    { label: "Secondary Rights Revenue", value: formatPercentValue(contract.secondary_rights_revenue) },
+    { label: "Publishing Agreement", value: contract.publishing_agreement },
+  ].filter((row): row is { label: string; value: string | number } => row.value !== undefined && row.value !== null && String(row.value).trim() !== "");
+
   const formatLabel =
     contract.contract_type === "editor"
       ? "Edited Collection"
@@ -1323,9 +1339,17 @@ function ContractIssuedView({
             <div className="flex items-baseline justify-between gap-4">
               <span className="font-sans text-sm text-stone-600">Title</span>
               <span className="truncate font-sans text-sm font-medium text-stone-800 max-w-[60%] text-right">
-                {titleStr}
+                {contractTitle}
               </span>
             </div>
+            {contractSubtitle && (
+              <div className="flex items-baseline justify-between gap-4">
+                <span className="font-sans text-sm text-stone-600">Subtitle</span>
+                <span className="max-w-[60%] text-right font-sans text-sm font-medium text-stone-800">
+                  {contractSubtitle}
+                </span>
+              </div>
+            )}
             <div className="flex items-baseline justify-between gap-4">
               <span className="font-sans text-sm text-stone-600">Format</span>
               <span className="font-sans text-sm font-medium text-stone-800">{formatLabel}</span>
@@ -1336,7 +1360,34 @@ function ContractIssuedView({
                 {expectedCompletion}
               </span>
             </div>
+            {contractFieldRows.map((row) => (
+              <div key={row.label} className="flex items-baseline justify-between gap-4">
+                <span className="font-sans text-sm text-stone-600">{row.label}</span>
+                <span className="max-w-[60%] text-right font-sans text-sm font-medium text-stone-800">
+                  {row.value}
+                </span>
+              </div>
+            ))}
+            {contract.addendum && (
+              <div className="flex items-baseline justify-between gap-4">
+                <span className="font-sans text-sm text-stone-600">Addendum</span>
+                <span className="max-w-[60%] whitespace-pre-line text-right font-sans text-sm font-medium text-stone-800">
+                  {contract.addendum}
+                </span>
+              </div>
+            )}
           </div>
+
+          {editorNote && (
+            <div className="mt-6 rounded-lg border border-violet-100 bg-violet-50/70 px-4 py-3">
+              <p className="font-sans text-[11px] font-bold uppercase tracking-wider text-violet-700">
+                Note from your editor
+              </p>
+              <p className="mt-1.5 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
+                {editorNote}
+              </p>
+            </div>
+          )}
 
           {/* Skeleton "terms" bars */}
           <div className="mt-10 space-y-3">
@@ -1531,9 +1582,14 @@ function ContractIssuedView({
 
           <dl className="mt-4 divide-y divide-stone-100">
             <PreviewRow label="Author" value={contract.recipient_name || authorFullName} />
-            <PreviewRow label="Title" value={truncate(titleStr, 36)} />
+            <PreviewRow label="Title" value={truncate(contractTitle, 36)} />
+            {contractSubtitle && <PreviewRow label="Subtitle" value={truncate(contractSubtitle, 42)} />}
             <PreviewRow label="Format" value={formatLabel} />
             <PreviewRow label="Expected Completion" value={expectedCompletion} />
+            {contractFieldRows.map((row) => (
+              <PreviewRow key={row.label} label={row.label} value={String(row.value)} />
+            ))}
+            {contract.addendum && <PreviewRow label="Addendum" value={contract.addendum} />}
             {isSigned && (
               <>
                 <PreviewRow label="Contract Version" value={`v${contract.contract_version}`} />
@@ -1835,15 +1891,23 @@ function ContractIssuedView({
 
 function PreviewRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between py-3">
-      <dt className="font-sans text-sm text-stone-500">{label}</dt>
-      <dd className="font-sans text-sm font-semibold text-[#2C1A0E]">{value}</dd>
+    <div className="flex flex-col gap-1 py-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+      <dt className="shrink-0 font-sans text-sm text-stone-500">{label}</dt>
+      <dd className="max-w-full break-words font-sans text-sm font-semibold text-[#2C1A0E] sm:max-w-[62%] sm:text-right">
+        {value}
+      </dd>
     </div>
   );
 }
 
 function truncate(s: string, n: number): string {
   return s.length > n ? s.slice(0, n - 1) + "…" : s;
+}
+
+function formatPercentValue(value?: string | number): string | undefined {
+  if (value === undefined || value === null || String(value).trim() === "") return undefined;
+  const text = String(value).trim();
+  return text.includes("%") ? text : `${text}%`;
 }
 
 function SubCard({ label, children }: { label: string; children: React.ReactNode }) {

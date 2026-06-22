@@ -517,13 +517,14 @@ function ProposalDetailPage() {
   const [contractSuccess, setContractSuccess] = useState<string | null>(null);
   const [contractStep, setContractStep] = useState<1 | 2>(1);
   const [contractFields, setContractFields] = useState({
-    language: "English",
-    author_copies: "5",
-    if_two_author_copies: "3",
-    if_three_or_four_author_copies: "2",
+    language: "in all languages",
+    author_copies: "two copies",
+    if_two_author_copies: "two copies",
+    if_three_or_four_author_copies: "one copy",
     copies_sold_revenue: "10",
-    secondary_rights_revenue: "50",
-    publishing_agreement: "Standard Publishing Agreement",
+    secondary_rights_revenue: "20",
+    publishing_agreement:
+      "This publishing agreement will run in perpetuity, unless agreed otherwise by both the Publisher and the Author/Editor.",
   });
 
   const openIssueContract = () => {
@@ -610,9 +611,11 @@ function ProposalDetailPage() {
         secondary_rights_revenue: Number(contractFields.secondary_rights_revenue) || 0,
         publishing_agreement: contractFields.publishing_agreement,
       };
-      if (cd.subtitle) payload.subtitle = cd.subtitle;
+      if (cd.sub_title) payload.subtitle = cd.sub_title;
       if (contractAmendments.trim()) payload.addendum = contractAmendments.trim();
-      if (contractNote.trim()) payload.notes = contractNote.trim();
+      if (contractNote.trim()) {
+        payload.notes = contractNote.trim();
+      }
       const res = await proposalApiFetch(
         `/${encodeURIComponent(ticket)}/contract/send`,
         {
@@ -3309,7 +3312,7 @@ function ProposalDetailPage() {
                       <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
                         Publishing Agreement <span className="text-rose-600">*</span>
                       </label>
-                      <select
+                      <textarea
                         value={contractFields.publishing_agreement}
                         onChange={(e) =>
                           setContractFields((f) => ({
@@ -3317,19 +3320,16 @@ function ProposalDetailPage() {
                             publishing_agreement: e.target.value,
                           }))
                         }
-                        className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 focus:border-[#5B2EBA] focus:outline-none focus:ring-2 focus:ring-[#EDE7FA]"
-                      >
-                        <option>Standard Publishing Agreement</option>
-                        <option>Editor Agreement</option>
-                      </select>
+                        rows={3}
+                        className="mt-2 w-full resize-none rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 focus:border-[#5B2EBA] focus:outline-none focus:ring-2 focus:ring-[#EDE7FA]"
+                      />
                     </div>
                     <div>
                       <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
                         Author Copies <span className="text-rose-600">*</span>
                       </label>
                       <input
-                        type="number"
-                        min={0}
+                        type="text"
                         value={contractFields.author_copies}
                         onChange={(e) =>
                           setContractFields((f) => ({ ...f, author_copies: e.target.value }))
@@ -3342,8 +3342,7 @@ function ProposalDetailPage() {
                         If Two Authors — Copies Each <span className="text-rose-600">*</span>
                       </label>
                       <input
-                        type="number"
-                        min={0}
+                        type="text"
                         value={contractFields.if_two_author_copies}
                         onChange={(e) =>
                           setContractFields((f) => ({
@@ -3359,8 +3358,7 @@ function ProposalDetailPage() {
                         If 3–4 Authors — Copies Each <span className="text-rose-600">*</span>
                       </label>
                       <input
-                        type="number"
-                        min={0}
+                        type="text"
                         value={contractFields.if_three_or_four_author_copies}
                         onChange={(e) =>
                           setContractFields((f) => ({
@@ -3405,6 +3403,18 @@ function ProposalDetailPage() {
                           }))
                         }
                         className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 focus:border-[#5B2EBA] focus:outline-none focus:ring-2 focus:ring-[#EDE7FA]"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
+                        Addendum <span className="font-normal text-[#7A6A5A]">(optional)</span>
+                      </label>
+                      <textarea
+                        value={contractAmendments}
+                        onChange={(e) => setContractAmendments(e.target.value)}
+                        rows={3}
+                        placeholder="This agreement is subject to the following additional terms: ..."
+                        className="mt-2 w-full resize-none rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 placeholder:text-stone-400 focus:border-[#5B2EBA] focus:outline-none focus:ring-2 focus:ring-[#EDE7FA]"
                       />
                     </div>
                   </div>
