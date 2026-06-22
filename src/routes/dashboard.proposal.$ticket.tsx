@@ -517,13 +517,14 @@ function ProposalDetailPage() {
   const [contractSuccess, setContractSuccess] = useState<string | null>(null);
   const [contractStep, setContractStep] = useState<1 | 2>(1);
   const [contractFields, setContractFields] = useState({
-    language: "English",
-    author_copies: "5",
-    if_two_author_copies: "3",
-    if_three_or_four_author_copies: "2",
+    language: "in all languages",
+    author_copies: "two copies",
+    if_two_author_copies: "two copies",
+    if_three_or_four_author_copies: "one copy",
     copies_sold_revenue: "10",
-    secondary_rights_revenue: "50",
-    publishing_agreement: "Standard Publishing Agreement",
+    secondary_rights_revenue: "20",
+    publishing_agreement:
+      "This publishing agreement will run in perpetuity, unless agreed otherwise by both the Publisher and the Author/Editor.",
   });
 
   const openIssueContract = () => {
@@ -610,9 +611,14 @@ function ProposalDetailPage() {
         secondary_rights_revenue: Number(contractFields.secondary_rights_revenue) || 0,
         publishing_agreement: contractFields.publishing_agreement,
       };
-      if (cd.subtitle) payload.subtitle = cd.subtitle;
+      if (cd.sub_title) payload.subtitle = cd.sub_title;
       if (contractAmendments.trim()) payload.addendum = contractAmendments.trim();
-      if (contractNote.trim()) payload.notes = contractNote.trim();
+      if (contractNote.trim()) {
+        payload.notes = contractNote.trim();
+        payload.note_to_author = contractNote.trim();
+        payload.author_note = contractNote.trim();
+        payload.message_to_author = contractNote.trim();
+      }
       const res = await proposalApiFetch(
         `/${encodeURIComponent(ticket)}/contract/send`,
         {
