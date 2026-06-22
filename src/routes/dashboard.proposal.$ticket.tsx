@@ -1701,12 +1701,14 @@ function ProposalDetailPage() {
                       optimisticProposed?.title || latestContractForHeader?.title;
                     const candidateSubtitle =
                       optimisticProposed?.subtitle || latestContractForHeader?.subtitle;
+                    const baseTitle = (cd.main_title || "").trim();
+                    const baseSubtitle = (cd.sub_title || "").trim();
                     const proposedTitle =
-                      candidateTitle && candidateTitle !== (cd.main_title || title)
+                      candidateTitle && candidateTitle.trim() && candidateTitle.trim() !== baseTitle
                         ? candidateTitle
                         : null;
                     const proposedSubtitle =
-                      candidateSubtitle && candidateSubtitle !== cd.sub_title
+                      candidateSubtitle && candidateSubtitle.trim() && candidateSubtitle.trim() !== baseSubtitle
                         ? candidateSubtitle
                         : null;
                     if (!proposedTitle && !proposedSubtitle) return null;
