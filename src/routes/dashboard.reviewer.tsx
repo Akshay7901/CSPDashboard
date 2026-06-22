@@ -526,7 +526,7 @@ function ReviewCard({
 
       {item.proposedTitle && (
         <p className="mt-3 font-sans text-[11px] font-semibold uppercase tracking-wider text-stone-500">
-          Proposed title:{" "}
+          Proposed Title:{" "}
           <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
             {item.proposedTitle}
             {item.proposedSubtitle ? `: ${item.proposedSubtitle}` : ""}

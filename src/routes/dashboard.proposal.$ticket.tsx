@@ -1645,7 +1645,7 @@ function ProposalDetailPage() {
                 <div>
                   {cd.proposed_title && (
                     <p className="mb-2 font-sans text-xs font-semibold uppercase tracking-wider text-stone-500">
-                      Proposed title:{" "}
+                      Proposed Title:{" "}
                       <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
                         {cd.proposed_title}
                         {cd.proposed_subtitle ? `: ${cd.proposed_subtitle}` : ""}
