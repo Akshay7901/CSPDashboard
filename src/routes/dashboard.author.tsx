@@ -852,6 +852,15 @@ function ProposalCard({ p }: { p: LocalProposalWithInfo }) {
           </span>
           <div className="min-w-0 flex-1">
             <p className={`font-sans text-xs font-semibold ${cfg.eyebrowColor}`}>{cfg.eyebrow}</p>
+            {p.proposedTitle && (
+              <p className="mt-0.5 font-sans text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+                Proposed:{" "}
+                <span className="font-serif text-xs font-normal normal-case tracking-normal text-text">
+                  {p.proposedTitle}
+                  {p.proposedSubtitle ? ` — ${p.proposedSubtitle}` : ""}
+                </span>
+              </p>
+            )}
             <h3 className="mt-0.5 font-serif text-base font-bold leading-snug text-text">{p.title}</h3>
             <p className="mt-1 font-sans text-xs text-text-muted">{p.kind}</p>
           </div>
