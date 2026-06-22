@@ -460,6 +460,7 @@ function DecisionReviewerDashboard() {
       }
       setUserEmail(session.email);
       setUserName(session.name || "");
+      setIsAdmin(checkIsAdmin());
     } catch {
       navigate({ to: "/login" });
     }
