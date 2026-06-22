@@ -1092,6 +1092,7 @@ function ProposalDetailPage() {
   const cd: Record<string, string | undefined> = {
     main_title: pick("main_title", "title"),
     sub_title: pick("sub_title", "subtitle"),
+    proposed_title: pick("proposed_title", "proposed_book_title", "proposed"),
     book_type: pick("book_type"),
     corresponding_author_name:
       pick("corresponding_author_name") ||
