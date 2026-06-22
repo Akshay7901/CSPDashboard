@@ -67,6 +67,7 @@ export function AuthorMetadataPanel({
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [showQueries, setShowQueries] = useState(false);
+  const [hasOpenQuery, setHasOpenQuery] = useState(false);
 
   const reload = async () => {
     setLoading(true);
@@ -416,23 +417,34 @@ export function AuthorMetadataPanel({
                   <button
                     type="button"
                     onClick={onApprove}
-                    disabled={approving}
-                    className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 disabled:opacity-60"
+                    disabled={approving || hasOpenQuery}
+                    title={
+                      hasOpenQuery
+                        ? "Resolve the open metadata query before submitting."
+                        : undefined
+                    }
+                    className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {approving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                     {approving ? "Submitting…" : "Submit metadata"}
                   </button>
                 </div>
+                {hasOpenQuery && (
+                  <p className="w-full font-sans text-xs text-amber-800">
+                    Submit is disabled until the publisher responds to your open query.
+                  </p>
+                )}
               </div>
             )}
 
             {/* Queries (toggle) */}
-            {showQueries && (
+            {(showQueries || hasOpenQuery) && (
               <MetadataQueries
                 ticket={ticket}
                 viewer="author"
                 canRaise={isSent && !isApproved}
                 raisableFields={raisableFields}
+                onOpenQueryChange={setHasOpenQuery}
               />
             )}
           </>
