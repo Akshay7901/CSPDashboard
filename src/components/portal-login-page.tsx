@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
-import { UserRound, FileText, ClipboardCheck, ArrowRight, ArrowLeft, type LucideIcon } from "lucide-react";
+import { UserRound, FileText, ClipboardCheck, ShieldCheck, ArrowRight, ArrowLeft, type LucideIcon } from "lucide-react";
 import libraryBg from "@/assets/library-reference.jpg";
 import cspLogo from "@/assets/csp-logo.png";
 import { getPortalSession, persistPortalSession } from "@/lib/auth";
@@ -64,6 +64,17 @@ const portals: PortalConfig[] = [
     badgeClass: "bg-portal-reviewer text-white",
     demoEmail: "reviewer@cambridge.ac.uk",
     demoCode: "9012",
+  },
+  {
+    id: "admin",
+    title: "Admin Portal",
+    cardDescription: "Oversee all proposals with full admin tooling, including deletion.",
+    formSubtitle: "Administer proposals and peer reviewers",
+    Icon: ShieldCheck,
+    toneClass: "bg-portal-admin",
+    badgeClass: "bg-portal-admin text-white",
+    demoEmail: "admin@csp.com",
+    demoCode: "0000",
   },
 ];
 
