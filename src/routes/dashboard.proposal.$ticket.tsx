@@ -2296,6 +2296,14 @@ function ProposalDetailPage() {
                           </p>
                         </div>
                       )}
+                      {cd.key_features && cd.key_features !== cd.detailed_description && (
+                        <div className="-mx-7 border-t border-stone-300 px-7 pt-5">
+                          <SectionLabel>Key Features / Selling Points</SectionLabel>
+                          <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
+                            {cd.key_features}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </Card>
                 )}
@@ -2321,19 +2329,49 @@ function ProposalDetailPage() {
                 )}
 
                 {/* Market & Competition */}
-                {cd.marketing_info && (
+                {(cd.competing_titles || cd.unique_contribution || cd.primary_market || cd.conferences || cd.promotional_channels || cd.marketing_info) && (
                   <Card>
                     <CardHeader
-                      title="Market & Competition"
-                      subtitle="Commercial viability and competitive landscape"
+                      title="Marketing & Promotion"
+                      subtitle="Market positioning, competition and promotion plan"
                     />
-                    <div className="space-y-6 px-7 py-6">
-                      <div>
-                        <SectionLabel>Why is this book needed?</SectionLabel>
-                        <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
-                          {cd.marketing_info}
-                        </p>
-                      </div>
+                    <div className="space-y-5 px-7 py-6">
+                      {cd.primary_market && (
+                        <DataField label="Primary Market" value={cd.primary_market} />
+                      )}
+                      {cd.competing_titles && (
+                        <DataField label="Competing Titles" value={cd.competing_titles} multiline />
+                      )}
+                      {cd.unique_contribution && (
+                        <DataField
+                          label="Unique Contribution vs Competing Titles"
+                          value={cd.unique_contribution}
+                          multiline
+                        />
+                      )}
+                      {cd.conferences && (
+                        <DataField
+                          label="Relevant Conferences / Academic Events"
+                          value={cd.conferences}
+                          multiline
+                        />
+                      )}
+                      {cd.promotional_channels && (
+                        <DataField
+                          label="Promotional Channels"
+                          value={cd.promotional_channels}
+                          multiline
+                        />
+                      )}
+                      {cd.marketing_info &&
+                        cd.marketing_info !== cd.competing_titles &&
+                        cd.marketing_info !== cd.primary_market && (
+                          <DataField
+                            label="Additional Marketing Notes"
+                            value={cd.marketing_info}
+                            multiline
+                          />
+                        )}
                     </div>
                   </Card>
                 )}
@@ -2361,13 +2399,20 @@ function ProposalDetailPage() {
                 )}
 
                 {/* Additional Notes */}
-                {(cd.additional_info || cd.permissions_required) && (
+                {(cd.additional_info || cd.additional_notes || cd.permissions_required) && (
                   <Card>
                     <CardHeader
-                      title="Additional Notes"
+                      title="Additional Comments & Permissions"
                       subtitle="Copyright, permissions, special considerations"
                     />
                     <div className="space-y-4 px-7 py-6">
+                      {cd.additional_notes && (
+                        <DataField
+                          label="Additional Notes from Author"
+                          value={cd.additional_notes}
+                          multiline
+                        />
+                      )}
                       {cd.additional_info && (
                         <p className="whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
                           {cd.additional_info}
@@ -2375,7 +2420,7 @@ function ProposalDetailPage() {
                       )}
                       {cd.permissions_required && (
                         <DataField
-                          label="Permissions Required"
+                          label="Permissions Required from Copyright Holders"
                           value={cd.permissions_required}
                           multiline
                         />
