@@ -2011,9 +2011,11 @@ function ReviewersList({ raw }: { raw: string }) {
 function ProgressStepper({
   timeline,
   status,
+  hasOpenInfoRequest,
 }: {
   timeline?: TimelineStage[];
   status: StatusKey;
+  hasOpenInfoRequest?: boolean;
 }) {
   const declined = status === "declined";
 
@@ -2071,6 +2073,27 @@ function ProgressStepper({
             anchor: "section-documents",
           },
         ];
+
+  // When the DR has requested more info from the author, the proposal is
+  // effectively back at the early review stage. Override any later "done"
+  // markers from the API so the timeline reflects the awaiting-info state.
+  if (hasOpenInfoRequest) {
+    let currentSet = false;
+    for (let i = 0; i < stages.length; i++) {
+      const label = stages[i].label.toLowerCase();
+      const isSubmitted = /submit|new|receiv/.test(label);
+      if (isSubmitted) {
+        stages[i] = { ...stages[i], done: true, current: false, failed: false };
+        continue;
+      }
+      if (!currentSet) {
+        stages[i] = { ...stages[i], done: false, current: true, failed: false };
+        currentSet = true;
+      } else {
+        stages[i] = { ...stages[i], done: false, current: false, failed: false };
+      }
+    }
+  }
 
   return (
     <div className="mt-8">
