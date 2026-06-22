@@ -190,7 +190,7 @@ function deriveDisplayStatus(p: ApiProposal): string | undefined {
   return undefined; // fallback to STATUS_META label
 }
 
-export const Route = createFileRoute("/dashboard/decision_reviewer")({
+export const Route = createFileRoute("/dashboard/admin")({
   head: () => ({
     meta: [{ title: "Editor Portal — Proposal Intake" }],
   }),
