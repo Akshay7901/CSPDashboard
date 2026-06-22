@@ -54,7 +54,6 @@ export function MetadataQueries({
   const [drafts, setDrafts] = useState<DraftRow[]>([{ field: "", text: "" }]);
   const [submitting, setSubmitting] = useState(false);
 
-  const [respondingTo, setRespondingTo] = useState<number | null>(null);
   const [responseText, setResponseText] = useState("");
   const [fieldEdits, setFieldEdits] = useState<Record<string, string>>({});
 
@@ -109,8 +108,9 @@ export function MetadataQueries({
     }
   };
 
-  const onRespond = async (queryId: number) => {
+  const onRespond = async (queryIds: number[]) => {
     if (!responseText.trim()) return;
+    if (queryIds.length === 0) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -125,8 +125,9 @@ export function MetadataQueries({
           await onSaveFields(updates);
         }
       }
-      await respondMetadataQuery(ticket, queryId, responseText.trim());
-      setRespondingTo(null);
+      for (const id of queryIds) {
+        await respondMetadataQuery(ticket, id, responseText.trim());
+      }
       setResponseText("");
       setFieldEdits({});
       await reload();
