@@ -180,6 +180,7 @@ function AdminDashboardPage() {
                           <th className="px-3 py-2">Status</th>
                           <th className="px-3 py-2">Attempts</th>
                           <th className="px-3 py-2">Error</th>
+                          <th className="px-3 py-2"></th>
                         </tr>
                       </thead>
                       <tbody>
@@ -199,6 +200,16 @@ function AdminDashboardPage() {
                             </td>
                             <td className="px-3 py-2 text-foreground/70">
                               {item.ai_enrichment_error || "—"}
+                            </td>
+                            <td className="px-3 py-2 text-right">
+                              <button
+                                type="button"
+                                onClick={() => void onDelete(item.ticket_number)}
+                                disabled={deletingTicket === item.ticket_number}
+                                className="rounded-lg bg-red-600/90 px-2.5 py-1 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                              >
+                                {deletingTicket === item.ticket_number ? "Deleting…" : "Delete"}
+                              </button>
                             </td>
                           </tr>
                         ))}
