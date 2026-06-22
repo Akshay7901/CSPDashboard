@@ -615,9 +615,6 @@ function ProposalDetailPage() {
       if (contractAmendments.trim()) payload.addendum = contractAmendments.trim();
       if (contractNote.trim()) {
         payload.notes = contractNote.trim();
-        payload.note_to_author = contractNote.trim();
-        payload.author_note = contractNote.trim();
-        payload.message_to_author = contractNote.trim();
       }
       const res = await proposalApiFetch(
         `/${encodeURIComponent(ticket)}/contract/send`,
