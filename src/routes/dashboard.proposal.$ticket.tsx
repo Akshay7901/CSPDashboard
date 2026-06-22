@@ -647,6 +647,9 @@ function ProposalDetailPage() {
       setContractSuccess(
         (body.message as string) || "Contract sent to author.",
       );
+      // Force the contracts list to refetch so the header/hero pick up the
+      // new title/subtitle/addendum the DR just submitted.
+      setContractsReloadKey((k) => k + 1);
       try {
         const refreshed = await proposalApiFetch(`/${encodeURIComponent(ticket)}`, {
           headers: {
