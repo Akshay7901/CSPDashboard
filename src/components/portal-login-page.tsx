@@ -11,7 +11,8 @@ type ApiRole = "admin" | "editor" | "reviewer" | "decision_reviewer" | "author" 
 function roleToPortal(apiRole: ApiRole): Role {
   const r = (apiRole || "").toLowerCase();
   if (r === "decision_reviewer") return "decision_reviewer";
-  if (r === "editor" || r === "admin") return "editor";
+  if (r === "admin") return "decision_reviewer";
+  if (r === "editor") return "editor";
   if (r === "reviewer" || r === "peer_reviewer" || r.includes("reviewer")) return "reviewer";
   return "author";
 }
