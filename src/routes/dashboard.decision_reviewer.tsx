@@ -237,6 +237,10 @@ function DecisionReviewerDashboard() {
   const [newReviewer, setNewReviewer] = useState({ name: "", email: "" });
   const [adding, setAdding] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [confirmDeleteTicket, setConfirmDeleteTicket] = useState<string | null>(null);
+  const [deletingTicket, setDeletingTicket] = useState<string | null>(null);
+  const [deletedTickets, setDeletedTickets] = useState<Set<string>>(new Set());
 
   // Events / audit trail modal
   type ProposalEvent = {
