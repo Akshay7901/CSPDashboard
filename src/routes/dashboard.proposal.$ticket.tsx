@@ -3303,6 +3303,34 @@ function ProposalDetailPage() {
                     Contract Details
                   </h3>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="sm:col-span-2">
+                      <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
+                        Title <span className="text-rose-600">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={contractFields.title}
+                        onChange={(e) =>
+                          setContractFields((f) => ({ ...f, title: e.target.value }))
+                        }
+                        placeholder="Book title"
+                        className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 focus:border-[#5B2EBA] focus:outline-none focus:ring-2 focus:ring-[#EDE7FA]"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
+                        Subtitle
+                      </label>
+                      <input
+                        type="text"
+                        value={contractFields.subtitle}
+                        onChange={(e) =>
+                          setContractFields((f) => ({ ...f, subtitle: e.target.value }))
+                        }
+                        placeholder="Optional subtitle"
+                        className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 focus:border-[#5B2EBA] focus:outline-none focus:ring-2 focus:ring-[#EDE7FA]"
+                      />
+                    </div>
                     <div>
                       <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
                         Language <span className="text-rose-600">*</span>
