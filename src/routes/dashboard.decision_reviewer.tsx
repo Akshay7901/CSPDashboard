@@ -54,6 +54,8 @@ type ApiProposal = {
 type ProposalRow = {
   id: string;
   title: string;
+  proposedTitle?: string;
+  proposedSubtitle?: string;
   kind: string;
   authorName: string;
   authorAffiliation: string;
