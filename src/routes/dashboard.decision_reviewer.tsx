@@ -258,13 +258,44 @@ function DecisionReviewerDashboard() {
   const [assignError, setAssignError] = useState<string | null>(null);
   const [assignSuccess, setAssignSuccess] = useState<string | null>(null);
 
-  const openAssign = (row: ProposalRow) => {
+  const openAssign = async (row: ProposalRow) => {
     setAssignFor(row);
     setAssignSelectedId(null);
     setAssignNote("");
     setAssignError(null);
     setAssignSuccess(null);
     if (reviewers.length === 0) void fetchReviewers();
+    // Fetch latest detail to know the current reviewer (list endpoint may omit assignments)
+    try {
+      const res = await proposalApiFetch(`/${encodeURIComponent(row.id)}`, {
+        headers: authHeaders(),
+      });
+      const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+      if (res.ok) {
+        const assigns = (body.assignments as ApiProposal["assignments"]) || [];
+        const active =
+          assigns.find(
+            (a) =>
+              !/complete|returned|done/i.test(
+                a.peer_reviewer_status || a.display_status || "",
+              ),
+          ) || assigns[0];
+        if (active?.reviewer_email) {
+          setAssignFor((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  currentReviewerEmail: active.reviewer_email,
+                  currentReviewerStatus:
+                    active.peer_reviewer_status || active.display_status,
+                }
+              : prev,
+          );
+        }
+      }
+    } catch {
+      // ignore — modal still works for fresh assignment
+    }
   };
 
   const closeAssign = () => {
@@ -857,19 +888,30 @@ function DecisionReviewerDashboard() {
                       Review
                       <ChevronRight className="h-4 w-4" />
                     </Link>
-                    <button
-                      type="button"
-                      onClick={() => openAssign(p)}
-                      className="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-2.5 py-1 font-sans text-xs font-medium text-stone-700 hover:bg-stone-50"
-                      title={
-                        p.currentReviewerEmail
-                          ? `Currently: ${p.currentReviewerEmail}`
-                          : "Assign a peer reviewer"
-                      }
-                    >
-                      <UserCog className="h-3.5 w-3.5" />
-                      {p.currentReviewerEmail ? "Reassign" : "Assign"}
-                    </button>
+                    {(() => {
+                      const hasReviewer =
+                        Boolean(p.currentReviewerEmail) ||
+                        p.status === "in_review" ||
+                        p.status === "review_returned" ||
+                        p.status === "revisions";
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => openAssign(p)}
+                          className="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-2.5 py-1 font-sans text-xs font-medium text-stone-700 hover:bg-stone-50"
+                          title={
+                            p.currentReviewerEmail
+                              ? `Currently: ${p.currentReviewerEmail}`
+                              : hasReviewer
+                                ? "Reassign peer reviewer"
+                                : "Assign a peer reviewer"
+                          }
+                        >
+                          <UserCog className="h-3.5 w-3.5" />
+                          {hasReviewer ? "Reassign" : "Assign"}
+                        </button>
+                      );
+                    })()}
                     {isAdmin && (
                       <button
                         type="button"
