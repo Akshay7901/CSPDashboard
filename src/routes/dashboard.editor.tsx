@@ -208,6 +208,29 @@ function EditorDashboard() {
     navigate({ to: "/login" });
   };
 
+  const onConfirmDelete = async () => {
+    const id = confirmId;
+    if (!id) return;
+    setDeletingId(id);
+    try {
+      await deleteProposal(id);
+      const next = new Set(deletedIds);
+      next.add(id);
+      setDeletedIds(next);
+      try {
+        localStorage.setItem("csp.deletedProposalIds", JSON.stringify([...next]));
+      } catch {
+        // ignore
+      }
+      toast.success(`Proposal ${id} deleted.`);
+      setConfirmId(null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete proposal.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const displayName = displayNameFromEmail(userEmail);
 
   if (isSubmissionDetail) {
