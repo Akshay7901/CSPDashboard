@@ -7,8 +7,21 @@ export type PortalSession = {
   role: PortalRole | string;
 };
 
-const SESSION_KEY = "csp.session";
-const TOKEN_KEY = "csp.token";
+const SESSION_KEY = "csp.session.v2";
+const TOKEN_KEY = "csp.token.v2";
+
+// One-time cleanup of v1 keys so admin users who logged in before the
+// admin-portal routing fix get bounced to /login and re-routed correctly.
+if (typeof window !== "undefined") {
+  try {
+    window.localStorage.removeItem("csp.session");
+    window.localStorage.removeItem("csp.token");
+    window.sessionStorage.removeItem("csp.session");
+    window.sessionStorage.removeItem("csp.token");
+  } catch {
+    // ignore
+  }
+}
 
 const safeStorage = (kind: "local" | "session") => {
   if (typeof window === "undefined") return null;
