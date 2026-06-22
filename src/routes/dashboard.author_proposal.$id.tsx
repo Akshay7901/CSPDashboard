@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronDown, FileText, Check, X, Calendar, Send, Save, AlertCircle, Upload, Paperclip, Download, HelpCircle, CheckCircle2 } from "lucide-react";
+import { ChevronLeft, ChevronDown, FileText, Check, X, Calendar, Send, Save, AlertCircle, Upload, Paperclip, Download, HelpCircle, CheckCircle2, LogOut } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
 import { initialsFromName, type StatusKey } from "@/lib/proposals";
 import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
@@ -566,31 +566,33 @@ function AuthorProposalDetails() {
     <main className="min-h-screen bg-[#F9F7F2] font-sans text-stone-900">
       {/* Header */}
       <header className="border-b border-stone-200 bg-white">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
           <div className="flex items-center gap-3">
-            <img src={cspLogo} alt="CSP" className="h-10 w-10" />
-            <div className="flex items-center gap-3">
-              <span className="font-serif text-lg font-semibold text-stone-900">
+            <Link to="/dashboard/author" className="flex items-center gap-3">
+              <img src={cspLogo} alt="CSP" width={32} height={32} />
+              <span className="font-serif text-xl font-bold text-stone-900">
                 Cambridge Scholars Publishing
               </span>
-              <span className="text-stone-300">|</span>
-              <span className="text-orange-600">Author Portal</span>
-            </div>
+            </Link>
+            <span className="mx-2 h-5 w-px bg-stone-300" />
+            <span className="font-sans text-base text-stone-700">Author Portal</span>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="grid h-9 w-9 place-items-center rounded-full bg-orange-100 text-sm font-semibold text-orange-700">
-                {initials}
-              </span>
-              <span className="text-sm font-medium">{displayName}</span>
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0E3D2F] font-sans text-xs font-semibold text-white">
+              {initials}
             </div>
-            <span className="text-stone-300">|</span>
-            <button onClick={onLogout} className="text-sm text-stone-600 hover:text-stone-900">
+            <span className="font-sans text-sm font-medium text-stone-800">{displayName}</span>
+            <span className="h-5 w-px bg-stone-300" />
+            <button
+              type="button"
+              onClick={onLogout}
+              className="inline-flex items-center gap-1.5 font-sans text-sm text-stone-600 hover:text-stone-900"
+            >
+              <LogOut className="h-4 w-4" />
               Logout
             </button>
           </div>
         </div>
-        <div className="h-[3px] bg-orange-500/80" />
       </header>
 
       <div className="mx-auto w-full max-w-4xl px-6 py-8">
