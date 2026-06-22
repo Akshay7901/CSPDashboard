@@ -731,10 +731,10 @@ function DecisionReviewerDashboard() {
                   <div className="pl-2">
                     {p.proposedTitle && (
                       <p className="mb-0.5 font-sans text-[10px] font-semibold uppercase tracking-wider text-[#7A6A5A]">
-                        Proposed:{" "}
+                        Proposed Title:{" "}
                         <span className="font-serif text-xs font-normal normal-case tracking-normal text-[#2C1A0E]">
                           {p.proposedTitle}
-                          {p.proposedSubtitle ? ` — ${p.proposedSubtitle}` : ""}
+                          {p.proposedSubtitle ? `: ${p.proposedSubtitle}` : ""}
                         </span>
                       </p>
                     )}

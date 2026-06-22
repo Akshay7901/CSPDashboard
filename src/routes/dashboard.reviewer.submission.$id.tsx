@@ -403,11 +403,11 @@ function ReviewerSubmission() {
           </h1>
           {((proposal.cd as Record<string, unknown>).proposed_title as string | undefined) && (
             <p className="mt-1 font-sans text-[10px] font-semibold uppercase tracking-wider text-[#7A6A5A]">
-              Proposed:{" "}
+              Proposed Title:{" "}
               <span className="font-serif text-xs font-normal normal-case tracking-normal text-[#2C1A0E]">
                 {(proposal.cd as Record<string, unknown>).proposed_title as string}
                 {((proposal.cd as Record<string, unknown>).proposed_subtitle as string | undefined)
-                  ? ` — ${(proposal.cd as Record<string, unknown>).proposed_subtitle as string}`
+                  ? `: ${(proposal.cd as Record<string, unknown>).proposed_subtitle as string}`
                   : ""}
               </span>
             </p>
@@ -802,10 +802,10 @@ function ProposalDetails({
         )}
         {cd.proposed_title && (
           <p className="mt-2 font-sans text-[11px] font-semibold uppercase tracking-wider text-stone-500">
-            Proposed title:{" "}
+            Proposed Title:{" "}
             <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
               {cd.proposed_title}
-              {cd.proposed_subtitle ? ` — ${cd.proposed_subtitle}` : ""}
+              {cd.proposed_subtitle ? `: ${cd.proposed_subtitle}` : ""}
             </span>
           </p>
         )}
