@@ -754,14 +754,12 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
       <section id="section-hero" className="mt-6 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm scroll-mt-24">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
-            {(contractTitleOverride || cd.proposed_title) && (
+            {contractTitleOverride && (
               <p className="mb-1.5 font-sans text-[11px] font-semibold uppercase tracking-wider text-stone-500">
                 Proposed Title:{" "}
                 <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
-                  {contractTitleOverride || cd.proposed_title}
-                  {(contractSubtitleOverride || cd.proposed_subtitle)
-                    ? `: ${contractSubtitleOverride || cd.proposed_subtitle}`
-                    : ""}
+                  {contractTitleOverride}
+                  {contractSubtitleOverride ? `: ${contractSubtitleOverride}` : ""}
                 </span>
               </p>
             )}
