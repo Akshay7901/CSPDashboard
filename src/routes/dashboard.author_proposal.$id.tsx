@@ -1891,6 +1891,19 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
+function StackedRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="py-3">
+      <p className="font-sans text-[11px] font-semibold uppercase tracking-wider text-stone-500">
+        {label}
+      </p>
+      <p className="mt-1 whitespace-pre-line break-words font-sans text-sm font-medium text-stone-800">
+        {value}
+      </p>
+    </div>
+  );
+}
+
 function TocList({ raw }: { raw: string }) {
   const items = raw
     .split(/\r?\n/)
