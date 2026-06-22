@@ -75,15 +75,16 @@ export function LoginPage() {
   useEffect(() => {
     const session = getPortalSession();
     if (!session?.role) return;
-    if (session.role === "admin") {
+    const role = String(session.role).toLowerCase();
+    if (role === "admin") {
       navigate({ to: "/dashboard/admin" });
       return;
     }
-    if (session.role === "decision_reviewer") {
+    if (role === "decision_reviewer") {
       navigate({ to: "/dashboard/decision_reviewer" });
       return;
     }
-    navigate({ to: "/dashboard/$role", params: { role: session.role } });
+    navigate({ to: "/dashboard/$role", params: { role } });
   }, [navigate]);
 
   return (
