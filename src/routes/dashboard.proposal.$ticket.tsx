@@ -1109,6 +1109,7 @@ function ProposalDetailPage() {
     table_of_contents: pick("table_of_contents"),
   };
   const title = cd.main_title || ticket;
+  const proposalDocuments = extractProposalDocuments(rawCd);
 
   const keywords = useMemo(
     () =>
@@ -2309,16 +2310,54 @@ function ProposalDetailPage() {
                   </>
                 )}
 
-                {/* Supporting Documents (placeholder — API does not return files) */}
+                {/* Supporting Documents */}
                 {!isReviewReturned && !isContractIssued && (
                   <Card>
                     <CardHeader
                       title="Supporting Documents"
                       subtitle="Files attached to this proposal"
                     />
-                    <div className="px-7 py-8 text-center font-sans text-sm text-stone-500">
-                      No supporting documents available.
-                    </div>
+                    {proposalDocuments.length === 0 ? (
+                      <div className="px-7 py-8 text-center font-sans text-sm text-stone-500">
+                        No supporting documents available.
+                      </div>
+                    ) : (
+                      <ul className="divide-y divide-stone-100 px-2 py-2">
+                        {proposalDocuments.map((doc, i) => {
+                          const content = (
+                            <>
+                              <FileText className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
+                              <div className="min-w-0">
+                                <p className="truncate font-sans text-sm font-semibold text-stone-900">
+                                  {doc.filename}
+                                </p>
+                                {(doc.label || doc.size_bytes) && (
+                                  <p className="mt-1 font-sans text-xs text-stone-500">
+                                    {[doc.label, formatFileSize(doc.size_bytes)].filter(Boolean).join(" · ")}
+                                  </p>
+                                )}
+                              </div>
+                            </>
+                          );
+                          return (
+                            <li key={`${doc.url || doc.filename}-${i}`} className="px-5 py-4">
+                              {doc.url ? (
+                                <a
+                                  href={doc.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="flex items-start gap-3 rounded-lg border border-transparent p-2 transition-colors hover:border-stone-200 hover:bg-stone-50"
+                                >
+                                  {content}
+                                </a>
+                              ) : (
+                                <div className="flex items-start gap-3 p-2">{content}</div>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
                   </Card>
                 )}
               </div>
