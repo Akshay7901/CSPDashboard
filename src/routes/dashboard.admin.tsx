@@ -734,6 +734,15 @@ function AdminDashboard() {
 
         <p className="mb-3 font-sans text-sm text-stone-600">{filtered.length} proposals</p>
 
+        {proposalDeleteError && (
+          <div
+            role="alert"
+            className="mb-3 rounded-xl border border-red-200 bg-red-50 px-4 py-2 font-sans text-sm text-red-700"
+          >
+            {proposalDeleteError}
+          </div>
+        )}
+
         {/* Table */}
         <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
           <div className="hidden grid-cols-[2.2fr_1.3fr_1fr_1fr_1.1fr_100px] items-center gap-6 border-b border-stone-200 bg-stone-50/60 px-6 py-3 font-sans text-xs font-semibold uppercase tracking-wider text-[#7A6A5A] md:grid">
