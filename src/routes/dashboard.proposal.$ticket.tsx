@@ -3731,14 +3731,53 @@ function normalizeProposalData(
 
   // Aliases so the existing pick() lookups resolve.
   if (isObj(raw.book)) {
-    setIfEmpty("main_title", (raw.book as Record<string, unknown>).title);
-    setIfEmpty("sub_title", (raw.book as Record<string, unknown>).subtitle);
-    setIfEmpty("book_type", (raw.book as Record<string, unknown>).type);
+    const b = raw.book as Record<string, unknown>;
+    setIfEmpty("main_title", b.title);
+    setIfEmpty("sub_title", b.subtitle);
+    setIfEmpty("book_type", b.type);
+    setIfEmpty("word_count", b.wordCount || b.estimatedWordCount);
+    setIfEmpty("figures_tables_count", b.illustrationsCount || b.figuresCount || b.illustrationCount);
+    setIfEmpty("languages_used", b.languages || b.language);
   }
   if (isObj(raw.description)) {
     const d = raw.description as Record<string, unknown>;
-    setIfEmpty("abstract_blurb", d.abstract);
-    setIfEmpty("detailed_description", d.abstract);
+    setIfEmpty("abstract_blurb", d.abstract || d.summary);
+    setIfEmpty("short_description", d.summary || d.abstract);
+    setIfEmpty("key_features", d.keyFeatures || d.sellingPoints);
+    setIfEmpty("table_of_contents", d.tableOfContents || d.toc);
+    setIfEmpty("intended_audience", d.intendedAudience || d.audience);
+  }
+  if (isObj(raw.marketing)) {
+    const m = raw.marketing as Record<string, unknown>;
+    setIfEmpty("competing_titles", m.competingTitles);
+    setIfEmpty("unique_contribution", m.uniqueContribution);
+    setIfEmpty("primary_market", m.primaryMarket);
+    setIfEmpty("recommended_reviewers", m.recommendedReviewers);
+    setIfEmpty("conferences", m.conferences || m.relevantConferences);
+    setIfEmpty("promotional_channels", m.promotionalChannels);
+  }
+  if (isObj(raw.manuscript)) {
+    const m = raw.manuscript as Record<string, unknown>;
+    setIfEmpty("manuscript_stage", m.stage || m.currentStage);
+    setIfEmpty(
+      "expected_completion_date",
+      m.expectedSubmission || m.completionDate || m.expectedSubmissionDate,
+    );
+  }
+  if (isObj(raw.agreement)) {
+    const a = raw.agreement as Record<string, unknown>;
+    setIfEmpty("permissions_required", a.permissions || a.permissionsRequired);
+    setIfEmpty("additional_notes", a.notes || a.additionalNotes);
+  }
+  // primary author auxiliary fields from authors[0]
+  if (Array.isArray(raw.authors) && raw.authors.length > 0) {
+    const primary = (raw.authors as unknown[]).find(
+      (a) => isObj(a) && String((a as Record<string, unknown>).role || "").toLowerCase() === "author",
+    ) || raw.authors[0];
+    if (isObj(primary)) {
+      setIfEmpty("qualifications", primary.qualifications);
+      setIfEmpty("phone", primary.phone);
+    }
   }
 
   return out;
