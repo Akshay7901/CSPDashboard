@@ -485,13 +485,13 @@ function DecisionReviewerDashboard() {
 
   const mergedProposals = useMemo<ProposalRow[]>(
     () =>
-      apiProposals.map((p) => {
+      apiProposals.filter((p) => !deletedTickets.has(p.id)).map((p) => {
         const override = statusOverrides[p.id];
         let status: StatusKey = override ?? p.status;
         if (status === "submitted" && assignedProposalIds.has(p.id)) status = "in_review";
         return { ...p, status };
       }),
-    [apiProposals, assignedProposalIds, statusOverrides],
+    [apiProposals, assignedProposalIds, statusOverrides, deletedTickets],
   );
 
   const counts = useMemo(() => {
