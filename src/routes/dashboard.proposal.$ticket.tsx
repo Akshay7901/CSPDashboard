@@ -3641,7 +3641,7 @@ function CardHeader({
   return (
     <div className="flex items-start justify-between gap-6 border-b border-stone-200 px-5 py-3.5">
       <div>
-        <h2 className="font-serif text-base font-bold text-stone-900">{title}</h2>
+        <h2 className="font-serif text-xl font-bold text-stone-900">{title}</h2>
         {subtitle && (
           <p className="mt-1 font-sans text-sm text-stone-500">{subtitle}</p>
         )}
