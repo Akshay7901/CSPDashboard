@@ -825,7 +825,7 @@ function ProposalDetailPage() {
           payload[key] = v;
         }
       });
-      if (editorialSummary.trim()) payload.dr_note = editorialSummary.trim();
+      
       const res = await proposalApiFetch(
         `/${encodeURIComponent(ticket)}/review/submit`,
         {
@@ -2090,22 +2090,6 @@ function ProposalDetailPage() {
                       </div>
                     </Card>
 
-                    {/* Your Editorial Notes */}
-                    <Card>
-                      <CardHeader
-                        title="Your Editorial Notes"
-                        subtitle="These will be sent to the author along with the review comments"
-                      />
-                      <div className="px-7 py-6">
-                        <textarea
-                          value={editorialSummary}
-                          onChange={(e) => setEditorialSummary(e.target.value)}
-                          rows={6}
-                          placeholder="Add your editorial summary, guidance, or context for the author before sending…"
-                          className="w-full resize-y rounded-xl border border-stone-200 bg-white px-4 py-3 font-sans text-sm leading-relaxed text-stone-800 placeholder:text-stone-400 focus:border-stone-400 focus:outline-none"
-                        />
-                      </div>
-                    </Card>
 
                     {/* Send Review to Author */}
 
