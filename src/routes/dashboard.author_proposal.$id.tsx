@@ -1856,9 +1856,11 @@ function ContractIssuedView({
 
 function PreviewRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between py-3">
-      <dt className="font-sans text-sm text-stone-500">{label}</dt>
-      <dd className="font-sans text-sm font-semibold text-[#2C1A0E]">{value}</dd>
+    <div className="flex flex-col gap-1 py-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+      <dt className="shrink-0 font-sans text-sm text-stone-500">{label}</dt>
+      <dd className="max-w-full break-words font-sans text-sm font-semibold text-[#2C1A0E] sm:max-w-[62%] sm:text-right">
+        {value}
+      </dd>
     </div>
   );
 }
