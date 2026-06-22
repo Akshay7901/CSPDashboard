@@ -517,6 +517,8 @@ function ProposalDetailPage() {
   const [contractSuccess, setContractSuccess] = useState<string | null>(null);
   const [contractStep, setContractStep] = useState<1 | 2>(1);
   const [contractFields, setContractFields] = useState({
+    title: "",
+    subtitle: "",
     language: "in all languages",
     author_copies: "two copies",
     if_two_author_copies: "two copies",
@@ -535,6 +537,11 @@ function ProposalDetailPage() {
     setContractError(null);
     setContractSuccess(null);
     setContractStep(1);
+    setContractFields((f) => ({
+      ...f,
+      title: cd.main_title || title || "",
+      subtitle: cd.sub_title || "",
+    }));
     setContractOpen(true);
   };
 
@@ -601,7 +608,7 @@ function ProposalDetailPage() {
 
       const payload: Record<string, unknown> = {
         contract_type: contractType,
-        title: cd.main_title || title,
+        title: (contractFields.title || cd.main_title || title || "").trim(),
         expiry_days: contractExpiryDays,
         language: contractFields.language,
         author_copies: contractFields.author_copies,
@@ -611,7 +618,8 @@ function ProposalDetailPage() {
         secondary_rights_revenue: Number(contractFields.secondary_rights_revenue) || 0,
         publishing_agreement: contractFields.publishing_agreement,
       };
-      if (cd.sub_title) payload.subtitle = cd.sub_title;
+      const subtitleValue = (contractFields.subtitle || cd.sub_title || "").trim();
+      if (subtitleValue) payload.subtitle = subtitleValue;
       if (contractAmendments.trim()) payload.addendum = contractAmendments.trim();
       if (contractNote.trim()) {
         payload.notes = contractNote.trim();
