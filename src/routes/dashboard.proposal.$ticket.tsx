@@ -2115,31 +2115,37 @@ function ProposalDetailPage() {
                   <>
                 {/* Primary Author */}
                 <Card>
-                  <CardHeader
-                    title="Primary Author / Editor"
-                    subtitle="Institutional affiliation and contact"
-                    right={
-                      <div className="flex items-start gap-7 font-sans text-sm">
-                        {cd.book_type && (
-                          <Stat label="Type" value={cd.book_type} />
-                        )}
-                        {cd.word_count && (
-                          <Stat label="Words" value={formatNumber(cd.word_count)} />
-                        )}
-                        {cd.expected_completion_date && (
-                          <Stat label="Completion" value={cd.expected_completion_date} />
-                        )}
-                      </div>
-                    }
-                  />
-                  <div className="divide-y divide-stone-300">
-                    <div className="grid grid-cols-1 gap-5 px-7 py-6 sm:grid-cols-3">
-                      <DataField label="Name" value={cd.corresponding_author_name} />
-                      <DataField label="Email" value={cd.email} />
-                      <DataField label="Institution" value={cd.institution} />
-                      {cd.country && <DataField label="Country" value={cd.country} />}
+                  <div className="flex flex-wrap items-start justify-between gap-6 px-7 pt-6">
+                    <div>
+                      <h2 className="font-serif text-xl font-bold text-stone-900">
+                        Primary Author / Editor
+                      </h2>
+                      <p className="mt-1 font-sans text-sm text-stone-500">
+                        Institutional affiliation and contact
+                      </p>
                     </div>
-                    {(cd.address || cd.address_line_1 || cd.city || cd.state || cd.postal_code || cd.country) && (
+                    <div className="flex gap-10 font-sans text-sm">
+                      {cd.book_type && (
+                        <Stat label="Type" value={cd.book_type} />
+                      )}
+                      {cd.word_count && (
+                        <Stat label="Words" value={formatNumber(cd.word_count)} />
+                      )}
+                      {cd.expected_completion_date && (
+                        <Stat label="Completion" value={cd.expected_completion_date} />
+                      )}
+                    </div>
+                  </div>
+                  <Divider />
+                  <div className="grid grid-cols-1 gap-6 px-7 py-6 md:grid-cols-3">
+                    <DataField label="Name" value={cd.corresponding_author_name} />
+                    <DataField label="Email" value={cd.email} />
+                    <DataField label="Institution" value={cd.institution} />
+                    <DataField label="Country" value={cd.country} />
+                  </div>
+                  {(cd.address || cd.address_line_1 || cd.city || cd.state || cd.postal_code || cd.country) && (
+                    <>
+                      <Divider />
                       <div className="px-7 py-6">
                         <SectionLabel>Mailing Address</SectionLabel>
                         <p className="mt-2 font-sans text-sm text-stone-800">
@@ -2155,16 +2161,19 @@ function ProposalDetailPage() {
                             .join(", ") || cd.address}
                         </p>
                       </div>
-                    )}
-                    {cd.biography && (
+                    </>
+                  )}
+                  {cd.biography && (
+                    <>
+                      <Divider />
                       <div className="px-7 py-6">
                         <SectionLabel>Biography</SectionLabel>
                         <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-800">
                           {cd.biography}
                         </p>
                       </div>
-                    )}
-                  </div>
+                    </>
+                  )}
                 </Card>
 
                 {/* Additional Authors */}
@@ -3625,6 +3634,10 @@ function Card({
   );
 }
 
+function Divider() {
+  return <hr className="border-stone-100" />;
+}
+
 function CardHeader({
   title,
   subtitle,
@@ -3637,7 +3650,7 @@ function CardHeader({
   return (
     <div className="flex items-start justify-between gap-6 border-b border-stone-200 px-5 py-3.5">
       <div>
-        <h2 className="font-serif text-base font-bold text-stone-900">{title}</h2>
+        <h2 className="font-serif text-xl font-bold text-stone-900">{title}</h2>
         {subtitle && (
           <p className="mt-1 font-sans text-sm text-stone-500">{subtitle}</p>
         )}
@@ -3649,7 +3662,7 @@ function CardHeader({
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="font-sans text-[11px] font-semibold uppercase tracking-wider text-stone-500">
+    <p className="font-sans text-xs uppercase tracking-wide text-stone-500">
       {children}
     </p>
   );
@@ -3669,8 +3682,8 @@ function DataField({
     <div>
       <SectionLabel>{label}</SectionLabel>
       <p
-        className={`mt-1.5 font-sans text-sm font-medium text-stone-900 ${
-          multiline ? "whitespace-pre-line font-normal text-stone-700 leading-relaxed" : ""
+        className={`mt-1.5 font-sans text-sm font-semibold text-stone-900 ${
+          multiline ? "whitespace-pre-line font-normal text-stone-800 leading-relaxed" : ""
         }`}
       >
         {value}
@@ -3690,7 +3703,7 @@ function Stat({
 }) {
   return (
     <div>
-      <p className="font-sans text-[11px] font-semibold uppercase tracking-wider text-stone-500">
+      <p className="font-sans text-xs uppercase tracking-wide text-stone-500">
         {label}
       </p>
       <p
