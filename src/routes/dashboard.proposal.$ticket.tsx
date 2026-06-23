@@ -1679,15 +1679,22 @@ function ProposalDetailPage() {
             <section className="mt-6 rounded-2xl border border-stone-200 bg-white px-8 py-7">
               <div className="flex items-start justify-between gap-6">
                 <div>
-                  {cd.proposed_title && (
-                    <p className="mb-2 font-sans text-xs font-semibold uppercase tracking-wider text-stone-500">
-                      Proposed Title:{" "}
-                      <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
-                        {cd.proposed_title}
-                        {cd.proposed_subtitle ? `: ${cd.proposed_subtitle}` : ""}
-                      </span>
-                    </p>
-                  )}
+                  {(() => {
+                    const pTitle =
+                      (latestContractForHeader?.title || optimisticProposed?.title || cd.proposed_title || "").trim();
+                    const pSubtitle =
+                      (latestContractForHeader?.subtitle || optimisticProposed?.subtitle || cd.proposed_subtitle || "").trim();
+                    if (!pTitle && !pSubtitle) return null;
+                    return (
+                      <p className="mb-2 font-sans text-xs font-semibold uppercase tracking-wider text-stone-500">
+                        Proposed Title:{" "}
+                        <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
+                          {pTitle}
+                          {pSubtitle ? `: ${pSubtitle}` : ""}
+                        </span>
+                      </p>
+                    );
+                  })()}
                   <h1 className="font-serif text-3xl font-bold leading-tight text-stone-900">
                     {cd.main_title || title}
                   </h1>
@@ -1696,39 +1703,6 @@ function ProposalDetailPage() {
                       {cd.sub_title}
                     </p>
                   )}
-                  {(() => {
-                    // Always show the latest title/subtitle from the contract
-                    // API (or the value the DR just submitted) under the hero.
-                    const proposedTitle = (
-                      latestContractForHeader?.title || optimisticProposed?.title || ""
-                    ).trim() || null;
-                    const proposedSubtitle = (
-                      latestContractForHeader?.subtitle || optimisticProposed?.subtitle || ""
-                    ).trim() || null;
-                    if (!proposedTitle && !proposedSubtitle) return null;
-                    return (
-                      <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50/60 px-4 py-2.5">
-                        {proposedTitle && (
-                          <p className="font-sans text-sm text-stone-700">
-                            <span className="font-semibold uppercase tracking-wide text-emerald-700 text-xs">
-                              Proposed Title:
-                            </span>{" "}
-                            <span className="font-serif text-base text-stone-900">
-                              {proposedTitle}
-                            </span>
-                          </p>
-                        )}
-                        {proposedSubtitle && (
-                          <p className="mt-1 font-sans text-sm text-stone-700">
-                            <span className="font-semibold uppercase tracking-wide text-emerald-700 text-xs">
-                              Proposed Subtitle:
-                            </span>{" "}
-                            <span className="text-stone-800">{proposedSubtitle}</span>
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })()}
                 </div>
                 {isContractSigned ? (
                   <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1.5 font-sans text-xs font-semibold text-white shadow-sm">
