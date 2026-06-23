@@ -858,6 +858,9 @@ function ProposalDetailPage() {
         }
       });
       const payload: Record<string, unknown> = { recommendation: reviewRecommendation };
+      if (contractNote.trim()) {
+        payload.dr_note = contractNote.trim();
+      }
       REVIEW_SECTIONS.forEach(({ key, label }) => {
         const v = sectionByLabel[label];
         if (key === "other_comments") {
