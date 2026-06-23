@@ -294,6 +294,30 @@ function ReviewerDashboard() {
     return () => window.clearInterval(id);
   }, [userEmail, loadReviewerProposals]);
 
+  // Refresh when tab/window regains focus or becomes visible (e.g. after
+  // returning from the submission detail page once a review is submitted).
+  useEffect(() => {
+    if (!userEmail) return;
+    const refresh = () => void loadReviewerProposals(userEmail, true);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [userEmail, loadReviewerProposals]);
+
+  // Refresh whenever we return to the list view from the submission detail route.
+  useEffect(() => {
+    if (!userEmail) return;
+    if (!isSubmissionDetail) {
+      void loadReviewerProposals(userEmail, true);
+    }
+  }, [isSubmissionDetail, userEmail, loadReviewerProposals]);
+
   const onLogout = async () => {
     await portalLogout();
     navigate({ to: "/login" });
