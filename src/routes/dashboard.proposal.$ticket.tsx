@@ -1679,22 +1679,6 @@ function ProposalDetailPage() {
             <section className="mt-6 rounded-2xl border border-stone-200 bg-white px-8 py-7">
               <div className="flex items-start justify-between gap-6">
                 <div>
-                  {(() => {
-                    const pTitle =
-                      (latestContractForHeader?.title || optimisticProposed?.title || cd.proposed_title || "").trim();
-                    const pSubtitle =
-                      (latestContractForHeader?.subtitle || optimisticProposed?.subtitle || cd.proposed_subtitle || "").trim();
-                    if (!pTitle && !pSubtitle) return null;
-                    return (
-                      <p className="mb-2 font-sans text-xs font-semibold uppercase tracking-wider text-stone-500">
-                        Proposed Title:{" "}
-                        <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
-                          {pTitle}
-                          {pSubtitle ? `: ${pSubtitle}` : ""}
-                        </span>
-                      </p>
-                    );
-                  })()}
                   <h1 className="font-serif text-3xl font-bold leading-tight text-stone-900">
                     {cd.main_title || title}
                   </h1>
@@ -1703,6 +1687,22 @@ function ProposalDetailPage() {
                       {cd.sub_title}
                     </p>
                   )}
+                  {(() => {
+                    const pTitle =
+                      (latestContractForHeader?.title || optimisticProposed?.title || cd.proposed_title || "").trim();
+                    const pSubtitle =
+                      (latestContractForHeader?.subtitle || optimisticProposed?.subtitle || cd.proposed_subtitle || "").trim();
+                    if (!pTitle && !pSubtitle) return null;
+                    return (
+                      <p className="mt-3 font-sans text-xs font-semibold uppercase tracking-wider text-stone-500">
+                        Proposed Title:{" "}
+                        <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
+                          {pTitle}
+                          {pSubtitle ? `: ${pSubtitle}` : ""}
+                        </span>
+                      </p>
+                    );
+                  })()}
                 </div>
                 {isContractSigned ? (
                   <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1.5 font-sans text-xs font-semibold text-white shadow-sm">
