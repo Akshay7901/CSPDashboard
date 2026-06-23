@@ -507,6 +507,8 @@ function ProposalDetailPage() {
   } | null>(null);
   const [contractCardOpen, setContractCardOpen] = useState(true);
   const [contractQueriesOpen, setContractQueriesOpen] = useState(true);
+  const authorQuestionRef = useRef<HTMLDivElement | null>(null);
+  const lastScrolledQuestionRef = useRef<string | null>(null);
   const [queryThread, setQueryThread] = useState<ContractQueryEntry[]>([]);
   const [queryProposalStatus, setQueryProposalStatus] = useState<string>("");
   const [queryResponseText, setQueryResponseText] = useState("");
@@ -1368,6 +1370,21 @@ function ProposalDetailPage() {
     !!openQuery ||
     queryProposalStatus === "queries_raised" ||
     queryProposalStatus === "question_raised";
+
+  useEffect(() => {
+    if (!hasOpenQuery || !openQuery) return;
+
+    const questionKey = `${ticket}:${openQuery.id}`;
+    if (lastScrolledQuestionRef.current === questionKey) return;
+    lastScrolledQuestionRef.current = questionKey;
+
+    window.setTimeout(() => {
+      authorQuestionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 100);
+  }, [hasOpenQuery, openQuery, ticket]);
 
   const submitQueryResponse = async (e: FormEvent) => {
     e.preventDefault();
@@ -2398,6 +2415,7 @@ function ProposalDetailPage() {
 
                     {/* Author Question — prominent DR response panel */}
                     {hasOpenQuery && openQuery && (
+                      <div ref={authorQuestionRef} className="scroll-mt-24">
                       <Card>
                         <div className="rounded-t-2xl border-b border-teal-200 bg-teal-50/70 px-6 py-4">
                           <h2 className="flex items-center gap-2 font-serif text-base font-bold text-stone-900">
@@ -2463,6 +2481,7 @@ function ProposalDetailPage() {
                           </form>
                         </div>
                       </Card>
+                      </div>
                     )}
 
                     {/* Collapsible toggle for original proposal */}
