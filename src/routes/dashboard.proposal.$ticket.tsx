@@ -1330,8 +1330,8 @@ function ProposalDetailPage() {
 
   const isReviewReturned = useMemo(() => {
     const s = (data?.status || "").toLowerCase().replace(/\s+/g, "_");
-    return s === "review_returned" && reviews.length > 0;
-  }, [data?.status, reviews.length]);
+    return s === "review_returned" && reviews.some((r) => r.is_submitted);
+  }, [data?.status, reviews]);
 
   const isDeclined = useMemo(() => {
     const s = (data?.status || "").toLowerCase().replace(/\s+/g, "_");
@@ -1586,6 +1586,10 @@ function ProposalDetailPage() {
   );
   const drReview = useMemo(
     () => reviews.find((r) => r.reviewer_role === "decision_reviewer"),
+    [reviews],
+  );
+  const submittedDrReview = useMemo(
+    () => reviews.find((r) => r.reviewer_role === "decision_reviewer" && r.is_submitted),
     [reviews],
   );
   const submittedReviews = useMemo(() => reviews.filter((r) => r.is_submitted), [reviews]);
@@ -2381,10 +2385,10 @@ function ProposalDetailPage() {
                         review={peerReview}
                       />
                     )}
-                    {drReview && (
+                    {submittedDrReview && (
                       <ReviewFeedbackAccordion
                         title="Final Peer Review Feedback"
-                        review={drReview}
+                        review={submittedDrReview}
                       />
                     )}
 
