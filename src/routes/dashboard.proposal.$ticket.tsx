@@ -392,6 +392,52 @@ function ReviewSectionList({ data }: { data: Record<string, unknown> }) {
   );
 }
 
+function ReviewFeedbackAccordion({
+  title,
+  review,
+}: {
+  title: string;
+  review: SubmittedReview;
+}) {
+  const rd = (review.review_data || {}) as Record<string, unknown>;
+  const recoKey = typeof rd.recommendation === "string" ? rd.recommendation : "";
+  const recoLabel = RECOMMENDATION_LABELS[recoKey] || recoKey || "—";
+  const reviewerName =
+    review.reviewer_name ||
+    (review.reviewer_email ? displayNameFromEmail(review.reviewer_email) : "");
+  return (
+    <details className="group rounded-2xl border border-stone-200 bg-white open:shadow-sm">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-4">
+        <div className="min-w-0">
+          <h3 className="font-serif text-base font-bold text-stone-900">{title}</h3>
+          <p className="mt-0.5 font-sans text-sm text-stone-500">
+            {reviewerName}
+            {recoLabel && recoLabel !== "—" && (
+              <>
+                {" "}
+                <span className="text-stone-400">•</span>{" "}
+                <span className="text-stone-700">{recoLabel}</span>
+              </>
+            )}
+          </p>
+        </div>
+        <ChevronDown className="h-4 w-4 shrink-0 text-stone-500 transition-transform group-open:rotate-180" />
+      </summary>
+      <div className="border-t border-stone-100 px-6 py-5">
+        <ReviewSectionList data={rd} />
+        <div className="mt-5 rounded-xl bg-stone-50 px-4 py-3">
+          <p className="font-sans text-xs font-semibold uppercase tracking-[0.12em] text-stone-500">
+            Final Recommendation
+          </p>
+          <p className="mt-1 font-sans text-sm font-semibold text-stone-900">
+            {recoLabel}
+          </p>
+        </div>
+      </div>
+    </details>
+  );
+}
+
 type ReviewComment = {
   id: string;
   severity: Severity;
@@ -2174,60 +2220,18 @@ function ProposalDetailPage() {
                       </Card>
                     )}
 
-                    {/* Peer vs Decision Reviewer comparison */}
-                    {(peerReview || drReview) && (
-                      <Card>
-                        <div className="border-b border-stone-200 px-6 py-4">
-                          <h2 className="font-serif text-base font-bold text-stone-900">
-                            Review Comments
-                          </h2>
-                          <p className="mt-0.5 font-sans text-sm text-stone-500">
-                            Peer reviewer's original comments alongside what you sent to the author
-                          </p>
-                        </div>
-                        <div className="px-6 py-5">
-                          <div className="grid gap-5 md:grid-cols-2">
-                            <div className="rounded-xl border border-stone-200 bg-stone-50/60 p-4">
-                              <div className="mb-3 flex items-center justify-between">
-                                <p className="font-sans text-xs font-semibold uppercase tracking-[0.14em] text-stone-600">
-                                  Peer Reviewer
-                                </p>
-                                {peerReview?.reviewer_name && (
-                                  <p className="font-sans text-xs text-stone-500">
-                                    {peerReview.reviewer_name}
-                                  </p>
-                                )}
-                              </div>
-                              {peerReview ? (
-                                <ReviewSectionList data={peerReview.review_data || {}} />
-                              ) : (
-                                <p className="font-sans text-sm text-stone-500">
-                                  No peer reviewer submission found.
-                                </p>
-                              )}
-                            </div>
-                            <div className="rounded-xl border border-violet-200 bg-violet-50/40 p-4">
-                              <div className="mb-3 flex items-center justify-between">
-                                <p className="font-sans text-xs font-semibold uppercase tracking-[0.14em] text-violet-700">
-                                  Sent to Author (Decision Reviewer)
-                                </p>
-                                {drReview?.reviewer_name && (
-                                  <p className="font-sans text-xs text-violet-700/80">
-                                    {drReview.reviewer_name}
-                                  </p>
-                                )}
-                              </div>
-                              {drReview ? (
-                                <ReviewSectionList data={drReview.review_data || {}} />
-                              ) : (
-                                <p className="font-sans text-sm text-stone-500">
-                                  No decision reviewer submission yet.
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </Card>
+                    {/* Peer + Decision Reviewer feedback (collapsible) */}
+                    {peerReview && (
+                      <ReviewFeedbackAccordion
+                        title="Original Peer Review Feedback"
+                        review={peerReview}
+                      />
+                    )}
+                    {drReview && (
+                      <ReviewFeedbackAccordion
+                        title="Final Peer Review Feedback"
+                        review={drReview}
+                      />
                     )}
 
                     {/* Author Question — prominent DR response panel */}
