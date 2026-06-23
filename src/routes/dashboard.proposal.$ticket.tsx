@@ -1614,8 +1614,12 @@ function ProposalDetailPage() {
   }, [primaryReview]);
 
   useEffect(() => {
-    if (commentsSeeded || !primaryReview) return;
-    const rd = (primaryReview.review_data || {}) as Record<string, unknown>;
+    if (commentsSeeded) return;
+    // Prefer the Decision Reviewer's own saved draft (if any) over the
+    // peer reviewer's submitted review, so reloads restore the DR's edits.
+    const sourceReview = drReview || primaryReview;
+    if (!sourceReview) return;
+    const rd = (sourceReview.review_data || {}) as Record<string, unknown>;
     const seeded: ReviewComment[] = [];
     REVIEW_SECTIONS.forEach(({ key, label }) => {
       const v = rd[key];
@@ -1632,7 +1636,7 @@ function ProposalDetailPage() {
     setComments(seeded);
     setCommentsSeeded(true);
     if (recommendationKey) setReviewRecommendation(recommendationKey);
-  }, [commentsSeeded, primaryReview]);
+  }, [commentsSeeded, primaryReview, drReview]);
 
   const [savingDraft, setSavingDraft] = useState(false);
   const saveCommentsDraft = async () => {
