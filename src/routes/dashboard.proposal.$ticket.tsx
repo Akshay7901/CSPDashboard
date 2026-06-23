@@ -6,7 +6,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -568,6 +568,15 @@ function ProposalDetailPage() {
   const [metadataLoading, setMetadataLoading] = useState(false);
   const [metadataError, setMetadataError] = useState<string | null>(null);
   const [metadataHasOpenQuery, setMetadataHasOpenQuery] = useState(false);
+  const metadataQueriesRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (metadataHasOpenQuery && metadataQueriesRef.current) {
+      metadataQueriesRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }, [metadataHasOpenQuery]);
   type MetaForm = {
     full_title: string;
     title: string;
@@ -2100,6 +2109,7 @@ function ProposalDetailPage() {
                               </div>
                             </div>
 
+                            <div ref={metadataQueriesRef} className="scroll-mt-24">
                             <MetadataQueries
                               ticket={ticket}
                               viewer="dr"
@@ -2191,6 +2201,7 @@ function ProposalDetailPage() {
                                 );
                               }}
                             />
+                            </div>
                           </div>
                         );
                       })()}
