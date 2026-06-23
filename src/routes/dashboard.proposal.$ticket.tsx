@@ -1480,6 +1480,14 @@ function ProposalDetailPage() {
   const primaryReview = reviews[0];
   const recommendationKey = (primaryReview?.review_data?.recommendation as string) || "";
   const recommendationLabel = RECOMMENDATION_LABELS[recommendationKey] || recommendationKey;
+  const peerReview = useMemo(
+    () => reviews.find((r) => r.reviewer_role === "peer_reviewer"),
+    [reviews],
+  );
+  const drReview = useMemo(
+    () => reviews.find((r) => r.reviewer_role === "decision_reviewer"),
+    [reviews],
+  );
   const reviewerDisplayName = primaryReview
     ? primaryReview.reviewer_name ||
       displayNameFromEmail(primaryReview.reviewer_email || "")
