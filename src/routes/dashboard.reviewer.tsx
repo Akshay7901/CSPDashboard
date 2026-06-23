@@ -290,7 +290,7 @@ function ReviewerDashboard() {
     if (!userEmail) return;
     const id = window.setInterval(() => {
       void loadReviewerProposals(userEmail, true);
-    }, 30000);
+    }, 300000);
     return () => window.clearInterval(id);
   }, [userEmail, loadReviewerProposals]);
 
