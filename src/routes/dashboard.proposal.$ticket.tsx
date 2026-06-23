@@ -2562,10 +2562,11 @@ function ProposalDetailPage() {
                           <button
                             type="button"
                             onClick={saveCommentsDraft}
-                            className="inline-flex items-center gap-2 rounded-xl border border-stone-300 bg-white px-4 py-2 font-sans text-sm font-medium text-stone-700 hover:border-[#0E3D2F] hover:text-[#0E3D2F]"
+                            disabled={savingDraft}
+                            className="inline-flex items-center gap-2 rounded-xl border border-stone-300 bg-white px-4 py-2 font-sans text-sm font-medium text-stone-700 hover:border-[#0E3D2F] hover:text-[#0E3D2F] disabled:opacity-60"
                           >
                             <Check className="h-4 w-4" />
-                            Save draft
+                            {savingDraft ? "Saving…" : "Save draft"}
                           </button>
                         </div>
                       </div>
