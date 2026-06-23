@@ -2524,6 +2524,16 @@ function ProposalDetailPage() {
                           <Plus className="h-4 w-4" />
                           Add comment
                         </button>
+                        <div className="flex justify-end">
+                          <button
+                            type="button"
+                            onClick={saveCommentsDraft}
+                            className="inline-flex items-center gap-2 rounded-xl border border-stone-300 bg-white px-4 py-2 font-sans text-sm font-medium text-stone-700 hover:border-[#0E3D2F] hover:text-[#0E3D2F]"
+                          >
+                            <Check className="h-4 w-4" />
+                            Save draft
+                          </button>
+                        </div>
                       </div>
                     </Card>
 
