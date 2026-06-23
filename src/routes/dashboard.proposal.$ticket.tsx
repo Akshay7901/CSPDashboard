@@ -2334,17 +2334,16 @@ function ProposalDetailPage() {
                           Preview — full contract sent to author by email
                         </p>
 
-                        {latestContract?.docusign_signing_url && (
+                        {latestContract && (
                           <div className="mt-6 flex justify-center">
-                            <a
-                              href={latestContract.docusign_signing_url}
-                              target="_blank"
-                              rel="noreferrer"
+                            <button
+                              type="button"
+                              onClick={() => setPdfOpen(true)}
                               className="inline-flex items-center gap-2 rounded-xl border border-stone-200 bg-white px-4 py-2.5 font-sans text-sm font-semibold text-stone-800 hover:border-stone-300 hover:bg-stone-50"
                             >
                               <Eye className="h-4 w-4 text-stone-500" />
                               View Contract Document
-                            </a>
+                            </button>
                           </div>
                         )}
                       </div>
