@@ -1090,7 +1090,7 @@ function ProposalDetailPage() {
           : body.review
             ? [body.review as SubmittedReview]
             : [];
-        setReviews(list.filter((r) => r.is_submitted));
+        setReviews(list);
       } catch {
         if (!cancelled) setReviewsError(null);
       } finally {
@@ -1580,17 +1580,18 @@ function ProposalDetailPage() {
     }
   };
 
-  const primaryReview = reviews[0];
-  const recommendationKey = (primaryReview?.review_data?.recommendation as string) || "";
-  const recommendationLabel = RECOMMENDATION_LABELS[recommendationKey] || recommendationKey;
   const peerReview = useMemo(
-    () => reviews.find((r) => r.reviewer_role === "peer_reviewer"),
+    () => reviews.find((r) => r.reviewer_role === "peer_reviewer" && r.is_submitted),
     [reviews],
   );
   const drReview = useMemo(
     () => reviews.find((r) => r.reviewer_role === "decision_reviewer"),
     [reviews],
   );
+  const submittedReviews = useMemo(() => reviews.filter((r) => r.is_submitted), [reviews]);
+  const primaryReview = peerReview || submittedReviews[0] || reviews[0];
+  const recommendationKey = (primaryReview?.review_data?.recommendation as string) || "";
+  const recommendationLabel = RECOMMENDATION_LABELS[recommendationKey] || recommendationKey;
   const reviewerDisplayName = primaryReview
     ? primaryReview.reviewer_name ||
       displayNameFromEmail(primaryReview.reviewer_email || "")
