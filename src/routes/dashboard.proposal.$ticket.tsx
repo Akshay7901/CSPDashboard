@@ -37,6 +37,7 @@ import cspLogo from "@/assets/csp-logo.png";
 import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
 import { formatDate, initialsFromName, displayNameFromEmail } from "@/lib/proposals";
 import { proposalApiFetch } from "@/lib/proposalApi";
+import { toast } from "sonner";
 import {
   getContract,
   voidContract,
