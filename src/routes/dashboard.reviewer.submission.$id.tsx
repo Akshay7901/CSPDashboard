@@ -419,6 +419,7 @@ function ReviewerSubmission() {
           <hr className="my-6 border-stone-200" />
 
           {reviewIsSubmitted ? (
+            <>
             <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
                 <CheckCircle2 className="h-7 w-7 text-emerald-600" />
@@ -436,6 +437,47 @@ function ReviewerSubmission() {
                 Back to Dashboard
               </Link>
             </div>
+            <div className="mt-6">
+              <p className="mb-4 font-sans text-xs font-semibold uppercase tracking-wide text-[#7A6A5A]">
+                Your Submitted Review
+              </p>
+              {recommendation && (
+                <div className="mb-5 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3">
+                  <p className="font-sans text-[10px] font-semibold uppercase tracking-wider text-sky-700">
+                    Recommendation
+                  </p>
+                  <p className="mt-1 font-serif text-sm font-semibold text-sky-900">
+                    {recommendation}
+                  </p>
+                </div>
+              )}
+              <div className="space-y-4">
+                {(
+                  [
+                    { key: "scope", label: "Scope" },
+                    { key: "purpose_value", label: "Purpose & Value" },
+                    { key: "title", label: "Title" },
+                    { key: "originality", label: "Originality" },
+                    { key: "credibility", label: "Credibility" },
+                    { key: "structure", label: "Structure" },
+                    { key: "clarity_quality", label: "Clarity & Quality" },
+                    { key: "other_comments", label: "Other Comments" },
+                    { key: "red_flags", label: "Red Flags" },
+                    { key: "note_to_dr", label: "Note to Decision Reviewer" },
+                  ] as Array<{ key: keyof ReviewForm; label: string }>
+                ).map((f) => (
+                  <div key={f.key}>
+                    <label className="block mb-1.5 font-sans text-xs font-semibold uppercase tracking-wide text-[#7A6A5A]">
+                      {f.label}
+                    </label>
+                    <div className="w-full whitespace-pre-wrap rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-sans text-xs text-slate-700">
+                      {form[f.key]?.trim() ? form[f.key] : <span className="text-slate-400">—</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            </>
           ) : (
             <>
               {/* Review fields */}
