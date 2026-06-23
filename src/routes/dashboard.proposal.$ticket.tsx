@@ -37,6 +37,7 @@ import cspLogo from "@/assets/csp-logo.png";
 import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
 import { formatDate, initialsFromName, displayNameFromEmail } from "@/lib/proposals";
 import { proposalApiFetch } from "@/lib/proposalApi";
+import { toast } from "sonner";
 import {
   getContract,
   voidContract,
@@ -1628,10 +1629,37 @@ function ProposalDetailPage() {
         body: text,
       });
     });
-    setComments(seeded);
+    // Prefer a previously saved local draft for this ticket, if present.
+    let initial = seeded;
+    try {
+      const raw = typeof window !== "undefined"
+        ? window.localStorage.getItem(`dr-comments-draft:${ticket}`)
+        : null;
+      if (raw) {
+        const parsed = JSON.parse(raw) as ReviewComment[];
+        if (Array.isArray(parsed)) initial = parsed;
+      }
+    } catch {
+      // ignore corrupted draft
+    }
+    setComments(initial);
     setCommentsSeeded(true);
     if (recommendationKey) setReviewRecommendation(recommendationKey);
-  }, [commentsSeeded, primaryReview]);
+  }, [commentsSeeded, primaryReview, ticket]);
+
+  const saveCommentsDraft = () => {
+    try {
+      window.localStorage.setItem(
+        `dr-comments-draft:${ticket}`,
+        JSON.stringify(comments),
+      );
+      toast.success("Draft saved", {
+        description: `${comments.length} ${comments.length === 1 ? "comment" : "comments"} saved locally.`,
+      });
+    } catch {
+      toast.error("Could not save draft");
+    }
+  };
 
   const updateComment = (id: string, patch: Partial<ReviewComment>) =>
     setComments((cs) => cs.map((c) => (c.id === id ? { ...c, ...patch } : c)));
@@ -2496,6 +2524,16 @@ function ProposalDetailPage() {
                           <Plus className="h-4 w-4" />
                           Add comment
                         </button>
+                        <div className="flex justify-end">
+                          <button
+                            type="button"
+                            onClick={saveCommentsDraft}
+                            className="inline-flex items-center gap-2 rounded-xl border border-stone-300 bg-white px-4 py-2 font-sans text-sm font-medium text-stone-700 hover:border-[#0E3D2F] hover:text-[#0E3D2F]"
+                          >
+                            <Check className="h-4 w-4" />
+                            Save draft
+                          </button>
+                        </div>
                       </div>
                     </Card>
 
