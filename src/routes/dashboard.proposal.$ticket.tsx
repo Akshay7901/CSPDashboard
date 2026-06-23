@@ -353,6 +353,45 @@ const SECTION_SEVERITY: Record<string, Severity> = {
   red_flags: "Major Concern",
 };
 
+function ReviewSectionList({ data }: { data: Record<string, unknown> }) {
+  const items = REVIEW_SECTIONS.map(({ key, label }) => {
+    const v = data[key];
+    const text = typeof v === "string" ? v.trim() : "";
+    return { key, label, text };
+  }).filter((i) => i.text);
+  const noteRaw = data.dr_note;
+  const note = typeof noteRaw === "string" ? noteRaw.trim() : "";
+  if (items.length === 0 && !note) {
+    return (
+      <p className="font-sans text-sm text-stone-500">No comments provided.</p>
+    );
+  }
+  return (
+    <div className="space-y-3">
+      {items.map((i) => (
+        <div key={i.key}>
+          <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-500">
+            {i.label}
+          </p>
+          <p className="mt-1 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-800">
+            {i.text}
+          </p>
+        </div>
+      ))}
+      {note && (
+        <div className="mt-2 rounded-lg border border-violet-200 bg-white/70 p-3">
+          <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-violet-700">
+            Note to Author
+          </p>
+          <p className="mt-1 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-800">
+            {note}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 type ReviewComment = {
   id: string;
   severity: Severity;
@@ -1480,6 +1519,14 @@ function ProposalDetailPage() {
   const primaryReview = reviews[0];
   const recommendationKey = (primaryReview?.review_data?.recommendation as string) || "";
   const recommendationLabel = RECOMMENDATION_LABELS[recommendationKey] || recommendationKey;
+  const peerReview = useMemo(
+    () => reviews.find((r) => r.reviewer_role === "peer_reviewer"),
+    [reviews],
+  );
+  const drReview = useMemo(
+    () => reviews.find((r) => r.reviewer_role === "decision_reviewer"),
+    [reviews],
+  );
   const reviewerDisplayName = primaryReview
     ? primaryReview.reviewer_name ||
       displayNameFromEmail(primaryReview.reviewer_email || "")
@@ -2123,6 +2170,62 @@ function ProposalDetailPage() {
                               latestContract?.notes ||
                               notes}
                           </p>
+                        </div>
+                      </Card>
+                    )}
+
+                    {/* Peer vs Decision Reviewer comparison */}
+                    {(peerReview || drReview) && (
+                      <Card>
+                        <div className="border-b border-stone-200 px-6 py-4">
+                          <h2 className="font-serif text-base font-bold text-stone-900">
+                            Review Comments
+                          </h2>
+                          <p className="mt-0.5 font-sans text-sm text-stone-500">
+                            Peer reviewer's original comments alongside what you sent to the author
+                          </p>
+                        </div>
+                        <div className="px-6 py-5">
+                          <div className="grid gap-5 md:grid-cols-2">
+                            <div className="rounded-xl border border-stone-200 bg-stone-50/60 p-4">
+                              <div className="mb-3 flex items-center justify-between">
+                                <p className="font-sans text-xs font-semibold uppercase tracking-[0.14em] text-stone-600">
+                                  Peer Reviewer
+                                </p>
+                                {peerReview?.reviewer_name && (
+                                  <p className="font-sans text-xs text-stone-500">
+                                    {peerReview.reviewer_name}
+                                  </p>
+                                )}
+                              </div>
+                              {peerReview ? (
+                                <ReviewSectionList data={peerReview.review_data || {}} />
+                              ) : (
+                                <p className="font-sans text-sm text-stone-500">
+                                  No peer reviewer submission found.
+                                </p>
+                              )}
+                            </div>
+                            <div className="rounded-xl border border-violet-200 bg-violet-50/40 p-4">
+                              <div className="mb-3 flex items-center justify-between">
+                                <p className="font-sans text-xs font-semibold uppercase tracking-[0.14em] text-violet-700">
+                                  Sent to Author (Decision Reviewer)
+                                </p>
+                                {drReview?.reviewer_name && (
+                                  <p className="font-sans text-xs text-violet-700/80">
+                                    {drReview.reviewer_name}
+                                  </p>
+                                )}
+                              </div>
+                              {drReview ? (
+                                <ReviewSectionList data={drReview.review_data || {}} />
+                              ) : (
+                                <p className="font-sans text-sm text-stone-500">
+                                  No decision reviewer submission yet.
+                                </p>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </Card>
                     )}
