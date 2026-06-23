@@ -2191,7 +2191,6 @@ function ProposalDetailPage() {
                                 );
                               }}
                             />
-                            </div>
                           </div>
                         );
                       })()}
