@@ -1629,35 +1629,69 @@ function ProposalDetailPage() {
         body: text,
       });
     });
-    // Prefer a previously saved local draft for this ticket, if present.
-    let initial = seeded;
-    try {
-      const raw = typeof window !== "undefined"
-        ? window.localStorage.getItem(`dr-comments-draft:${ticket}`)
-        : null;
-      if (raw) {
-        const parsed = JSON.parse(raw) as ReviewComment[];
-        if (Array.isArray(parsed)) initial = parsed;
-      }
-    } catch {
-      // ignore corrupted draft
-    }
-    setComments(initial);
+    setComments(seeded);
     setCommentsSeeded(true);
     if (recommendationKey) setReviewRecommendation(recommendationKey);
-  }, [commentsSeeded, primaryReview, ticket]);
+  }, [commentsSeeded, primaryReview]);
 
-  const saveCommentsDraft = () => {
+  const [savingDraft, setSavingDraft] = useState(false);
+  const saveCommentsDraft = async () => {
+    setSavingDraft(true);
     try {
-      window.localStorage.setItem(
-        `dr-comments-draft:${ticket}`,
-        JSON.stringify(comments),
-      );
-      toast.success("Draft saved", {
-        description: `${comments.length} ${comments.length === 1 ? "comment" : "comments"} saved locally.`,
+      // Map comments back to section fields by chapter label (same shape
+      // as the submit flow, but posted to the /review/save draft endpoint).
+      const sectionByLabel: Record<string, string> = {};
+      REVIEW_SECTIONS.forEach(({ label }) => (sectionByLabel[label] = ""));
+      const otherBuckets: string[] = [];
+      comments.forEach((c) => {
+        const body = (c.body || "").trim();
+        if (!body) return;
+        const label = (c.chapter || "").trim();
+        if (label && Object.prototype.hasOwnProperty.call(sectionByLabel, label)) {
+          sectionByLabel[label] = sectionByLabel[label]
+            ? `${sectionByLabel[label]}\n\n${body}`
+            : body;
+        } else {
+          otherBuckets.push(label ? `${label}: ${body}` : body);
+        }
       });
+      const payload: Record<string, unknown> = {};
+      REVIEW_SECTIONS.forEach(({ key, label }) => {
+        const v = sectionByLabel[label];
+        if (key === "other_comments") {
+          const merged = [v, ...otherBuckets].filter(Boolean).join("\n\n");
+          if (merged) payload[key] = merged;
+        } else if (v) {
+          payload[key] = v;
+        }
+      });
+
+      const token = getPortalToken();
+      const res = await proposalApiFetch(
+        `/${encodeURIComponent(ticket)}/review/save`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify(payload),
+        },
+      );
+      const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+      if (!res.ok) {
+        toast.error(
+          (body.error as string) ||
+            (body.message as string) ||
+            `Failed to save draft (${res.status}).`,
+        );
+        return;
+      }
+      toast.success((body.message as string) || "Draft saved");
     } catch {
-      toast.error("Could not save draft");
+      toast.error("Network error. Could not save draft.");
+    } finally {
+      setSavingDraft(false);
     }
   };
 
@@ -2528,10 +2562,11 @@ function ProposalDetailPage() {
                           <button
                             type="button"
                             onClick={saveCommentsDraft}
-                            className="inline-flex items-center gap-2 rounded-xl border border-stone-300 bg-white px-4 py-2 font-sans text-sm font-medium text-stone-700 hover:border-[#0E3D2F] hover:text-[#0E3D2F]"
+                            disabled={savingDraft}
+                            className="inline-flex items-center gap-2 rounded-xl border border-stone-300 bg-white px-4 py-2 font-sans text-sm font-medium text-stone-700 hover:border-[#0E3D2F] hover:text-[#0E3D2F] disabled:opacity-60"
                           >
                             <Check className="h-4 w-4" />
-                            Save draft
+                            {savingDraft ? "Saving…" : "Save draft"}
                           </button>
                         </div>
                       </div>
