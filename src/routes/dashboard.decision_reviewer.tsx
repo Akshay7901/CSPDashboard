@@ -46,12 +46,34 @@ type ApiProposal = {
   display_status?: string;
   action_required?: boolean;
   current_data?: Record<string, string | undefined>;
-  assignments?: Array<{
-    reviewer_email?: string;
-    assigned_at?: string;
-    peer_reviewer_status?: string;
-    display_status?: string;
-  }>;
+  assignments?:
+    | Array<{
+        reviewer_email?: string;
+        assigned_at?: string;
+        peer_reviewer_status?: string;
+        display_status?: string;
+      }>
+    | {
+        reviewer_email?: string;
+        assigned_at?: string;
+        peer_reviewer_status?: string;
+        display_status?: string;
+      }
+    | null;
+};
+
+// API may return `assignments` as a single object (current shape) or an array.
+// Normalize so consumers can always iterate.
+const toAssignmentsArray = (
+  a: ApiProposal["assignments"],
+): Array<{
+  reviewer_email?: string;
+  assigned_at?: string;
+  peer_reviewer_status?: string;
+  display_status?: string;
+}> => {
+  if (!a) return [];
+  return Array.isArray(a) ? a : [a];
 };
 
 type ProposalRow = {
@@ -146,9 +168,11 @@ const mapApiProposal = (p: ApiProposal): ProposalRow => {
   const cd = p.current_data || {};
   const institution = cd.affiliation || cd.institution || "";
   const subject = cd.discipline || cd.subject_area || cd.subject || "";
-  const activeAssign = (p.assignments || []).find(
-    (a) => !/complete|returned|done/i.test(a.peer_reviewer_status || a.display_status || ""),
-  ) || (p.assignments || [])[0];
+  const assignsList = toAssignmentsArray(p.assignments);
+  const activeAssign =
+    assignsList.find(
+      (a) => !/complete|returned|done/i.test(a.peer_reviewer_status || a.display_status || ""),
+    ) || assignsList[0];
   return {
     id: p.ticket_number,
     title: p.title,
@@ -181,7 +205,7 @@ const mapApiProposal = (p: ApiProposal): ProposalRow => {
 function deriveProposalStatus(p: ApiProposal): StatusKey {
   const fromDisplay = normalizeStatus(p.status, p.display_status);
   if (fromDisplay !== "submitted") return fromDisplay;
-  const assigns = p.assignments || [];
+  const assigns = toAssignmentsArray(p.assignments);
   if (assigns.length === 0) return fromDisplay;
   const anyCompleted = assigns.some((a) =>
     /complete|returned|submitted|done/i.test(
@@ -272,7 +296,7 @@ function DecisionReviewerDashboard() {
       });
       const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
       if (res.ok) {
-        const assigns = (body.assignments as ApiProposal["assignments"]) || [];
+        const assigns = toAssignmentsArray(body.assignments as ApiProposal["assignments"]);
         const active =
           assigns.find(
             (a) =>
