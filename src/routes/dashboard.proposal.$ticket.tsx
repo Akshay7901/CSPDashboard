@@ -568,15 +568,6 @@ function ProposalDetailPage() {
   const [metadataLoading, setMetadataLoading] = useState(false);
   const [metadataError, setMetadataError] = useState<string | null>(null);
   const [metadataHasOpenQuery, setMetadataHasOpenQuery] = useState(false);
-  const metadataQueriesRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    if (metadataHasOpenQuery && metadataQueriesRef.current) {
-      metadataQueriesRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }
-  }, [metadataHasOpenQuery]);
   type MetaForm = {
     full_title: string;
     title: string;
