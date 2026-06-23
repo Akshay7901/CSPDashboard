@@ -2100,7 +2100,6 @@ function ProposalDetailPage() {
                               </div>
                             </div>
 
-                            <div ref={metadataQueriesRef} className="scroll-mt-24">
                             <MetadataQueries
                               ticket={ticket}
                               viewer="dr"
