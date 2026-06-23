@@ -392,6 +392,52 @@ function ReviewSectionList({ data }: { data: Record<string, unknown> }) {
   );
 }
 
+function ReviewFeedbackAccordion({
+  title,
+  review,
+}: {
+  title: string;
+  review: SubmittedReview;
+}) {
+  const rd = (review.review_data || {}) as Record<string, unknown>;
+  const recoKey = typeof rd.recommendation === "string" ? rd.recommendation : "";
+  const recoLabel = RECOMMENDATION_LABELS[recoKey] || recoKey || "—";
+  const reviewerName =
+    review.reviewer_name ||
+    (review.reviewer_email ? displayNameFromEmail(review.reviewer_email) : "");
+  return (
+    <details className="group rounded-2xl border border-stone-200 bg-white open:shadow-sm">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-4">
+        <div className="min-w-0">
+          <h3 className="font-serif text-base font-bold text-stone-900">{title}</h3>
+          <p className="mt-0.5 font-sans text-sm text-stone-500">
+            {reviewerName}
+            {recoLabel && recoLabel !== "—" && (
+              <>
+                {" "}
+                <span className="text-stone-400">•</span>{" "}
+                <span className="text-stone-700">{recoLabel}</span>
+              </>
+            )}
+          </p>
+        </div>
+        <ChevronDown className="h-4 w-4 shrink-0 text-stone-500 transition-transform group-open:rotate-180" />
+      </summary>
+      <div className="border-t border-stone-100 px-6 py-5">
+        <ReviewSectionList data={rd} />
+        <div className="mt-5 rounded-xl bg-stone-50 px-4 py-3">
+          <p className="font-sans text-xs font-semibold uppercase tracking-[0.12em] text-stone-500">
+            Final Recommendation
+          </p>
+          <p className="mt-1 font-sans text-sm font-semibold text-stone-900">
+            {recoLabel}
+          </p>
+        </div>
+      </div>
+    </details>
+  );
+}
+
 type ReviewComment = {
   id: string;
   severity: Severity;
