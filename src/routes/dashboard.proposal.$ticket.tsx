@@ -1689,9 +1689,21 @@ function ProposalDetailPage() {
                   )}
                   {(() => {
                     const pTitle =
-                      (latestContractForHeader?.title || optimisticProposed?.title || cd.proposed_title || "").trim();
+                      (
+                        latestContractForHeader?.title ||
+                        optimisticProposed?.title ||
+                        cd.proposed_title ||
+                        cd.main_title ||
+                        ""
+                      ).trim();
                     const pSubtitle =
-                      (latestContractForHeader?.subtitle || optimisticProposed?.subtitle || cd.proposed_subtitle || "").trim();
+                      (
+                        latestContractForHeader?.subtitle ||
+                        optimisticProposed?.subtitle ||
+                        cd.proposed_subtitle ||
+                        cd.sub_title ||
+                        ""
+                      ).trim();
                     if (!pTitle && !pSubtitle) return null;
                     return (
                       <div className="mt-3 space-y-1">
