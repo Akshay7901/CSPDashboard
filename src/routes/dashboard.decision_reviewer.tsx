@@ -508,7 +508,7 @@ function DecisionReviewerDashboard() {
   useEffect(() => {
     const id = window.setInterval(() => {
       void fetchProposals(true);
-    }, 30000);
+    }, 300000);
     return () => window.clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

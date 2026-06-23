@@ -603,7 +603,7 @@ function AuthorDashboard() {
     if (!authorEmail) return;
     const id = window.setInterval(() => {
       void loadMyProposals(authorEmail, true);
-    }, 30000);
+    }, 300000);
     return () => window.clearInterval(id);
   }, [authorEmail, loadMyProposals]);
 
