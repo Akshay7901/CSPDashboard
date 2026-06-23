@@ -392,6 +392,23 @@ function ReviewSectionList({ data }: { data: Record<string, unknown> }) {
   );
 }
 
+function ContractField({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <dt className="font-sans text-xs font-medium text-stone-500">{label}</dt>
+      <dd className="mt-1 font-sans text-sm font-semibold text-stone-900 break-words">
+        {children}
+      </dd>
+    </div>
+  );
+}
+
 function ReviewFeedbackAccordion({
   title,
   review,
