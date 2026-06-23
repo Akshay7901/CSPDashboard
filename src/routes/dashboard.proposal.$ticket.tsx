@@ -2106,98 +2106,109 @@ function ProposalDetailPage() {
                 )}
                 {isContractIssued && (
                   <>
-                    {/* Contract & Feedback preview */}
-                    <Card>
-                      <div className="flex flex-wrap items-center justify-between gap-3 rounded-t-2xl border-b border-violet-200 bg-violet-50/70 px-6 py-4">
-                        <div className="min-w-0">
-                          <h2 className="font-serif text-base font-bold text-stone-900">
-                            Contract &amp; Feedback
-                          </h2>
-                          <p className="mt-0.5 font-sans text-sm text-stone-500">
-                            {latestContract?.docusign_sent_at
-                              ? `Issued ${formatDate(latestContract.docusign_sent_at)}`
-                              : "Contract issued"}
-                          </p>
-                        </div>
-                        <span
-                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-xs font-semibold ring-1 ${
-                            (latestContract?.status || "").toLowerCase() === "signed"
-                              ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
-                              : (latestContract?.status || "").toLowerCase() === "declined"
-                                ? "bg-rose-50 text-rose-700 ring-rose-200"
-                                : "bg-violet-50 text-violet-700 ring-violet-200"
-                          }`}
-                        >
-                          {(latestContract?.status || "").toLowerCase() === "signed"
-                            ? "Signed"
-                            : (latestContract?.status || "").toLowerCase() === "declined"
-                              ? "Declined"
-                              : "Awaiting Signature"}
-                        </span>
-                      </div>
-                      <div className="px-6 py-6">
-                        <div className="mx-auto max-w-xl rounded-xl border border-stone-200 bg-white px-10 py-10 shadow-[0_2px_12px_-6px_rgba(0,0,0,0.08)]">
-                          <p className="text-center font-sans text-[11px] font-semibold uppercase tracking-[0.3em] text-stone-500">
-                            Cambridge Scholars Publishing
-                          </p>
-                          <div className="mt-3 flex items-center justify-center gap-2">
-                            <span className="h-px w-10 bg-stone-300" />
-                            <span className="h-1.5 w-1.5 rounded-full bg-stone-400" />
-                            <span className="h-px w-10 bg-stone-300" />
+                    {/* Publishing Contract — collapsible details */}
+                    {latestContract && (
+                      <details
+                        open
+                        className="group rounded-2xl border border-stone-200 bg-white open:shadow-sm"
+                      >
+                        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-4">
+                          <div className="min-w-0">
+                            <h2 className="font-serif text-base font-bold text-stone-900">
+                              Publishing Contract
+                            </h2>
+                            <p className="mt-0.5 font-sans text-sm text-stone-500">
+                              Status:{" "}
+                              <span className="text-stone-700">
+                                {(latestContract.status || "—")
+                                  .charAt(0)
+                                  .toUpperCase() +
+                                  (latestContract.status || "").slice(1)}
+                              </span>
+                              {latestContract.contract_type && (
+                                <>
+                                  {" "}
+                                  <span className="text-stone-400">•</span>{" "}
+                                  <span className="text-stone-700">
+                                    {latestContract.contract_type
+                                      .charAt(0)
+                                      .toUpperCase() +
+                                      latestContract.contract_type.slice(1)}{" "}
+                                    Contract
+                                  </span>
+                                </>
+                              )}
+                            </p>
                           </div>
-                          <p className="mt-4 text-center font-sans text-xs font-semibold uppercase tracking-[0.28em] text-stone-700">
-                            Publishing Agreement
-                          </p>
-                          <dl className="mt-8 space-y-3 font-sans text-sm">
-                            <div className="flex items-baseline justify-between gap-4 border-b border-dotted border-stone-200 pb-2">
-                              <dt className="text-stone-500">Author</dt>
-                              <dd className="text-right font-medium text-stone-800">
-                                {latestContract?.recipient_name ||
-                                  cd.corresponding_author_name ||
-                                  "—"}
-                              </dd>
-                            </div>
-                            <div className="flex items-baseline justify-between gap-4 border-b border-dotted border-stone-200 pb-2">
-                              <dt className="text-stone-500">Title</dt>
-                              <dd className="truncate text-right font-medium text-stone-800">
-                                {latestContract?.title || cd.main_title || title}
-                              </dd>
-                            </div>
-                            {cd.book_type && (
-                              <div className="flex items-baseline justify-between gap-4 border-b border-dotted border-stone-200 pb-2">
-                                <dt className="text-stone-500">Format</dt>
-                                <dd className="text-right font-medium text-stone-800">
-                                  {cd.book_type}
-                                </dd>
-                              </div>
+                          <ChevronDown className="h-4 w-4 shrink-0 text-stone-500 transition-transform group-open:rotate-180" />
+                        </summary>
+                        <div className="border-t border-stone-100 px-6 py-5">
+                          <dl className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
+                            <ContractField label="Status">
+                              {(latestContract.status || "—")
+                                .charAt(0)
+                                .toUpperCase() +
+                                (latestContract.status || "").slice(1)}
+                            </ContractField>
+                            <ContractField label="Contract Type">
+                              {latestContract.contract_type
+                                ? latestContract.contract_type
+                                    .charAt(0)
+                                    .toUpperCase() +
+                                  latestContract.contract_type.slice(1)
+                                : "—"}
+                            </ContractField>
+                            <ContractField label="Version">
+                              {latestContract.contract_version ?? "—"}
+                            </ContractField>
+                            <ContractField label="Recipient">
+                              {latestContract.recipient_name ||
+                                cd.corresponding_author_name ||
+                                "—"}
+                            </ContractField>
+                            <ContractField label="Recipient Email">
+                              {latestContract.recipient_email ||
+                                cd.email ||
+                                "—"}
+                            </ContractField>
+                            <ContractField label="Sent">
+                              {latestContract.docusign_sent_at
+                                ? formatDate(latestContract.docusign_sent_at)
+                                : "—"}
+                            </ContractField>
+                            {latestContract.docusign_completed_at && (
+                              <ContractField label="Completed">
+                                {formatDate(latestContract.docusign_completed_at)}
+                              </ContractField>
                             )}
-                            {cd.expected_completion_date && (
-                              <div className="flex items-baseline justify-between gap-4 border-b border-dotted border-stone-200 pb-2">
-                                <dt className="text-stone-500">Expected Completion</dt>
-                                <dd className="text-right font-medium text-stone-800">
-                                  {cd.expected_completion_date}
-                                </dd>
-                              </div>
+                            {latestContract.docusign_declined_at && (
+                              <ContractField label="Declined">
+                                {formatDate(latestContract.docusign_declined_at)}
+                              </ContractField>
                             )}
+                            {latestContract.docusign_expires_at &&
+                              !latestContract.docusign_completed_at && (
+                                <ContractField label="Expires">
+                                  {formatDate(latestContract.docusign_expires_at)}
+                                </ContractField>
+                              )}
                           </dl>
-                          <div className="mt-8 space-y-2">
-                            <div className="h-2 w-full rounded-full bg-stone-100" />
-                            <div className="h-2 w-11/12 rounded-full bg-stone-100" />
-                            <div className="h-2 w-10/12 rounded-full bg-stone-100" />
-                            <div className="h-2 w-9/12 rounded-full bg-stone-100" />
-                          </div>
-                          <div className="mt-10 grid grid-cols-2 gap-8 pt-4 font-sans text-xs text-stone-500">
-                            <div className="border-t border-stone-300 pt-2">Publisher</div>
-                            <div className="border-t border-stone-300 pt-2 text-right">
-                              Author
+                          {latestContract.docusign_signing_url && (
+                            <div className="mt-6">
+                              <a
+                                href={latestContract.docusign_signing_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-2 rounded-xl border border-stone-200 bg-white px-4 py-2.5 font-sans text-sm font-semibold text-stone-800 hover:border-stone-300 hover:bg-stone-50"
+                              >
+                                <Eye className="h-4 w-4 text-stone-500" />
+                                View Contract Document
+                              </a>
                             </div>
-                          </div>
+                          )}
                         </div>
-                        <p className="mt-4 text-center font-sans text-xs text-stone-500">
-                          Preview — full contract sent to author by email
-                        </p>
-                      </div>
-                    </Card>
+                      </details>
+                    )}
 
                     {/* Editorial Feedback Sent */}
                     {(latestContract?.addendum || latestContract?.notes || notes) && (
