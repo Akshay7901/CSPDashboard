@@ -2789,6 +2789,13 @@ function ProposalDetailPage() {
                             ))}
                           </div>
                         )}
+                      <button
+                        type="button"
+                        onClick={openReviewers}
+                        className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-white px-3 py-1.5 font-sans text-xs font-semibold text-indigo-700 transition-colors hover:bg-indigo-50"
+                      >
+                        Reassign peer reviewer
+                      </button>
                     </div>
                   )}
                   <div className="space-y-3 border-t border-stone-300 px-5 py-4">
