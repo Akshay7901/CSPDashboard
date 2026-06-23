@@ -2197,27 +2197,8 @@ function ProposalDetailPage() {
                               </div>
                             )}
                           </dl>
-                          <div className="mt-8 space-y-2">
-                            <div className="h-2 w-full rounded-full bg-stone-100" />
-                            <div className="h-2 w-11/12 rounded-full bg-stone-100" />
-                            <div className="h-2 w-10/12 rounded-full bg-stone-100" />
-                            <div className="h-2 w-9/12 rounded-full bg-stone-100" />
-                          </div>
-                          <div className="mt-10 grid grid-cols-2 gap-8 pt-4 font-sans text-xs text-stone-500">
-                            <div className="border-t border-stone-300 pt-2">Publisher</div>
-                            <div className="border-t border-stone-300 pt-2 text-right">
-                              Author
-                            </div>
-                          </div>
-                        </div>
-                        <p className="mt-4 text-center font-sans text-xs text-stone-500">
-                          Preview — full contract sent to author by email
-                        </p>
-
-                        {/* Contract details */}
-                        {latestContract && (
-                          <div className="mt-6 rounded-xl border border-stone-200 bg-white px-5 py-5">
-                            <dl className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
+                          {latestContract && (
+                            <dl className="mt-8 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
                               <ContractField label="Status">
                                 {(latestContract.status || "—")
                                   .charAt(0)
@@ -2265,19 +2246,29 @@ function ProposalDetailPage() {
                                   </ContractField>
                                 )}
                             </dl>
-                            {latestContract.docusign_signing_url && (
-                              <div className="mt-6">
-                                <a
-                                  href={latestContract.docusign_signing_url}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="inline-flex items-center gap-2 rounded-xl border border-stone-200 bg-white px-4 py-2.5 font-sans text-sm font-semibold text-stone-800 hover:border-stone-300 hover:bg-stone-50"
-                                >
-                                  <Eye className="h-4 w-4 text-stone-500" />
-                                  View Contract Document
-                                </a>
-                              </div>
-                            )}
+                          )}
+                          <div className="mt-10 grid grid-cols-2 gap-8 pt-4 font-sans text-xs text-stone-500">
+                            <div className="border-t border-stone-300 pt-2">Publisher</div>
+                            <div className="border-t border-stone-300 pt-2 text-right">
+                              Author
+                            </div>
+                          </div>
+                        </div>
+                        <p className="mt-4 text-center font-sans text-xs text-stone-500">
+                          Preview — full contract sent to author by email
+                        </p>
+
+                        {latestContract?.docusign_signing_url && (
+                          <div className="mt-6 flex justify-center">
+                            <a
+                              href={latestContract.docusign_signing_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-2 rounded-xl border border-stone-200 bg-white px-4 py-2.5 font-sans text-sm font-semibold text-stone-800 hover:border-stone-300 hover:bg-stone-50"
+                            >
+                              <Eye className="h-4 w-4 text-stone-500" />
+                              View Contract Document
+                            </a>
                           </div>
                         )}
                       </div>
