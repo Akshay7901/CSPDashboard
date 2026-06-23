@@ -521,6 +521,11 @@ function ProposalDetailPage() {
   
   const [originalOpen, setOriginalOpen] = useState(false);
 
+  useEffect(() => {
+    setComments([]);
+    setCommentsSeeded(false);
+  }, [ticket]);
+
   // Metadata (shown after the contract is signed)
   type MetadataAuthor = {
     title?: string;
@@ -1090,7 +1095,7 @@ function ProposalDetailPage() {
           : body.review
             ? [body.review as SubmittedReview]
             : [];
-        setReviews(list.filter((r) => r.is_submitted));
+        setReviews(list);
       } catch {
         if (!cancelled) setReviewsError(null);
       } finally {
@@ -1330,8 +1335,8 @@ function ProposalDetailPage() {
 
   const isReviewReturned = useMemo(() => {
     const s = (data?.status || "").toLowerCase().replace(/\s+/g, "_");
-    return s === "review_returned" && reviews.length > 0;
-  }, [data?.status, reviews.length]);
+    return s === "review_returned" && reviews.some((r) => r.is_submitted);
+  }, [data?.status, reviews]);
 
   const isDeclined = useMemo(() => {
     const s = (data?.status || "").toLowerCase().replace(/\s+/g, "_");
@@ -1580,17 +1585,22 @@ function ProposalDetailPage() {
     }
   };
 
-  const primaryReview = reviews[0];
-  const recommendationKey = (primaryReview?.review_data?.recommendation as string) || "";
-  const recommendationLabel = RECOMMENDATION_LABELS[recommendationKey] || recommendationKey;
   const peerReview = useMemo(
-    () => reviews.find((r) => r.reviewer_role === "peer_reviewer"),
+    () => reviews.find((r) => r.reviewer_role === "peer_reviewer" && r.is_submitted),
     [reviews],
   );
   const drReview = useMemo(
     () => reviews.find((r) => r.reviewer_role === "decision_reviewer"),
     [reviews],
   );
+  const submittedDrReview = useMemo(
+    () => reviews.find((r) => r.reviewer_role === "decision_reviewer" && r.is_submitted),
+    [reviews],
+  );
+  const submittedReviews = useMemo(() => reviews.filter((r) => r.is_submitted), [reviews]);
+  const primaryReview = peerReview || submittedReviews[0] || reviews[0];
+  const recommendationKey = (primaryReview?.review_data?.recommendation as string) || "";
+  const recommendationLabel = RECOMMENDATION_LABELS[recommendationKey] || recommendationKey;
   const reviewerDisplayName = primaryReview
     ? primaryReview.reviewer_name ||
       displayNameFromEmail(primaryReview.reviewer_email || "")
@@ -2380,10 +2390,10 @@ function ProposalDetailPage() {
                         review={peerReview}
                       />
                     )}
-                    {drReview && (
+                    {submittedDrReview && (
                       <ReviewFeedbackAccordion
                         title="Final Peer Review Feedback"
-                        review={drReview}
+                        review={submittedDrReview}
                       />
                     )}
 
