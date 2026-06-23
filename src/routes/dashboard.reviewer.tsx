@@ -216,6 +216,26 @@ function ReviewerDashboard() {
             ? "completed"
             : "pending";
           const wc = cd.word_count || cd.estimated_word_count || "";
+          const cdAny = cd as Record<string, string | undefined>;
+          const firstLast = [cdAny.author_first_name, cdAny.author_last_name]
+            .filter(Boolean)
+            .join(" ")
+            .trim();
+          const authorNameResolved =
+            cdAny.corresponding_author_name ||
+            cd.author_name ||
+            cd.primary_author_name ||
+            (firstLast ? firstLast : "") ||
+            "—";
+          const abstractResolved =
+            cdAny.short_description ||
+            cdAny.detailed_description ||
+            cd.overview ||
+            cd.abstract ||
+            cd.description ||
+            cdAny.book_overview ||
+            cdAny.synopsis ||
+            "";
           return {
             id: d.ticket_number,
             proposalId: d.ticket_number,
@@ -232,12 +252,12 @@ function ReviewerDashboard() {
               (cd as Record<string, string | undefined>).proposed_sub_title ||
               (cd as Record<string, string | undefined>).proposed_book_subtitle ||
               undefined,
-            authorName: cd.author_name || cd.primary_author_name || "—",
+            authorName: authorNameResolved,
             authorAffiliation: cd.affiliation || cd.institution || "—",
             wordCount: wc ? `${wc} words` : "—",
             assignedAt: formatDateShort(myAssign?.assigned_at || d.submitted_at),
             completedAt: status === "completed" ? formatDateShort(myAssign?.assigned_at) : undefined,
-            abstract: cd.overview || cd.abstract || cd.description || "",
+            abstract: abstractResolved,
             status,
           };
         });
