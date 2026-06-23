@@ -2295,6 +2295,18 @@ function ProposalDetailPage() {
                       </Card>
                     )}
 
+                    {/* Contract Queries — moved from right sidebar */}
+                    {contracts.length > 0 && !hasOpenQuery && contractResendPrompt !== "prompt" && contractResendPrompt !== "skip" && (
+                      <ContractQueries
+                        ticket={ticket}
+                        viewer="dr"
+                        collapsible
+                        defaultOpen={contractQueriesOpen}
+                        onOpenChange={setContractQueriesOpen}
+                        onChanged={() => setContractsReloadKey((k) => k + 1)}
+                      />
+                    )}
+
                     {/* Peer + Decision Reviewer feedback (collapsible) */}
                     {peerReview && (
                       <ReviewFeedbackAccordion
