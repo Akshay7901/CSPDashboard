@@ -1694,13 +1694,24 @@ function ProposalDetailPage() {
                       (latestContractForHeader?.subtitle || optimisticProposed?.subtitle || cd.proposed_subtitle || "").trim();
                     if (!pTitle && !pSubtitle) return null;
                     return (
-                      <p className="mt-3 font-sans text-xs font-semibold uppercase tracking-wider text-stone-500">
-                        Proposed Title:{" "}
-                        <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
-                          {pTitle}
-                          {pSubtitle ? `: ${pSubtitle}` : ""}
-                        </span>
-                      </p>
+                      <div className="mt-3 space-y-1">
+                        {pTitle && (
+                          <p className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-500">
+                            Proposed Title:{" "}
+                            <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
+                              {pTitle}
+                            </span>
+                          </p>
+                        )}
+                        {pSubtitle && (
+                          <p className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-500">
+                            Proposed Subtitle:{" "}
+                            <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
+                              {pSubtitle}
+                            </span>
+                          </p>
+                        )}
+                      </div>
                     );
                   })()}
                 </div>
