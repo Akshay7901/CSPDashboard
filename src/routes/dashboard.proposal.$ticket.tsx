@@ -1629,23 +1629,10 @@ function ProposalDetailPage() {
         body: text,
       });
     });
-    // Prefer a previously saved local draft for this ticket, if present.
-    let initial = seeded;
-    try {
-      const raw = typeof window !== "undefined"
-        ? window.localStorage.getItem(`dr-comments-draft:${ticket}`)
-        : null;
-      if (raw) {
-        const parsed = JSON.parse(raw) as ReviewComment[];
-        if (Array.isArray(parsed)) initial = parsed;
-      }
-    } catch {
-      // ignore corrupted draft
-    }
-    setComments(initial);
+    setComments(seeded);
     setCommentsSeeded(true);
     if (recommendationKey) setReviewRecommendation(recommendationKey);
-  }, [commentsSeeded, primaryReview, ticket]);
+  }, [commentsSeeded, primaryReview]);
 
   const [savingDraft, setSavingDraft] = useState(false);
   const saveCommentsDraft = async () => {
