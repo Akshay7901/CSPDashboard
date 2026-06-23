@@ -3954,10 +3954,10 @@ function DataField({
 }) {
   if (!value) return null;
   return (
-    <div>
+    <div className="min-w-0">
       <SectionLabel>{label}</SectionLabel>
       <p
-        className={`mt-1.5 font-sans text-sm font-semibold text-stone-900 ${
+        className={`mt-1.5 font-sans text-sm font-semibold text-stone-900 break-words ${
           multiline ? "whitespace-pre-line font-normal text-stone-800 leading-relaxed" : ""
         }`}
       >
