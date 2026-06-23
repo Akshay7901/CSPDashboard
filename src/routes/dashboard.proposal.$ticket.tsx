@@ -1706,24 +1706,15 @@ function ProposalDetailPage() {
                       ).trim();
                     if (!pTitle && !pSubtitle) return null;
                     return (
-                      <div className="mt-3 space-y-1">
-                        {pTitle && (
-                          <p className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-500">
-                            Proposed Title:{" "}
-                            <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
-                              {pTitle}
-                            </span>
-                          </p>
-                        )}
-                        {pSubtitle && (
-                          <p className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-500">
-                            Proposed Subtitle:{" "}
-                            <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
-                              {pSubtitle}
-                            </span>
-                          </p>
-                        )}
-                      </div>
+                      <p className="mt-3 flex items-center gap-2 font-sans text-sm text-stone-500">
+                        <FileText className="h-4 w-4 text-stone-400" />
+                        <span className="font-medium text-stone-500">Proposed Title:</span>
+                        <span className="font-semibold text-stone-800">
+                          {pTitle}
+                          {pTitle && pSubtitle ? ": " : ""}
+                          {pSubtitle}
+                        </span>
+                      </p>
                     );
                   })()}
                 </div>
