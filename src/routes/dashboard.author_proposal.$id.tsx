@@ -88,6 +88,7 @@ const SEVERITY_TOKENS: Record<string, string> = {
 type AuthorReview = {
   reviewer_name?: string;
   reviewer_email?: string;
+  reviewer_role?: string;
   is_submitted?: boolean;
   review_data?: Record<string, unknown>;
 };
@@ -136,8 +137,29 @@ function ReviewerCommentsList({ ticket }: { ticket: string }) {
 
   if (loading) return null;
 
-  const primary = reviews[0];
+  // Prefer the Decision Reviewer's submitted version when available.
+  const primary =
+    reviews.find((r) => (r.reviewer_role || "").toLowerCase() === "decision_reviewer") ||
+    reviews[0];
   const rd = (primary?.review_data || {}) as Record<string, unknown>;
+  const drNote = typeof rd.dr_note === "string" ? rd.dr_note.trim() : "";
+  const recommendation =
+    typeof rd.recommendation === "string" ? rd.recommendation.trim() : "";
+  const recLabel = recommendation
+    ? recommendation
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase())
+    : "";
+  const recTone = (() => {
+    const r = recommendation.toLowerCase();
+    if (r === "proceed" || r === "accept")
+      return "bg-emerald-50 text-emerald-700 ring-emerald-200";
+    if (r === "reject" || r === "decline")
+      return "bg-rose-50 text-rose-700 ring-rose-200";
+    if (r.includes("revision") || r.includes("info"))
+      return "bg-amber-50 text-amber-800 ring-amber-200";
+    return "bg-stone-100 text-stone-700 ring-stone-200";
+  })();
 
   const items = REVIEW_SECTIONS.map(({ key, label }) => {
     const v = rd[key];
@@ -152,6 +174,34 @@ function ReviewerCommentsList({ ticket }: { ticket: string }) {
     };
   }).filter(Boolean) as { key: string; label: string; text: string; severity: string; page: string }[];
 
+  const header =
+    (drNote || recLabel) && (
+      <div className="mt-4 rounded-xl border border-violet-200 bg-violet-50/70 p-5">
+        {recLabel && (
+          <div className="flex items-center gap-2">
+            <span className="font-sans text-[11px] font-bold uppercase tracking-wider text-violet-700">
+              Editor's Recommendation
+            </span>
+            <span
+              className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-sans text-xs font-semibold ring-1 ${recTone}`}
+            >
+              {recLabel}
+            </span>
+          </div>
+        )}
+        {drNote && (
+          <>
+            <p className="mt-3 font-sans text-[11px] font-bold uppercase tracking-wider text-violet-700">
+              Note from your editor
+            </p>
+            <p className="mt-1.5 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
+              {drNote}
+            </p>
+          </>
+        )}
+      </div>
+    );
+
   if (items.length === 0) {
     if (notFound || !primary) {
       return (
@@ -163,11 +213,12 @@ function ReviewerCommentsList({ ticket }: { ticket: string }) {
         </div>
       );
     }
-    return null;
+    return header || null;
   }
 
   return (
     <div className="mt-4 space-y-3">
+      {header}
       {items.map((it) => (
         <div key={it.key} className="rounded-xl border border-stone-200 bg-white p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
