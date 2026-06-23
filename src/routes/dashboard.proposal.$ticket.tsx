@@ -2462,7 +2462,7 @@ function ProposalDetailPage() {
                     />
                   </div>
                   {(cd.intended_audience || cd.manuscript_stage || cd.under_review_elsewhere) && (
-                    <div className="grid grid-cols-1 gap-5 border-t border-stone-200 px-7 py-6 sm:grid-cols-3">
+                    <div className="flex flex-col gap-5 border-t border-stone-200 px-7 py-6">
                       <DataField label="Intended Audience" value={cd.intended_audience} multiline />
                       <DataField label="Manuscript Stage" value={cd.manuscript_stage} />
                       <DataField
