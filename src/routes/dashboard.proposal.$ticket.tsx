@@ -521,6 +521,11 @@ function ProposalDetailPage() {
   
   const [originalOpen, setOriginalOpen] = useState(false);
 
+  useEffect(() => {
+    setComments([]);
+    setCommentsSeeded(false);
+  }, [ticket]);
+
   // Metadata (shown after the contract is signed)
   type MetadataAuthor = {
     title?: string;
