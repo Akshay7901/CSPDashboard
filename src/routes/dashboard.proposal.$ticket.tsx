@@ -1629,10 +1629,37 @@ function ProposalDetailPage() {
         body: text,
       });
     });
-    setComments(seeded);
+    // Prefer a previously saved local draft for this ticket, if present.
+    let initial = seeded;
+    try {
+      const raw = typeof window !== "undefined"
+        ? window.localStorage.getItem(`dr-comments-draft:${ticket}`)
+        : null;
+      if (raw) {
+        const parsed = JSON.parse(raw) as ReviewComment[];
+        if (Array.isArray(parsed)) initial = parsed;
+      }
+    } catch {
+      // ignore corrupted draft
+    }
+    setComments(initial);
     setCommentsSeeded(true);
     if (recommendationKey) setReviewRecommendation(recommendationKey);
-  }, [commentsSeeded, primaryReview]);
+  }, [commentsSeeded, primaryReview, ticket]);
+
+  const saveCommentsDraft = () => {
+    try {
+      window.localStorage.setItem(
+        `dr-comments-draft:${ticket}`,
+        JSON.stringify(comments),
+      );
+      toast.success("Draft saved", {
+        description: `${comments.length} ${comments.length === 1 ? "comment" : "comments"} saved locally.`,
+      });
+    } catch {
+      toast.error("Could not save draft");
+    }
+  };
 
   const updateComment = (id: string, patch: Partial<ReviewComment>) =>
     setComments((cs) => cs.map((c) => (c.id === id ? { ...c, ...patch } : c)));
