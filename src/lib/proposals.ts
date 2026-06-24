@@ -7,6 +7,7 @@ export type StatusKey =
   | "question"
   | "contract"
   | "signed"
+  | "approved"
   | "declined";
 
 export interface StatusMeta {
