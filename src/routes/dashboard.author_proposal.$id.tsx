@@ -1653,14 +1653,13 @@ function ContractIssuedView({
         </div>
         )}
 
-        {!isSigned && (
+        {!isSigned && editorNote && (
           <div className="mt-5">
             <p className="font-sans text-[11px] font-bold uppercase tracking-wider text-stone-500">
               Note from your editor
             </p>
             <p className="mt-2 whitespace-pre-line font-sans text-[15px] leading-relaxed text-stone-700">
-              {editorNote ||
-                "Your editor did not attach a personal note with this contract. Please review the reviewer's feedback above and the contract below."}
+              {editorNote}
             </p>
           </div>
         )}
