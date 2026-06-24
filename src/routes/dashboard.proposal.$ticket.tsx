@@ -1972,26 +1972,12 @@ function ProposalDetailPage() {
                     Contract Signed
                   </span>
                 ) : (
-                  <div className="flex shrink-0 items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1.5 font-sans text-xs font-medium text-indigo-700 ring-1 ring-indigo-200">
-                      <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
-                      {data.status?.toLowerCase().replace(/\s+/g, "_") === "awaiting_more_info"
-                        ? "Request Revision"
-                        : data.status}
-                    </span>
-                    {data.status?.toLowerCase().replace(/\s+/g, "_") === "author_approved" && (
-                      <button
-                        type="button"
-                        onClick={handleLockProposal}
-                        disabled={locking}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-50 px-3 py-1.5 font-sans text-xs font-semibold text-emerald-800 hover:bg-emerald-100 disabled:opacity-50"
-                        title="Lock proposal and generate production files"
-                      >
-                        <Lock className="h-3.5 w-3.5" />
-                        {locking ? "Locking…" : "Lock Proposal"}
-                      </button>
-                    )}
-                  </div>
+                  <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1.5 font-sans text-xs font-medium text-indigo-700 ring-1 ring-indigo-200">
+                    <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+                    {data.status?.toLowerCase().replace(/\s+/g, "_") === "awaiting_more_info"
+                      ? "Request Revision"
+                      : data.status}
+                  </span>
                 )}
               </div>
               <div className="mt-5 flex flex-wrap items-center gap-x-7 gap-y-2 font-sans text-sm text-stone-600">
@@ -3145,6 +3131,24 @@ function ProposalDetailPage() {
                     </div>
                   )}
                   <div className="space-y-3 border-t border-stone-300 px-5 py-4">
+                    {data.status?.toLowerCase().replace(/\s+/g, "_") === "author_approved" && (
+                      <button
+                        type="button"
+                        onClick={handleLockProposal}
+                        disabled={locking}
+                        className="flex w-full items-start gap-3 rounded-xl border border-emerald-300 bg-emerald-50/60 px-4 py-3 text-left transition-colors hover:bg-emerald-50 disabled:opacity-50"
+                      >
+                        <Lock className="mt-0.5 h-4 w-4 text-emerald-700" />
+                        <div>
+                          <p className="font-sans text-sm font-semibold text-emerald-900">
+                            {locking ? "Locking…" : "Lock Proposal"}
+                          </p>
+                          <p className="font-sans text-xs text-emerald-800/80">
+                            Generate production files and lock
+                          </p>
+                        </div>
+                      </button>
+                    )}
                     {isDeclined ? (
                       <p className="py-6 text-center font-sans text-sm text-stone-500">
                         No actions available
