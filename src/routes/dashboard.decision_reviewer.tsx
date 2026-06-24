@@ -626,22 +626,26 @@ function DecisionReviewerDashboard() {
   );
 
   const counts = useMemo(() => {
-    const s = statusSummary;
-    const sum = (...keys: string[]) =>
-      keys.reduce((acc, k) => acc + (Number(s[k]) || 0), 0);
-    return {
-      all: Number(s.total) || mergedProposals.length,
-      submitted: sum("new"),
-      revisions: sum("awaiting_more_info"),
-      in_review: sum("in_review"),
-      review_returned: sum("review_returned"),
+    // Derive bucket counts from the merged proposal rows so every status
+    // tab reflects what's actually loaded (the API's status_summary often
+    // omits terminal/edge states).
+    const c: Record<string, number> = {
+      all: mergedProposals.length,
+      submitted: 0,
+      revisions: 0,
+      in_review: 0,
+      review_returned: 0,
       major_revisions: 0,
-      contract: sum("contract_issued", "awaiting_author_approval", "author_approved"),
-      question: sum("queries_raised"),
-      signed: sum("locked", "contract_received", "contract_signed"),
-      declined: sum("declined"),
-    } as Record<string, number>;
-  }, [statusSummary, mergedProposals.length]);
+      contract: 0,
+      question: 0,
+      signed: 0,
+      declined: 0,
+    };
+    for (const p of mergedProposals) {
+      c[p.status] = (c[p.status] || 0) + 1;
+    }
+    return c;
+  }, [mergedProposals]);
 
   const filtered = useMemo(() => {
     let list = mergedProposals.slice();
