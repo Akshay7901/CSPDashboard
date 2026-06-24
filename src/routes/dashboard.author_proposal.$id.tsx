@@ -1385,8 +1385,17 @@ function ContractIssuedView({
     setSignError(null);
     try {
       const url = await getSigningUrl(ticket);
-      if (url) window.open(url, "_blank", "noopener,noreferrer");
-      else setSignError("No signing URL returned.");
+      if (url) {
+        window.open(url, "_blank", "noopener,noreferrer");
+        setAwaitingSignature(true);
+        try {
+          window.sessionStorage.setItem(awaitingKey, "1");
+        } catch {
+          // ignore storage errors
+        }
+      } else {
+        setSignError("No signing URL returned.");
+      }
     } catch (e) {
       setSignError((e as Error).message);
     } finally {
