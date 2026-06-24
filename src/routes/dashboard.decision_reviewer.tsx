@@ -12,6 +12,7 @@ import {
   Trash2,
   History,
   UserCog,
+  Lock,
 } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
 import { portalLogout, getPortalSession, getPortalToken, isAdmin as checkIsAdmin } from "@/lib/auth";
@@ -292,6 +293,29 @@ function DecisionReviewerDashboard() {
   const [confirmDeleteTicket, setConfirmDeleteTicket] = useState<string | null>(null);
   const [deletingTicket, setDeletingTicket] = useState<string | null>(null);
   const [deletedTickets, setDeletedTickets] = useState<Set<string>>(new Set());
+  const [lockingTicket, setLockingTicket] = useState<string | null>(null);
+
+  const handleLock = async (ticket: string) => {
+    if (!confirm(`Lock proposal ${ticket} and generate production files? This cannot be undone.`)) return;
+    setLockingTicket(ticket);
+    try {
+      const res = await proposalApiFetch(`/${encodeURIComponent(ticket)}/lock`, {
+        method: "POST",
+        headers: authHeaders(),
+      });
+      const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+      if (!res.ok) {
+        toast.error((body.error as string) || (body.message as string) || `Failed to lock (${res.status}).`);
+        return;
+      }
+      toast.success((body.message as string) || `Proposal ${ticket} locked.`);
+      void fetchProposals(true);
+    } catch {
+      toast.error("Network error. Please try again.");
+    } finally {
+      setLockingTicket(null);
+    }
+  };
 
   // Reassign / assign peer reviewer modal
   const [assignFor, setAssignFor] = useState<ProposalRow | null>(null);
@@ -962,6 +986,18 @@ function DecisionReviewerDashboard() {
                       Review
                       <ChevronRight className="h-4 w-4" />
                     </Link>
+                    {normalizeRaw(p.rawStatus) === "author_approved" && (
+                      <button
+                        type="button"
+                        onClick={() => handleLock(p.id)}
+                        disabled={lockingTicket === p.id}
+                        className="inline-flex items-center gap-1 rounded-lg border border-emerald-300 bg-emerald-50 px-2.5 py-1 font-sans text-xs font-medium text-emerald-800 hover:bg-emerald-100 disabled:opacity-50"
+                        title="Lock proposal and generate production files"
+                      >
+                        <Lock className="h-3.5 w-3.5" />
+                        {lockingTicket === p.id ? "Locking…" : "Lock"}
+                      </button>
+                    )}
                     {isAdmin && (
                       <button
                         type="button"
