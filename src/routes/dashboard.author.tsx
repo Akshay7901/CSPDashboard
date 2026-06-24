@@ -691,14 +691,12 @@ function AuthorDashboard() {
   const counts = useMemo(() => {
     const c: Record<PillKey, number> = {
       all: 0,
-      attention: 0,
-      in_review: 0,
-      revisions: 0,
-      awaiting_info: 0,
-      contract: 0,
-      major_revisions: 0,
-      signed: 0,
-      approved: 0,
+      submitted: 0,
+      additional_info_required: 0,
+      peer_review: 0,
+      feedback_and_contract_issued: 0,
+      final_review_and_confirmation: 0,
+      confirmed_and_finalised: 0,
       declined: 0,
     };
     for (const p of myProposals) {
@@ -729,7 +727,8 @@ function AuthorDashboard() {
     navigate({ to: "/login" });
   };
 
-  const attentionCount = counts.attention;
+  const attentionCount =
+    counts.additional_info_required + counts.feedback_and_contract_issued;
 
   return (
     <main className="min-h-screen bg-[#FAF6EE] font-sans text-stone-900">
