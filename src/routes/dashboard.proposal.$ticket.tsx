@@ -478,6 +478,37 @@ function ProposalDetailPage() {
   const [data, setData] = useState<ProposalDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [locking, setLocking] = useState(false);
+
+  const handleLockProposal = async () => {
+    if (!confirm(`Lock proposal ${ticket} and generate production files? This cannot be undone.`)) return;
+    setLocking(true);
+    try {
+      const token = getPortalToken();
+      const res = await proposalApiFetch(`/${encodeURIComponent(ticket)}/lock`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+      const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+      if (!res.ok) {
+        toast.error((body.error as string) || (body.message as string) || `Failed to lock (${res.status}).`);
+        return;
+      }
+      toast.success((body.message as string) || `Proposal ${ticket} locked.`);
+      const refreshed = await proposalApiFetch(`/${encodeURIComponent(ticket)}`, {
+        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      });
+      const refreshedBody = await refreshed.json().catch(() => ({}));
+      if (refreshed.ok) setData(refreshedBody as unknown as ProposalDetail);
+    } catch {
+      toast.error("Network error. Please try again.");
+    } finally {
+      setLocking(false);
+    }
+  };
   const [previewDoc, setPreviewDoc] = useState<{ url: string; filename: string } | null>(null);
   const [notes, setNotes] = useState("");
   const [savedAt, setSavedAt] = useState<string | null>(null);
