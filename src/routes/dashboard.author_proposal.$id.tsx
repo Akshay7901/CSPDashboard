@@ -1297,6 +1297,17 @@ function ContractIssuedView({
     dsStatus === "signed" ||
     dsStatus === "completed" ||
     !!contract.docusign_completed_at;
+  // Once the contract is confirmed signed, clear the awaiting flag so the
+  // reassurance banner disappears and the success view takes over.
+  if (isSigned && awaitingSignature) {
+    try {
+      window.sessionStorage.removeItem(awaitingKey);
+    } catch {
+      // ignore
+    }
+    // Defer state update to next tick to avoid setState during render.
+    setTimeout(() => setAwaitingSignature(false), 0);
+  }
   const isDeclined =
     cstatus === "declined" ||
     cstatus === "voided" ||
