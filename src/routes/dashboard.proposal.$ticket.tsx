@@ -1426,8 +1426,12 @@ function ProposalDetailPage() {
     return ["contract_signed", "locked", "contract_received"].includes(ps);
   }, [latestContract, data?.status]);
 
+  const hasSignedContract = useMemo(
+    () => (latestContract?.status || "").toLowerCase() === "signed",
+    [latestContract],
+  );
   useEffect(() => {
-    if (!isContractSigned || !ticket) return;
+    if (!hasSignedContract || !ticket) return;
     let cancelled = false;
     const load = async () => {
       setMetadataLoading(true);
@@ -1467,7 +1471,7 @@ function ProposalDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [isContractSigned, ticket]);
+  }, [hasSignedContract, ticket]);
 
   useEffect(() => {
     if (!metadata) {
