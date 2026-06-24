@@ -1897,6 +1897,7 @@ function ProposalDetailPage() {
                     </p>
                   )}
                   {(() => {
+                    if (!latestContractForHeader) return null;
                     const pTitle =
                       (
                         latestContractForHeader?.title ||
