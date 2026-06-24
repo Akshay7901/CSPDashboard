@@ -118,7 +118,7 @@ const STATUS_MAP: Record<string, StatusKey> = {
   contract_signed: "signed",
   confirmed_and_finalised: "approved",
   confirmed_and_finalized: "approved",
-  final_review_and_confirmation: "approved",
+  final_review_and_confirmation: "signed",
   feedback_and_contract_issued: "contract",
   declined: "declined",
   awaiting_more_info: "revisions",
