@@ -32,6 +32,7 @@ import {
   Building2,
   CalendarCheck,
   User as UserIcon,
+  Lock,
 } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
 import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
@@ -477,6 +478,37 @@ function ProposalDetailPage() {
   const [data, setData] = useState<ProposalDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [locking, setLocking] = useState(false);
+
+  const handleLockProposal = async () => {
+    if (!confirm(`Lock proposal ${ticket} and generate production files? This cannot be undone.`)) return;
+    setLocking(true);
+    try {
+      const token = getPortalToken();
+      const res = await proposalApiFetch(`/${encodeURIComponent(ticket)}/lock`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+      const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+      if (!res.ok) {
+        toast.error((body.error as string) || (body.message as string) || `Failed to lock (${res.status}).`);
+        return;
+      }
+      toast.success((body.message as string) || `Proposal ${ticket} locked.`);
+      const refreshed = await proposalApiFetch(`/${encodeURIComponent(ticket)}`, {
+        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      });
+      const refreshedBody = await refreshed.json().catch(() => ({}));
+      if (refreshed.ok) setData(refreshedBody as unknown as ProposalDetail);
+    } catch {
+      toast.error("Network error. Please try again.");
+    } finally {
+      setLocking(false);
+    }
+  };
   const [previewDoc, setPreviewDoc] = useState<{ url: string; filename: string } | null>(null);
   const [notes, setNotes] = useState("");
   const [savedAt, setSavedAt] = useState<string | null>(null);
@@ -1940,12 +1972,26 @@ function ProposalDetailPage() {
                     Contract Signed
                   </span>
                 ) : (
-                  <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1.5 font-sans text-xs font-medium text-indigo-700 ring-1 ring-indigo-200">
-                    <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
-                    {data.status?.toLowerCase().replace(/\s+/g, "_") === "awaiting_more_info"
-                      ? "Request Revision"
-                      : data.status}
-                  </span>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1.5 font-sans text-xs font-medium text-indigo-700 ring-1 ring-indigo-200">
+                      <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+                      {data.status?.toLowerCase().replace(/\s+/g, "_") === "awaiting_more_info"
+                        ? "Request Revision"
+                        : data.status}
+                    </span>
+                    {data.status?.toLowerCase().replace(/\s+/g, "_") === "author_approved" && (
+                      <button
+                        type="button"
+                        onClick={handleLockProposal}
+                        disabled={locking}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-50 px-3 py-1.5 font-sans text-xs font-semibold text-emerald-800 hover:bg-emerald-100 disabled:opacity-50"
+                        title="Lock proposal and generate production files"
+                      >
+                        <Lock className="h-3.5 w-3.5" />
+                        {locking ? "Locking…" : "Lock Proposal"}
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
               <div className="mt-5 flex flex-wrap items-center gap-x-7 gap-y-2 font-sans text-sm text-stone-600">
