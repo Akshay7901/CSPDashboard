@@ -916,11 +916,11 @@ function DecisionReviewerDashboard() {
                       <button
                         type="button"
                         onClick={() => setConfirmDeleteTicket(p.id)}
-                        className="inline-flex items-center gap-1 rounded-lg border border-red-200 px-2.5 py-1 font-sans text-xs font-medium text-red-700 hover:bg-red-50"
+                        className="inline-flex items-center justify-center rounded-lg border border-red-200 p-1.5 text-red-700 hover:bg-red-50"
                         title="Permanently delete proposal (admin only)"
+                        aria-label="Delete proposal"
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
-                        Delete
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     )}
                   </div>
