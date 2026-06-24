@@ -293,6 +293,29 @@ function DecisionReviewerDashboard() {
   const [confirmDeleteTicket, setConfirmDeleteTicket] = useState<string | null>(null);
   const [deletingTicket, setDeletingTicket] = useState<string | null>(null);
   const [deletedTickets, setDeletedTickets] = useState<Set<string>>(new Set());
+  const [lockingTicket, setLockingTicket] = useState<string | null>(null);
+
+  const handleLock = async (ticket: string) => {
+    if (!confirm(`Lock proposal ${ticket} and generate production files? This cannot be undone.`)) return;
+    setLockingTicket(ticket);
+    try {
+      const res = await proposalApiFetch(`/${encodeURIComponent(ticket)}/lock`, {
+        method: "POST",
+        headers: authHeaders(),
+      });
+      const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+      if (!res.ok) {
+        toast.error((body.error as string) || (body.message as string) || `Failed to lock (${res.status}).`);
+        return;
+      }
+      toast.success((body.message as string) || `Proposal ${ticket} locked.`);
+      void fetchProposals(true);
+    } catch {
+      toast.error("Network error. Please try again.");
+    } finally {
+      setLockingTicket(null);
+    }
+  };
 
   // Reassign / assign peer reviewer modal
   const [assignFor, setAssignFor] = useState<ProposalRow | null>(null);
