@@ -268,7 +268,7 @@ function DecisionReviewerDashboard() {
   const matchRoute = useMatchRoute();
   const [userEmail, setUserEmail] = useState<string>("");
   const [userName, setUserName] = useState<string>("");
-  const [activeFilter, setActiveFilter] = useState<"all" | StatusKey>("all");
+  const [activeFilter, setActiveFilter] = useState<TabKey>("all");
   const [search, setSearch] = useState("");
   const [field, setField] = useState<
     "all" | "title" | "author" | "institution" | "country" | "subject"
@@ -645,51 +645,58 @@ function DecisionReviewerDashboard() {
   );
 
   const counts = useMemo(() => {
-    // Bucket counts use the API's authoritative status_summary keyed by
-    // raw DB status names (see /api/proposals docs), and fall back to the
-    // merged proposal rows for any bucket the summary doesn't report.
+    // Counts come from the API's authoritative status_summary (keyed by
+    // raw DB status); fall back to local row counts for any bucket the
+    // summary omits. awaiting_author_approval has an alias contract_received.
     const s = statusSummary || {};
-    const sum = (...keys: string[]) =>
-      keys.reduce((acc, k) => acc + (Number(s[k]) || 0), 0);
-    const fromApi: Record<string, number> = {
-      all: Number(s.total) || mergedProposals.length,
-      submitted: sum("new"),
-      revisions: sum("awaiting_more_info"),
-      in_review: sum("in_review"),
-      review_returned: sum("review_returned"),
-      major_revisions: 0,
-      contract: sum("contract_issued", "awaiting_author_approval", "author_approved"),
-      question: sum("queries_raised"),
-      signed: sum("locked", "contract_received", "contract_signed"),
-      declined: sum("declined"),
+    const num = (k: string) => Number(s[k]) || 0;
+    const fromApi: Record<TabKey, number> = {
+      all: num("total") || mergedProposals.length,
+      new: num("new"),
+      awaiting_more_info: num("awaiting_more_info"),
+      in_review: num("in_review"),
+      review_returned: num("review_returned"),
+      contract_issued: num("contract_issued"),
+      queries_raised: num("queries_raised"),
+      awaiting_author_approval: num("awaiting_author_approval") + num("contract_received"),
+      author_approved: num("author_approved"),
+      locked: num("locked"),
+      declined: num("declined"),
     };
-    // Fallback: count merged rows per bucket so any state the summary omits
-    // (e.g. terminal signed/declined) still surfaces a real number.
-    const fromRows: Record<string, number> = {
+    const fromRows: Record<TabKey, number> = {
       all: mergedProposals.length,
-      submitted: 0,
-      revisions: 0,
+      new: 0,
+      awaiting_more_info: 0,
       in_review: 0,
       review_returned: 0,
-      major_revisions: 0,
-      contract: 0,
-      question: 0,
-      signed: 0,
+      contract_issued: 0,
+      queries_raised: 0,
+      awaiting_author_approval: 0,
+      author_approved: 0,
+      locked: 0,
       declined: 0,
     };
     for (const p of mergedProposals) {
-      fromRows[p.status] = (fromRows[p.status] || 0) + 1;
+      const r = normalizeRaw(p.rawStatus);
+      const k = (r === "contract_received" ? "awaiting_author_approval" : r) as TabKey;
+      if (k in fromRows) fromRows[k] += 1;
     }
-    const out: Record<string, number> = {};
-    for (const k of Object.keys(fromRows)) {
+    const out = {} as Record<TabKey, number>;
+    (Object.keys(fromRows) as TabKey[]).forEach((k) => {
       out[k] = Math.max(fromApi[k] || 0, fromRows[k] || 0);
-    }
+    });
     return out;
   }, [statusSummary, mergedProposals]);
 
   const filtered = useMemo(() => {
     let list = mergedProposals.slice();
-    if (activeFilter !== "all") list = list.filter((p) => p.status === activeFilter);
+    if (activeFilter !== "all") {
+      list = list.filter((p) => {
+        const r = normalizeRaw(p.rawStatus);
+        const k = r === "contract_received" ? "awaiting_author_approval" : r;
+        return k === activeFilter;
+      });
+    }
     const q = search.trim().toLowerCase();
     if (q) {
       list = list.filter((p) => {
