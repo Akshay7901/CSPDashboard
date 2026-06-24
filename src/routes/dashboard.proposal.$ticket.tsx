@@ -1424,7 +1424,7 @@ function ProposalDetailPage() {
     if (cs !== "signed") return false;
     const ps = (data?.status || "").toLowerCase().replace(/\s+/g, "_");
     return ["contract_signed", "locked", "contract_received"].includes(ps);
-  }, [latestContract]);
+  }, [latestContract, data?.status]);
 
   useEffect(() => {
     if (!isContractSigned || !ticket) return;
@@ -1930,9 +1930,7 @@ function ProposalDetailPage() {
                     );
                   })()}
                 </div>
-                {isContractSigned && ["contract_signed", "locked", "contract_received"].includes(
-                  (data.status || "").toLowerCase().replace(/\s+/g, "_")
-                ) ? (
+                {isContractSigned ? (
                   <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1.5 font-sans text-xs font-semibold text-white shadow-sm">
                     <Check className="h-3.5 w-3.5" />
                     Contract Signed
