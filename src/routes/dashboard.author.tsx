@@ -246,7 +246,10 @@ const PILLS: { key: PillKey; label: string; dot: string; match: (p: LocalProposa
     key: "attention",
     label: "Needs attention",
     dot: "bg-orange-500",
-    match: (p) => ATTENTION.includes(p.status) || isAwaitingInfoRaw(p.rawStatus, p.rawDisplayStatus),
+    match: (p) =>
+      ATTENTION.includes(p.status) ||
+      isAwaitingInfoRaw(p.rawStatus, p.rawDisplayStatus) ||
+      !!(p as LocalProposalWithInfo).metadataNeedsApproval,
   },
   { key: "in_review", label: "Under review", dot: "bg-sky-500", match: (p) => p.status === "in_review" },
   {
