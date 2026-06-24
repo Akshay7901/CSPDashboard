@@ -155,19 +155,13 @@ const DISPLAY_STATUS_MAP: Record<string, StatusKey> = {
 };
 
 const EXTRA_STATUSES = [
-  "new",
-  "in_review",
-  "review_returned",
-  "contract_issued",
-  "contract_received",
-  "awaiting_author_approval",
-  "queries_raised",
-  "author_approved",
-  "locked",
-  "contract_signed",
+  "submitted",
+  "additional_info_required",
+  "peer_review",
+  "feedback_and_contract_issued",
+  "final_review_and_confirmation",
+  "confirmed_and_finalised",
   "declined",
-  "awaiting_more_info",
-  "major_revisions",
 ];
 
 function normalizeStatus(raw?: string, display?: string): StatusKey {
