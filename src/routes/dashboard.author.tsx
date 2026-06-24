@@ -506,6 +506,7 @@ function AuthorDashboard() {
   const [myProposals, setMyProposals] = useState<LocalProposalWithInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [statusSummary, setStatusSummary] = useState<Record<PillKey, number> | null>(null);
 
   const loadMyProposals = useCallback(async (email: string, silent = false) => {
     if (!silent) setLoading(true);
@@ -523,12 +524,27 @@ function AuthorDashboard() {
         const arr =
           (b.proposals as ApiProposalItem[]) ||
           (Array.isArray(b) ? (b as unknown as ApiProposalItem[]) : []);
-        return { ok: true as const, items: arr };
+        return {
+          ok: true as const,
+          items: arr,
+          status_summary: b.status_summary as Record<string, number> | undefined,
+        };
       };
       const def = await fetchList("?limit=100&sort_order=desc");
       if (!def.ok) {
         if (!silent) setLoadError(def.error || `Failed to load proposals (${def.status}).`);
         return;
+      }
+      if (def.status_summary) {
+        setStatusSummary({
+          submitted: def.status_summary.submitted ?? 0,
+          additional_info_required: def.status_summary.additional_info_required ?? 0,
+          peer_review: def.status_summary.peer_review ?? 0,
+          feedback_and_contract_issued: def.status_summary.feedback_and_contract_issued ?? 0,
+          final_review_and_confirmation: def.status_summary.final_review_and_confirmation ?? 0,
+          confirmed_and_finalised: def.status_summary.confirmed_and_finalised ?? 0,
+          declined: def.status_summary.declined ?? 0,
+        });
       }
       const extras = await Promise.all(
         EXTRA_STATUSES.map((s) =>
@@ -681,6 +697,7 @@ function AuthorDashboard() {
   const initials = initialsFromName(displayName);
 
   const counts = useMemo(() => {
+    if (statusSummary) return statusSummary;
     const c: Record<PillKey, number> = {
       submitted: 0,
       additional_info_required: 0,
@@ -694,7 +711,7 @@ function AuthorDashboard() {
       for (const pill of PILLS) if (pill.match(p)) c[pill.key]++;
     }
     return c;
-  }, [myProposals]);
+  }, [myProposals, statusSummary]);
 
   const visible = useMemo(() => {
     if (!activePill) return myProposals;
