@@ -12,6 +12,7 @@ import {
   Trash2,
   History,
   UserCog,
+  Lock,
 } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
 import { portalLogout, getPortalSession, getPortalToken, isAdmin as checkIsAdmin } from "@/lib/auth";
