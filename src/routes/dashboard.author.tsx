@@ -680,6 +680,7 @@ function AuthorDashboard() {
       contract: 0,
       major_revisions: 0,
       signed: 0,
+      approved: 0,
       declined: 0,
     };
     for (const p of myProposals) {
