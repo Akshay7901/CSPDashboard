@@ -299,6 +299,26 @@ interface CardConfig {
 }
 
 function configFor(p: LocalProposal): CardConfig {
+  if ((p as LocalProposalWithInfo).metadataNeedsApproval) {
+    return {
+      bannerLabel: "Action Required",
+      bannerDot: "bg-orange-500",
+      bannerTint: "bg-orange-50",
+      bannerText: "text-orange-700",
+      tag: "ACTION REQUIRED",
+      iconBg: "bg-orange-100",
+      iconColor: "text-orange-600",
+      Icon: Pencil,
+      eyebrow: "Please review and approve your book metadata",
+      eyebrowColor: "text-orange-700",
+      body: "Our editorial team has sent the metadata for your book (title, description, keywords, cover etc.) for your review. Please approve it or raise a query so we can proceed.",
+      cta: {
+        label: "Review and approve metadata",
+        className: "bg-orange-500 hover:bg-orange-600 text-white",
+      },
+      footnote: "Production cannot move forward until you approve the metadata.",
+    };
+  }
   if (isAwaitingInfoRaw(p.rawStatus, p.rawDisplayStatus)) {
     return {
       bannerLabel: "Revisions Requested",
