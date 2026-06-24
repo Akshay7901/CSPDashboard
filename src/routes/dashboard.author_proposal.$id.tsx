@@ -1807,6 +1807,24 @@ function ContractIssuedView({
         {/* CTA bar */}
         {!isDeclined && !isSigned && (
           <div className="mt-6 rounded-2xl border border-violet-200 bg-violet-50/50 p-5 md:p-6">
+            {awaitingSignature && (
+              <div className="mb-4 flex items-start gap-3 rounded-xl border border-violet-300 bg-white px-4 py-3">
+                <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 animate-pulse items-center justify-center rounded-full bg-violet-600 text-white">
+                  <Check className="h-3 w-3" />
+                </span>
+                <div className="min-w-0 text-left">
+                  <p className="font-sans text-sm font-semibold text-violet-900">
+                    Waiting for DocuSign to confirm your signature…
+                  </p>
+                  <p className="mt-1 font-sans text-xs leading-relaxed text-violet-800/90">
+                    You can safely close the DocuSign tab once you finish signing — this page
+                    will update to "Contract Signed" automatically within a few seconds. If
+                    the DocuSign page shows an error or completion screen after signing, your
+                    signature is still recorded; just return here to confirm.
+                  </p>
+                </div>
+              </div>
+            )}
             {!isSigned && (
               <p className="text-center font-sans text-sm text-stone-700">
                 Once you have read the feedback above, please sign your contract to confirm
