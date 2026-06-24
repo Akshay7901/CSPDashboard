@@ -1224,6 +1224,11 @@ function ContractIssuedView({
   const [queryError, setQueryError] = useState<string | null>(null);
   const [querySuccess, setQuerySuccess] = useState(false);
   const [proposalStatus, setProposalStatus] = useState<string>("");
+  const awaitingKey = `csp:awaiting-signature:${ticket}`;
+  const [awaitingSignature, setAwaitingSignature] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.sessionStorage.getItem(awaitingKey) === "1";
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -1241,18 +1246,31 @@ function ContractIssuedView({
         const completed = !!latest?.docusign_completed_at;
         const pending = (st === "sent" || st === "draft") && !completed;
         if (pending) {
-          timer = setTimeout(() => load(false), 20000);
+          // Poll faster (4s) right after the author clicked "Sign", so the
+          // page flips to "Contract Signed" as soon as DocuSign confirms.
+          const delay = awaitingSignature ? 4000 : 20000;
+          timer = setTimeout(() => load(false), delay);
         }
       } finally {
         if (!cancelled && showLoading) setLoading(false);
       }
     };
     load(true);
+    // Refresh as soon as the author returns to this tab (after signing on
+    // DocuSign), so they immediately see the signed state.
+    const onFocus = () => load(false);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") load(false);
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       cancelled = true;
       if (timer) clearTimeout(timer);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [ticket, reloadKey]);
+  }, [ticket, reloadKey, awaitingSignature, awaitingKey]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1279,6 +1297,17 @@ function ContractIssuedView({
     dsStatus === "signed" ||
     dsStatus === "completed" ||
     !!contract.docusign_completed_at;
+  // Once the contract is confirmed signed, clear the awaiting flag so the
+  // reassurance banner disappears and the success view takes over.
+  if (isSigned && awaitingSignature) {
+    try {
+      window.sessionStorage.removeItem(awaitingKey);
+    } catch {
+      // ignore
+    }
+    // Defer state update to next tick to avoid setState during render.
+    setTimeout(() => setAwaitingSignature(false), 0);
+  }
   const isDeclined =
     cstatus === "declined" ||
     cstatus === "voided" ||
@@ -1367,8 +1396,17 @@ function ContractIssuedView({
     setSignError(null);
     try {
       const url = await getSigningUrl(ticket);
-      if (url) window.open(url, "_blank", "noopener,noreferrer");
-      else setSignError("No signing URL returned.");
+      if (url) {
+        window.open(url, "_blank", "noopener,noreferrer");
+        setAwaitingSignature(true);
+        try {
+          window.sessionStorage.setItem(awaitingKey, "1");
+        } catch {
+          // ignore storage errors
+        }
+      } else {
+        setSignError("No signing URL returned.");
+      }
     } catch (e) {
       setSignError((e as Error).message);
     } finally {
@@ -1769,6 +1807,24 @@ function ContractIssuedView({
         {/* CTA bar */}
         {!isDeclined && !isSigned && (
           <div className="mt-6 rounded-2xl border border-violet-200 bg-violet-50/50 p-5 md:p-6">
+            {awaitingSignature && (
+              <div className="mb-4 flex items-start gap-3 rounded-xl border border-violet-300 bg-white px-4 py-3">
+                <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 animate-pulse items-center justify-center rounded-full bg-violet-600 text-white">
+                  <Check className="h-3 w-3" />
+                </span>
+                <div className="min-w-0 text-left">
+                  <p className="font-sans text-sm font-semibold text-violet-900">
+                    Waiting for DocuSign to confirm your signature…
+                  </p>
+                  <p className="mt-1 font-sans text-xs leading-relaxed text-violet-800/90">
+                    You can safely close the DocuSign tab once you finish signing — this page
+                    will update to "Contract Signed" automatically within a few seconds. If
+                    the DocuSign page shows an error or completion screen after signing, your
+                    signature is still recorded; just return here to confirm.
+                  </p>
+                </div>
+              </div>
+            )}
             {!isSigned && (
               <p className="text-center font-sans text-sm text-stone-700">
                 Once you have read the feedback above, please sign your contract to confirm
