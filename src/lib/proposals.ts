@@ -84,6 +84,14 @@ export const STATUS_META: Record<StatusKey, StatusMeta> = {
     badgeClass: "bg-emerald-600 text-white",
     rowBar: "bg-emerald-500",
   },
+  approved: {
+    key: "approved",
+    label: "Metadata Approved",
+    filterLabel: "Approved",
+    dot: "bg-emerald-500",
+    badgeClass: "bg-emerald-600 text-white",
+    rowBar: "bg-emerald-500",
+  },
   declined: {
     key: "declined",
     label: "Declined",
