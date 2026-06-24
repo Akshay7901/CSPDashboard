@@ -77,6 +77,41 @@ export function MetadataQueries({
     void reload();
   }, [reload]);
 
+  // Author view: keep the thread fresh so the publisher's response appears
+  // automatically. Poll while an open query is awaiting a response, and
+  // refetch when the tab regains focus / becomes visible.
+  useEffect(() => {
+    if (viewer !== "author") return;
+    const onFocus = () => void reload();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void reload();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [viewer, reload]);
+
+  const hasUnansweredAuthorQuery =
+    viewer === "author" &&
+    thread.some(
+      (t) =>
+        t.type === "query" &&
+        !thread.some(
+          (r) => r.type === "response" && r.parent_query_id === t.id,
+        ),
+    );
+
+  useEffect(() => {
+    if (!hasUnansweredAuthorQuery) return;
+    const id = window.setInterval(() => {
+      if (document.visibilityState !== "hidden") void reload();
+    }, 15000);
+    return () => window.clearInterval(id);
+  }, [hasUnansweredAuthorQuery, reload]);
+
   const updateDraft = (idx: number, patch: Partial<DraftRow>) => {
     setDrafts((prev) => prev.map((d, i) => (i === idx ? { ...d, ...patch } : d)));
   };
