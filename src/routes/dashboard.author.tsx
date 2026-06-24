@@ -619,7 +619,9 @@ function AuthorDashboard() {
       // For "signed" proposals, check if metadata is awaiting author approval.
       // Backend keeps proposal status as signed/locked while metadata flips to
       // sent_to_author, so we must fetch metadata to surface the action.
-      const signedList = mapped.filter((p) => p.status === "signed");
+      const signedList = mapped.filter(
+        (p) => p.status === "signed" || p.status === "approved",
+      );
       if (signedList.length > 0) {
         const metaResults = await Promise.all(
           signedList.map(async (p) => {
@@ -715,7 +717,9 @@ function AuthorDashboard() {
       ["in_review", "review_returned", "submitted", "question"].includes(p.status) &&
       !isAwaitingInfoRaw(p.rawStatus, p.rawDisplayStatus),
   );
-  const doneList = visible.filter((p) => ["signed", "declined"].includes(p.status));
+  const doneList = visible.filter((p) =>
+    ["signed", "approved", "declined"].includes(p.status),
+  );
 
   const onLogout = async () => {
     await portalLogout();
