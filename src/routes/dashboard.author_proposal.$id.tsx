@@ -304,6 +304,7 @@ const STATUS_LABEL: Record<StatusKey, string> = {
   question: "Question Raised",
   contract: "Contract Issued",
   signed: "Contract Signed",
+  approved: "Metadata Approved",
   declined: "Declined",
 };
 
@@ -316,6 +317,7 @@ const STATUS_TINT: Record<StatusKey, { bg: string; text: string; dot: string }> 
   question: { bg: "bg-teal-50", text: "text-teal-700", dot: "bg-teal-500" },
   contract: { bg: "bg-violet-50", text: "text-violet-700", dot: "bg-violet-500" },
   signed: { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },
+  approved: { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },
   declined: { bg: "bg-stone-100", text: "text-stone-600", dot: "bg-stone-400" },
 };
 
