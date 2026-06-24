@@ -394,10 +394,10 @@ function ReviewerSubmission() {
           </div>
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-sky-100 font-sans text-xs font-semibold text-sky-700">
-              {initialsFromName(reviewerName)}
+              {initialsFromName(displayedReviewerName)}
             </div>
             <span className="font-sans text-sm font-medium text-stone-800">
-              {reviewerName}
+              {displayedReviewerName}
             </span>
             <span className="h-5 w-px bg-stone-300" />
             <button
