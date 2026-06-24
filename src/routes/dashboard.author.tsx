@@ -32,6 +32,7 @@ type PillKey =
   | "contract"
   | "major_revisions"
   | "signed"
+  | "approved"
   | "declined";
 
 // Statuses where the author needs to take action.
@@ -112,8 +113,8 @@ const STATUS_MAP: Record<string, StatusKey> = {
   awaiting_author_approval: "contract",
   queries_raised: "question",
   question_raised: "question",
-  author_approved: "signed",
-  locked: "signed",
+  author_approved: "approved",
+  locked: "approved",
   contract_signed: "signed",
   declined: "declined",
   awaiting_more_info: "revisions",
@@ -133,15 +134,15 @@ const DISPLAY_STATUS_MAP: Record<string, StatusKey> = {
   "awaiting author approval": "contract",
   "queries raised": "question",
   "question raised": "question",
-  "author approved": "signed",
+  "author approved": "approved",
   "contract signed": "signed",
   "feedback & contract issued": "contract",
   "feedback and contract issued": "contract",
-  "final review & confirmation": "signed",
-  "final review and confirmation": "signed",
-  "confirmed & finalised": "signed",
-  "confirmed and finalised": "signed",
-  "confirmed & finalized": "signed",
+  "final review & confirmation": "approved",
+  "final review and confirmation": "approved",
+  "confirmed & finalised": "approved",
+  "confirmed and finalised": "approved",
+  "confirmed & finalized": "approved",
   "submitted": "submitted",
   "awaiting more info": "revisions",
   "additional info required": "revisions",
@@ -277,6 +278,7 @@ const PILLS: { key: PillKey; label: string; dot: string; match: (p: LocalProposa
     match: (p) => p.status === "major_revisions",
   },
   { key: "signed", label: "Signed", dot: "bg-emerald-500", match: (p) => p.status === "signed" },
+  { key: "approved", label: "Approved", dot: "bg-emerald-500", match: (p) => p.status === "approved" },
   {
     key: "declined",
     label: "Not progressing",
@@ -471,6 +473,19 @@ function configFor(p: LocalProposal): CardConfig {
         eyebrowColor: "text-emerald-700",
         body: "Your contract is signed and our production team is now working with you on the editorial process.",
       };
+    case "approved":
+      return {
+        bannerLabel: "Metadata Approved",
+        bannerDot: "bg-emerald-500",
+        bannerTint: "bg-emerald-50",
+        bannerText: "text-emerald-700",
+        iconBg: "bg-emerald-100",
+        iconColor: "text-emerald-600",
+        Icon: CheckCircle2,
+        eyebrow: "Approved & finalised",
+        eyebrowColor: "text-emerald-700",
+        body: "You have approved the metadata. Our production team will now finalise your record for publication.",
+      };
     case "declined":
     default:
       return {
@@ -604,7 +619,9 @@ function AuthorDashboard() {
       // For "signed" proposals, check if metadata is awaiting author approval.
       // Backend keeps proposal status as signed/locked while metadata flips to
       // sent_to_author, so we must fetch metadata to surface the action.
-      const signedList = mapped.filter((p) => p.status === "signed");
+      const signedList = mapped.filter(
+        (p) => p.status === "signed" || p.status === "approved",
+      );
       if (signedList.length > 0) {
         const metaResults = await Promise.all(
           signedList.map(async (p) => {
@@ -678,6 +695,7 @@ function AuthorDashboard() {
       contract: 0,
       major_revisions: 0,
       signed: 0,
+      approved: 0,
       declined: 0,
     };
     for (const p of myProposals) {
@@ -699,7 +717,9 @@ function AuthorDashboard() {
       ["in_review", "review_returned", "submitted", "question"].includes(p.status) &&
       !isAwaitingInfoRaw(p.rawStatus, p.rawDisplayStatus),
   );
-  const doneList = visible.filter((p) => ["signed", "declined"].includes(p.status));
+  const doneList = visible.filter((p) =>
+    ["signed", "approved", "declined"].includes(p.status),
+  );
 
   const onLogout = async () => {
     await portalLogout();

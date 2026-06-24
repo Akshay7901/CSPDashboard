@@ -31,8 +31,8 @@ const STATUS_MAP: Record<string, StatusKey> = {
   awaiting_author_approval: "contract",
   queries_raised: "question",
   question_raised: "question",
-  author_approved: "signed",
-  locked: "signed",
+  author_approved: "approved",
+  locked: "approved",
   contract_signed: "signed",
   declined: "declined",
   awaiting_more_info: "revisions",
@@ -255,7 +255,7 @@ const DISPLAY_STATUS_MAP: Record<string, StatusKey> = {
   "awaiting author approval": "contract",
   "queries raised": "question",
   "question raised": "question",
-  "author approved": "signed",
+  "author approved": "approved",
   "contract signed": "signed",
   "awaiting more info": "revisions",
   "additional info required": "revisions",
@@ -304,6 +304,7 @@ const STATUS_LABEL: Record<StatusKey, string> = {
   question: "Question Raised",
   contract: "Contract Issued",
   signed: "Contract Signed",
+  approved: "Metadata Approved",
   declined: "Declined",
 };
 
@@ -316,6 +317,7 @@ const STATUS_TINT: Record<StatusKey, { bg: string; text: string; dot: string }> 
   question: { bg: "bg-teal-50", text: "text-teal-700", dot: "bg-teal-500" },
   contract: { bg: "bg-violet-50", text: "text-violet-700", dot: "bg-violet-500" },
   signed: { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },
+  approved: { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },
   declined: { bg: "bg-stone-100", text: "text-stone-600", dot: "bg-stone-400" },
 };
 
@@ -740,9 +742,13 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
     };
   }, [proposal.ticket]);
   const baseStatus = statusFromTimeline(proposal.timeline) || normalizeStatus(proposal.status, proposal.displayStatus);
-  const status: StatusKey = contractSigned ? "signed" : baseStatus;
+  // If the author has already approved the metadata, keep the "approved"
+  // status even though the underlying contract is signed.
+  const status: StatusKey =
+    contractSigned && baseStatus !== "approved" ? "signed" : baseStatus;
   const tint = STATUS_TINT[status];
-  const isContractView = status === "contract" || status === "signed";
+  const isContractView =
+    status === "contract" || status === "signed" || status === "approved";
   const [showOriginal, setShowOriginal] = useState(false);
   const title = contractTitleOverride || cd.main_title || proposal.ticket;
   const subtitle = contractSubtitleOverride || cd.sub_title;
@@ -825,7 +831,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
               Submitted {formatDate(proposal.submittedAt)}
             </p>
           </div>
-          {status === "signed" ? (
+          {status === "signed" || status === "approved" ? (
             <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-2.5 py-1 font-sans text-xs font-semibold text-white">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-200" />
               {STATUS_LABEL[status]}
@@ -2159,21 +2165,21 @@ function ProgressStepper({
           { label: "Submitted", done: true, current: false, failed: false, anchor: "section-hero" },
           {
             label: "Peer Review",
-            done: ["review_returned", "contract", "signed", "declined", "major_revisions"].includes(status),
+            done: ["review_returned", "contract", "signed", "approved", "declined", "major_revisions"].includes(status),
             current: status === "in_review",
             failed: false,
             anchor: "section-reviewers",
           },
           {
             label: "Decision",
-            done: ["contract", "signed", "declined"].includes(status),
+            done: ["contract", "signed", "approved", "declined"].includes(status),
             current: status === "review_returned",
             failed: false,
             anchor: "section-summary",
           },
           {
-            label: declined ? "Declined" : status === "signed" ? "Signed" : status === "contract" ? "Contract" : "Decision",
-            done: ["signed", "declined"].includes(status),
+            label: declined ? "Declined" : status === "approved" ? "Approved" : status === "signed" ? "Signed" : status === "contract" ? "Contract" : "Decision",
+            done: ["signed", "approved", "declined"].includes(status),
             current: status === "contract",
             failed: declined,
             anchor: "section-documents",

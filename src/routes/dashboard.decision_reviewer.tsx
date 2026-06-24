@@ -122,6 +122,7 @@ const API_STATUSES_BY_KEY: Record<StatusKey, string[]> = {
   contract: ["contract_issued", "awaiting_author_approval"],
   question: ["queries_raised"],
   signed: ["locked", "contract_signed", "contract_received"],
+  approved: [],
   declined: ["declined"],
 };
 const ALL_API_STATUSES = Array.from(

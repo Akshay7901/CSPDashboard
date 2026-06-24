@@ -7,6 +7,7 @@ export type StatusKey =
   | "question"
   | "contract"
   | "signed"
+  | "approved"
   | "declined";
 
 export interface StatusMeta {
@@ -79,6 +80,14 @@ export const STATUS_META: Record<StatusKey, StatusMeta> = {
     key: "signed",
     label: "Contract Signed",
     filterLabel: "Signed",
+    dot: "bg-emerald-500",
+    badgeClass: "bg-emerald-600 text-white",
+    rowBar: "bg-emerald-500",
+  },
+  approved: {
+    key: "approved",
+    label: "Metadata Approved",
+    filterLabel: "Approved",
     dot: "bg-emerald-500",
     badgeClass: "bg-emerald-600 text-white",
     rowBar: "bg-emerald-500",
