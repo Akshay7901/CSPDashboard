@@ -473,6 +473,19 @@ function configFor(p: LocalProposal): CardConfig {
         eyebrowColor: "text-emerald-700",
         body: "Your contract is signed and our production team is now working with you on the editorial process.",
       };
+    case "approved":
+      return {
+        bannerLabel: "Metadata Approved",
+        bannerDot: "bg-emerald-500",
+        bannerTint: "bg-emerald-50",
+        bannerText: "text-emerald-700",
+        iconBg: "bg-emerald-100",
+        iconColor: "text-emerald-600",
+        Icon: CheckCircle2,
+        eyebrow: "Approved & finalised",
+        eyebrowColor: "text-emerald-700",
+        body: "You have approved the metadata. Our production team will now finalise your record for publication.",
+      };
     case "declined":
     default:
       return {
