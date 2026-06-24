@@ -742,7 +742,10 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
     };
   }, [proposal.ticket]);
   const baseStatus = statusFromTimeline(proposal.timeline) || normalizeStatus(proposal.status, proposal.displayStatus);
-  const status: StatusKey = contractSigned ? "signed" : baseStatus;
+  // If the author has already approved the metadata, keep the "approved"
+  // status even though the underlying contract is signed.
+  const status: StatusKey =
+    contractSigned && baseStatus !== "approved" ? "signed" : baseStatus;
   const tint = STATUS_TINT[status];
   const isContractView =
     status === "contract" || status === "signed" || status === "approved";
