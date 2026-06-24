@@ -1224,6 +1224,11 @@ function ContractIssuedView({
   const [queryError, setQueryError] = useState<string | null>(null);
   const [querySuccess, setQuerySuccess] = useState(false);
   const [proposalStatus, setProposalStatus] = useState<string>("");
+  const awaitingKey = `csp:awaiting-signature:${ticket}`;
+  const [awaitingSignature, setAwaitingSignature] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.sessionStorage.getItem(awaitingKey) === "1";
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -1241,18 +1246,31 @@ function ContractIssuedView({
         const completed = !!latest?.docusign_completed_at;
         const pending = (st === "sent" || st === "draft") && !completed;
         if (pending) {
-          timer = setTimeout(() => load(false), 20000);
+          // Poll faster (4s) right after the author clicked "Sign", so the
+          // page flips to "Contract Signed" as soon as DocuSign confirms.
+          const delay = awaitingSignature ? 4000 : 20000;
+          timer = setTimeout(() => load(false), delay);
         }
       } finally {
         if (!cancelled && showLoading) setLoading(false);
       }
     };
     load(true);
+    // Refresh as soon as the author returns to this tab (after signing on
+    // DocuSign), so they immediately see the signed state.
+    const onFocus = () => load(false);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") load(false);
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       cancelled = true;
       if (timer) clearTimeout(timer);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [ticket, reloadKey]);
+  }, [ticket, reloadKey, awaitingSignature, awaitingKey]);
 
   useEffect(() => {
     let cancelled = false;
