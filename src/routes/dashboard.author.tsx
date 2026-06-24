@@ -25,14 +25,12 @@ export const Route = createFileRoute("/dashboard/author")({
 
 type PillKey =
   | "all"
-  | "attention"
-  | "in_review"
-  | "revisions"
-  | "awaiting_info"
-  | "contract"
-  | "major_revisions"
-  | "signed"
-  | "approved"
+  | "submitted"
+  | "additional_info_required"
+  | "peer_review"
+  | "feedback_and_contract_issued"
+  | "final_review_and_confirmation"
+  | "confirmed_and_finalised"
   | "declined";
 
 // Statuses where the author needs to take action.
@@ -118,7 +116,7 @@ const STATUS_MAP: Record<string, StatusKey> = {
   contract_signed: "signed",
   confirmed_and_finalised: "approved",
   confirmed_and_finalized: "approved",
-  final_review_and_confirmation: "approved",
+  final_review_and_confirmation: "signed",
   feedback_and_contract_issued: "contract",
   declined: "declined",
   awaiting_more_info: "revisions",
@@ -142,8 +140,8 @@ const DISPLAY_STATUS_MAP: Record<string, StatusKey> = {
   "contract signed": "signed",
   "feedback & contract issued": "contract",
   "feedback and contract issued": "contract",
-  "final review & confirmation": "approved",
-  "final review and confirmation": "approved",
+  "final review & confirmation": "signed",
+  "final review and confirmation": "signed",
   "confirmed & finalised": "approved",
   "confirmed and finalised": "approved",
   "confirmed & finalized": "approved",
@@ -248,44 +246,45 @@ function toProposal(p: ApiProposalItem): LocalProposal {
 const PILLS: { key: PillKey; label: string; dot: string; match: (p: LocalProposal) => boolean }[] = [
   { key: "all", label: "All proposals", dot: "", match: () => true },
   {
-    key: "attention",
-    label: "Needs attention",
-    dot: "bg-orange-500",
-    match: (p) =>
-      ATTENTION.includes(p.status) ||
-      isAwaitingInfoRaw(p.rawStatus, p.rawDisplayStatus) ||
-      !!(p as LocalProposalWithInfo).metadataNeedsApproval,
+    key: "submitted",
+    label: "Submitted",
+    dot: "bg-amber-400",
+    match: (p) => p.status === "submitted",
   },
-  { key: "in_review", label: "Under review", dot: "bg-sky-500", match: (p) => p.status === "in_review" },
   {
-    key: "awaiting_info",
-    label: "Awaiting more info",
+    key: "additional_info_required",
+    label: "Additional Info Required",
     dot: "bg-amber-500",
-    match: (p) => isAwaitingInfoRaw(p.rawStatus, p.rawDisplayStatus),
+    match: (p) =>
+      p.status === "revisions" || isAwaitingInfoRaw(p.rawStatus, p.rawDisplayStatus),
   },
   {
-    key: "revisions",
-    label: "Revisions required",
+    key: "peer_review",
+    label: "Peer Review",
+    dot: "bg-sky-500",
+    match: (p) => p.status === "in_review",
+  },
+  {
+    key: "feedback_and_contract_issued",
+    label: "Feedback & Contract Issued",
     dot: "bg-violet-500",
-    match: (p) => p.status === "revisions" && !isAwaitingInfoRaw(p.rawStatus, p.rawDisplayStatus),
-  },
-  {
-    key: "contract",
-    label: "Contract ready",
-    dot: "bg-violet-400",
     match: (p) => p.status === "contract",
   },
   {
-    key: "major_revisions",
-    label: "Revisions requested",
-    dot: "bg-orange-500",
-    match: (p) => p.status === "major_revisions",
+    key: "final_review_and_confirmation",
+    label: "Final Review & Confirmation",
+    dot: "bg-emerald-500",
+    match: (p) => p.status === "signed",
   },
-  { key: "signed", label: "Signed", dot: "bg-emerald-500", match: (p) => p.status === "signed" },
-  { key: "approved", label: "Approved", dot: "bg-emerald-500", match: (p) => p.status === "approved" },
+  {
+    key: "confirmed_and_finalised",
+    label: "Confirmed & Finalised",
+    dot: "bg-emerald-600",
+    match: (p) => p.status === "approved",
+  },
   {
     key: "declined",
-    label: "Not progressing",
+    label: "Declined",
     dot: "bg-stone-400",
     match: (p) => p.status === "declined",
   },
@@ -692,14 +691,12 @@ function AuthorDashboard() {
   const counts = useMemo(() => {
     const c: Record<PillKey, number> = {
       all: 0,
-      attention: 0,
-      in_review: 0,
-      revisions: 0,
-      awaiting_info: 0,
-      contract: 0,
-      major_revisions: 0,
-      signed: 0,
-      approved: 0,
+      submitted: 0,
+      additional_info_required: 0,
+      peer_review: 0,
+      feedback_and_contract_issued: 0,
+      final_review_and_confirmation: 0,
+      confirmed_and_finalised: 0,
       declined: 0,
     };
     for (const p of myProposals) {
@@ -730,7 +727,8 @@ function AuthorDashboard() {
     navigate({ to: "/login" });
   };
 
-  const attentionCount = counts.attention;
+  const attentionCount =
+    counts.additional_info_required + counts.feedback_and_contract_issued;
 
   return (
     <main className="min-h-screen bg-[#FAF6EE] font-sans text-stone-900">
