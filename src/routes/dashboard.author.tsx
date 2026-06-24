@@ -246,44 +246,45 @@ function toProposal(p: ApiProposalItem): LocalProposal {
 const PILLS: { key: PillKey; label: string; dot: string; match: (p: LocalProposal) => boolean }[] = [
   { key: "all", label: "All proposals", dot: "", match: () => true },
   {
-    key: "attention",
-    label: "Needs attention",
-    dot: "bg-orange-500",
-    match: (p) =>
-      ATTENTION.includes(p.status) ||
-      isAwaitingInfoRaw(p.rawStatus, p.rawDisplayStatus) ||
-      !!(p as LocalProposalWithInfo).metadataNeedsApproval,
+    key: "submitted",
+    label: "Submitted",
+    dot: "bg-amber-400",
+    match: (p) => p.status === "submitted",
   },
-  { key: "in_review", label: "Under review", dot: "bg-sky-500", match: (p) => p.status === "in_review" },
   {
-    key: "awaiting_info",
-    label: "Awaiting more info",
+    key: "additional_info_required",
+    label: "Additional Info Required",
     dot: "bg-amber-500",
-    match: (p) => isAwaitingInfoRaw(p.rawStatus, p.rawDisplayStatus),
+    match: (p) =>
+      p.status === "revisions" || isAwaitingInfoRaw(p.rawStatus, p.rawDisplayStatus),
   },
   {
-    key: "revisions",
-    label: "Revisions required",
+    key: "peer_review",
+    label: "Peer Review",
+    dot: "bg-sky-500",
+    match: (p) => p.status === "in_review",
+  },
+  {
+    key: "feedback_and_contract_issued",
+    label: "Feedback & Contract Issued",
     dot: "bg-violet-500",
-    match: (p) => p.status === "revisions" && !isAwaitingInfoRaw(p.rawStatus, p.rawDisplayStatus),
-  },
-  {
-    key: "contract",
-    label: "Contract ready",
-    dot: "bg-violet-400",
     match: (p) => p.status === "contract",
   },
   {
-    key: "major_revisions",
-    label: "Revisions requested",
-    dot: "bg-orange-500",
-    match: (p) => p.status === "major_revisions",
+    key: "final_review_and_confirmation",
+    label: "Final Review & Confirmation",
+    dot: "bg-emerald-500",
+    match: (p) => p.status === "signed",
   },
-  { key: "signed", label: "Signed", dot: "bg-emerald-500", match: (p) => p.status === "signed" },
-  { key: "approved", label: "Approved", dot: "bg-emerald-500", match: (p) => p.status === "approved" },
+  {
+    key: "confirmed_and_finalised",
+    label: "Confirmed & Finalised",
+    dot: "bg-emerald-600",
+    match: (p) => p.status === "approved",
+  },
   {
     key: "declined",
-    label: "Not progressing",
+    label: "Declined",
     dot: "bg-stone-400",
     match: (p) => p.status === "declined",
   },
