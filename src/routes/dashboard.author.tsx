@@ -80,6 +80,7 @@ type OpenInfoRequest = {
 
 type LocalProposalWithInfo = LocalProposal & {
   openInfoRequest?: OpenInfoRequest | null;
+  metadataNeedsApproval?: boolean;
 };
 
 function pickOpenInfoRequest(reqs?: InfoRequest[]): OpenInfoRequest | null {
