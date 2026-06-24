@@ -255,7 +255,7 @@ const DISPLAY_STATUS_MAP: Record<string, StatusKey> = {
   "awaiting author approval": "contract",
   "queries raised": "question",
   "question raised": "question",
-  "author approved": "signed",
+  "author approved": "approved",
   "contract signed": "signed",
   "awaiting more info": "revisions",
   "additional info required": "revisions",
