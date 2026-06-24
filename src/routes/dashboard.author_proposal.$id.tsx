@@ -827,7 +827,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
               Submitted {formatDate(proposal.submittedAt)}
             </p>
           </div>
-          {status === "signed" ? (
+          {status === "signed" || status === "approved" ? (
             <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-2.5 py-1 font-sans text-xs font-semibold text-white">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-200" />
               {STATUS_LABEL[status]}
