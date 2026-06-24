@@ -744,7 +744,8 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
   const baseStatus = statusFromTimeline(proposal.timeline) || normalizeStatus(proposal.status, proposal.displayStatus);
   const status: StatusKey = contractSigned ? "signed" : baseStatus;
   const tint = STATUS_TINT[status];
-  const isContractView = status === "contract" || status === "signed";
+  const isContractView =
+    status === "contract" || status === "signed" || status === "approved";
   const [showOriginal, setShowOriginal] = useState(false);
   const title = contractTitleOverride || cd.main_title || proposal.ticket;
   const subtitle = contractSubtitleOverride || cd.sub_title;
