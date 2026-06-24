@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ChevronLeft, LogOut, ChevronRight, FileText, Download, CheckCircle2 } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
-import { initialsFromName } from "@/lib/proposals";
+import { initialsFromName, displayNameFromEmail } from "@/lib/proposals";
 import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
 import { proposalApiFetch } from "@/lib/proposalApi";
 
@@ -106,6 +106,8 @@ function ReviewerSubmission() {
   const [submitOpen, setSubmitOpen] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [reviewIsSubmitted, setReviewIsSubmitted] = useState(false);
+  const [reviewerName, setReviewerName] = useState<string>("");
+  const [userEmail, setUserEmail] = useState<string>("");
 
   type ReviewForm = {
     scope: string;
@@ -148,6 +150,28 @@ function ReviewerSubmission() {
         navigate({ to: "/login" });
         return;
       }
+      setUserEmail(session.email);
+      (async () => {
+        try {
+          const token = getPortalToken();
+          const res = await proposalApiFetch("/users/peer-reviewers", {
+            headers: {
+              "Content-Type": "application/json",
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+          });
+          if (!res.ok) return;
+          const body = (await res.json()) as {
+            peer_reviewers?: Array<{ name?: string; email?: string }>;
+          };
+          const me = (body.peer_reviewers || []).find(
+            (r) => r.email?.toLowerCase() === session.email.toLowerCase(),
+          );
+          if (me?.name) setReviewerName(me.name);
+        } catch {
+          // ignore
+        }
+      })();
     } catch {
       navigate({ to: "/login" });
       return;
@@ -257,7 +281,8 @@ function ReviewerSubmission() {
     );
   }
 
-  const reviewerName = "Dr. Anna Hoffmann";
+  const displayedReviewerName =
+    reviewerName || (userEmail ? displayNameFromEmail(userEmail) : "Reviewer");
   const canSubmit = recommendation !== null;
 
   const buildHeaders = () => {
