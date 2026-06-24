@@ -986,8 +986,6 @@ function DecisionReviewerDashboard() {
                       Review
                       <ChevronRight className="h-4 w-4" />
                     </Link>
-                    {normalizeRaw(p.rawStatus) === "author_approved" && (
-                      null}
                     {isAdmin && (
                       <button
                         type="button"
