@@ -437,20 +437,26 @@ export function AuthorMetadataPanel({
               </div>
             )}
 
-            {/* Queries — mounted while metadata is in-flight so we can detect
-                an open query and gate the Submit button. Hidden visually until
-                the author opens the panel or an open query exists. */}
-            {isSent && !isApproved && (
-              <div className={showQueries || hasOpenQuery ? "" : "hidden"}>
-                <MetadataQueries
-                  ticket={ticket}
-                  viewer="author"
-                  canRaise={isSent && !isApproved}
-                  raisableFields={raisableFields}
-                  onOpenQueryChange={setHasOpenQuery}
-                />
-              </div>
-            )}
+            {/* Queries — always mounted while metadata is loaded so the
+                author can see the publisher's responses to any raised
+                queries even after the metadata status transitions away
+                from `sent_to_author`. Hidden visually until the author
+                opens the panel or there's an active thread. */}
+            <div
+              className={
+                showQueries || hasOpenQuery || !(isSent && !isApproved)
+                  ? ""
+                  : "hidden"
+              }
+            >
+              <MetadataQueries
+                ticket={ticket}
+                viewer="author"
+                canRaise={isSent && !isApproved}
+                raisableFields={raisableFields}
+                onOpenQueryChange={setHasOpenQuery}
+              />
+            </div>
           </>
         )}
       </div>
