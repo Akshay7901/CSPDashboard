@@ -80,6 +80,7 @@ type OpenInfoRequest = {
 
 type LocalProposalWithInfo = LocalProposal & {
   openInfoRequest?: OpenInfoRequest | null;
+  metadataNeedsApproval?: boolean;
 };
 
 function pickOpenInfoRequest(reqs?: InfoRequest[]): OpenInfoRequest | null {
@@ -245,7 +246,10 @@ const PILLS: { key: PillKey; label: string; dot: string; match: (p: LocalProposa
     key: "attention",
     label: "Needs attention",
     dot: "bg-orange-500",
-    match: (p) => ATTENTION.includes(p.status) || isAwaitingInfoRaw(p.rawStatus, p.rawDisplayStatus),
+    match: (p) =>
+      ATTENTION.includes(p.status) ||
+      isAwaitingInfoRaw(p.rawStatus, p.rawDisplayStatus) ||
+      !!(p as LocalProposalWithInfo).metadataNeedsApproval,
   },
   { key: "in_review", label: "Under review", dot: "bg-sky-500", match: (p) => p.status === "in_review" },
   {
@@ -298,6 +302,26 @@ interface CardConfig {
 }
 
 function configFor(p: LocalProposal): CardConfig {
+  if ((p as LocalProposalWithInfo).metadataNeedsApproval) {
+    return {
+      bannerLabel: "Action Required",
+      bannerDot: "bg-orange-500",
+      bannerTint: "bg-orange-50",
+      bannerText: "text-orange-700",
+      tag: "ACTION REQUIRED",
+      iconBg: "bg-orange-100",
+      iconColor: "text-orange-600",
+      Icon: Pencil,
+      eyebrow: "Please review and approve your book metadata",
+      eyebrowColor: "text-orange-700",
+      body: "Our editorial team has sent the metadata for your book (title, description, keywords, cover etc.) for your review. Please approve it or raise a query so we can proceed.",
+      cta: {
+        label: "Review and approve metadata",
+        className: "bg-orange-500 hover:bg-orange-600 text-white",
+      },
+      footnote: "Production cannot move forward until you approve the metadata.",
+    };
+  }
   if (isAwaitingInfoRaw(p.rawStatus, p.rawDisplayStatus)) {
     return {
       bannerLabel: "Revisions Requested",
@@ -574,6 +598,40 @@ function AuthorDashboard() {
         setMyProposals((prev) =>
           prev.map((p) =>
             byId.has(p.id) ? { ...p, openInfoRequest: byId.get(p.id) || null } : p,
+          ),
+        );
+      }
+      // For "signed" proposals, check if metadata is awaiting author approval.
+      // Backend keeps proposal status as signed/locked while metadata flips to
+      // sent_to_author, so we must fetch metadata to surface the action.
+      const signedList = mapped.filter((p) => p.status === "signed");
+      if (signedList.length > 0) {
+        const metaResults = await Promise.all(
+          signedList.map(async (p) => {
+            try {
+              const r = await proposalApiFetch(
+                `/${encodeURIComponent(p.id)}/metadata`,
+                { headers },
+              );
+              if (!r.ok) return { id: p.id, needs: false };
+              const b = (await r.json().catch(() => ({}))) as {
+                metadata_status?: string;
+                approved_at?: string;
+              };
+              const needs =
+                b.metadata_status === "sent_to_author" && !b.approved_at;
+              return { id: p.id, needs };
+            } catch {
+              return { id: p.id, needs: false };
+            }
+          }),
+        );
+        const needsById = new Map(metaResults.map((m) => [m.id, m.needs]));
+        setMyProposals((prev) =>
+          prev.map((p) =>
+            needsById.has(p.id)
+              ? { ...p, metadataNeedsApproval: needsById.get(p.id) || false }
+              : p,
           ),
         );
       }
