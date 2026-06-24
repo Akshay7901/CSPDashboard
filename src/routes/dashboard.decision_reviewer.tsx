@@ -626,10 +626,27 @@ function DecisionReviewerDashboard() {
   );
 
   const counts = useMemo(() => {
-    // Derive bucket counts from the merged proposal rows so every status
-    // tab reflects what's actually loaded (the API's status_summary often
-    // omits terminal/edge states).
-    const c: Record<string, number> = {
+    // Bucket counts use the API's authoritative status_summary keyed by
+    // raw DB status names (see /api/proposals docs), and fall back to the
+    // merged proposal rows for any bucket the summary doesn't report.
+    const s = statusSummary || {};
+    const sum = (...keys: string[]) =>
+      keys.reduce((acc, k) => acc + (Number(s[k]) || 0), 0);
+    const fromApi: Record<string, number> = {
+      all: Number(s.total) || mergedProposals.length,
+      submitted: sum("new"),
+      revisions: sum("awaiting_more_info"),
+      in_review: sum("in_review"),
+      review_returned: sum("review_returned"),
+      major_revisions: 0,
+      contract: sum("contract_issued", "awaiting_author_approval", "author_approved"),
+      question: sum("queries_raised"),
+      signed: sum("locked", "contract_received", "contract_signed"),
+      declined: sum("declined"),
+    };
+    // Fallback: count merged rows per bucket so any state the summary omits
+    // (e.g. terminal signed/declined) still surfaces a real number.
+    const fromRows: Record<string, number> = {
       all: mergedProposals.length,
       submitted: 0,
       revisions: 0,
@@ -642,10 +659,14 @@ function DecisionReviewerDashboard() {
       declined: 0,
     };
     for (const p of mergedProposals) {
-      c[p.status] = (c[p.status] || 0) + 1;
+      fromRows[p.status] = (fromRows[p.status] || 0) + 1;
     }
-    return c;
-  }, [mergedProposals]);
+    const out: Record<string, number> = {};
+    for (const k of Object.keys(fromRows)) {
+      out[k] = Math.max(fromApi[k] || 0, fromRows[k] || 0);
+    }
+    return out;
+  }, [statusSummary, mergedProposals]);
 
   const filtered = useMemo(() => {
     let list = mergedProposals.slice();
