@@ -900,7 +900,7 @@ function DecisionReviewerDashboard() {
                           p.status === "signed" ? "bg-white" : meta.dot
                         }`}
                       />
-                      {p.status === "signed" ? meta.label : (p.displayStatus || meta.label)}
+                      {p.displayStatus || meta.label}
                     </span>
                   </div>
                   <div className="flex items-center gap-4 justify-self-end">
