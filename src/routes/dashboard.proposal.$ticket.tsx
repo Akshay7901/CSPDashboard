@@ -3145,6 +3145,24 @@ function ProposalDetailPage() {
                     </div>
                   )}
                   <div className="space-y-3 border-t border-stone-300 px-5 py-4">
+                    {data.status?.toLowerCase().replace(/\s+/g, "_") === "author_approved" && (
+                      <button
+                        type="button"
+                        onClick={handleLockProposal}
+                        disabled={locking}
+                        className="flex w-full items-start gap-3 rounded-xl border border-emerald-300 bg-emerald-50/60 px-4 py-3 text-left transition-colors hover:bg-emerald-50 disabled:opacity-50"
+                      >
+                        <Lock className="mt-0.5 h-4 w-4 text-emerald-700" />
+                        <div>
+                          <p className="font-sans text-sm font-semibold text-emerald-900">
+                            {locking ? "Locking…" : "Lock Proposal"}
+                          </p>
+                          <p className="font-sans text-xs text-emerald-800/80">
+                            Generate production files and lock
+                          </p>
+                        </div>
+                      </button>
+                    )}
                     {isDeclined ? (
                       <p className="py-6 text-center font-sans text-sm text-stone-500">
                         No actions available
