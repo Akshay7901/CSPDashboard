@@ -231,25 +231,44 @@ export const Route = createFileRoute("/dashboard/decision_reviewer")({
   component: DecisionReviewerDashboard,
 });
 
-const FILTER_ORDER: ("all" | StatusKey)[] = [
-  "all",
-  "submitted",
-  "revisions",
-  "in_review",
-  "review_returned",
-  "major_revisions",
-  "contract",
-  "question",
-  "signed",
-  "declined",
+// 11 tabs (All + 10 raw API statuses) — keyed by the raw DB status
+// returned in status_summary so each tab mirrors the API 1:1.
+type TabKey =
+  | "all"
+  | "new"
+  | "awaiting_more_info"
+  | "in_review"
+  | "review_returned"
+  | "contract_issued"
+  | "queries_raised"
+  | "awaiting_author_approval"
+  | "author_approved"
+  | "locked"
+  | "declined";
+
+const TABS: { key: TabKey; label: string; dot: string }[] = [
+  { key: "all", label: "All", dot: "bg-stone-400" },
+  { key: "new", label: "Submitted", dot: "bg-amber-400" },
+  { key: "awaiting_more_info", label: "Additional Info Required", dot: "bg-orange-500" },
+  { key: "in_review", label: "In Review", dot: "bg-sky-500" },
+  { key: "review_returned", label: "Review Returned", dot: "bg-indigo-500" },
+  { key: "contract_issued", label: "Contract Issued", dot: "bg-violet-500" },
+  { key: "queries_raised", label: "Queries Raised", dot: "bg-teal-500" },
+  { key: "awaiting_author_approval", label: "Awaiting Author Approval", dot: "bg-fuchsia-500" },
+  { key: "author_approved", label: "Author Approved", dot: "bg-emerald-500" },
+  { key: "locked", label: "Locked", dot: "bg-emerald-700" },
+  { key: "declined", label: "Declined", dot: "bg-stone-400" },
 ];
+
+const normalizeRaw = (raw?: string) =>
+  (raw || "").trim().toLowerCase().replace(/\s+/g, "_");
 
 function DecisionReviewerDashboard() {
   const navigate = useNavigate();
   const matchRoute = useMatchRoute();
   const [userEmail, setUserEmail] = useState<string>("");
   const [userName, setUserName] = useState<string>("");
-  const [activeFilter, setActiveFilter] = useState<"all" | StatusKey>("all");
+  const [activeFilter, setActiveFilter] = useState<TabKey>("all");
   const [search, setSearch] = useState("");
   const [field, setField] = useState<
     "all" | "title" | "author" | "institution" | "country" | "subject"
@@ -626,51 +645,58 @@ function DecisionReviewerDashboard() {
   );
 
   const counts = useMemo(() => {
-    // Bucket counts use the API's authoritative status_summary keyed by
-    // raw DB status names (see /api/proposals docs), and fall back to the
-    // merged proposal rows for any bucket the summary doesn't report.
+    // Counts come from the API's authoritative status_summary (keyed by
+    // raw DB status); fall back to local row counts for any bucket the
+    // summary omits. awaiting_author_approval has an alias contract_received.
     const s = statusSummary || {};
-    const sum = (...keys: string[]) =>
-      keys.reduce((acc, k) => acc + (Number(s[k]) || 0), 0);
-    const fromApi: Record<string, number> = {
-      all: Number(s.total) || mergedProposals.length,
-      submitted: sum("new"),
-      revisions: sum("awaiting_more_info"),
-      in_review: sum("in_review"),
-      review_returned: sum("review_returned"),
-      major_revisions: 0,
-      contract: sum("contract_issued", "awaiting_author_approval", "author_approved"),
-      question: sum("queries_raised"),
-      signed: sum("locked", "contract_received", "contract_signed"),
-      declined: sum("declined"),
+    const num = (k: string) => Number(s[k]) || 0;
+    const fromApi: Record<TabKey, number> = {
+      all: num("total") || mergedProposals.length,
+      new: num("new"),
+      awaiting_more_info: num("awaiting_more_info"),
+      in_review: num("in_review"),
+      review_returned: num("review_returned"),
+      contract_issued: num("contract_issued"),
+      queries_raised: num("queries_raised"),
+      awaiting_author_approval: num("awaiting_author_approval") + num("contract_received"),
+      author_approved: num("author_approved"),
+      locked: num("locked"),
+      declined: num("declined"),
     };
-    // Fallback: count merged rows per bucket so any state the summary omits
-    // (e.g. terminal signed/declined) still surfaces a real number.
-    const fromRows: Record<string, number> = {
+    const fromRows: Record<TabKey, number> = {
       all: mergedProposals.length,
-      submitted: 0,
-      revisions: 0,
+      new: 0,
+      awaiting_more_info: 0,
       in_review: 0,
       review_returned: 0,
-      major_revisions: 0,
-      contract: 0,
-      question: 0,
-      signed: 0,
+      contract_issued: 0,
+      queries_raised: 0,
+      awaiting_author_approval: 0,
+      author_approved: 0,
+      locked: 0,
       declined: 0,
     };
     for (const p of mergedProposals) {
-      fromRows[p.status] = (fromRows[p.status] || 0) + 1;
+      const r = normalizeRaw(p.rawStatus);
+      const k = (r === "contract_received" ? "awaiting_author_approval" : r) as TabKey;
+      if (k in fromRows) fromRows[k] += 1;
     }
-    const out: Record<string, number> = {};
-    for (const k of Object.keys(fromRows)) {
+    const out = {} as Record<TabKey, number>;
+    (Object.keys(fromRows) as TabKey[]).forEach((k) => {
       out[k] = Math.max(fromApi[k] || 0, fromRows[k] || 0);
-    }
+    });
     return out;
   }, [statusSummary, mergedProposals]);
 
   const filtered = useMemo(() => {
     let list = mergedProposals.slice();
-    if (activeFilter !== "all") list = list.filter((p) => p.status === activeFilter);
+    if (activeFilter !== "all") {
+      list = list.filter((p) => {
+        const r = normalizeRaw(p.rawStatus);
+        const k = r === "contract_received" ? "awaiting_author_approval" : r;
+        return k === activeFilter;
+      });
+    }
     const q = search.trim().toLowerCase();
     if (q) {
       list = list.filter((p) => {
@@ -780,9 +806,8 @@ function DecisionReviewerDashboard() {
 
         {/* Filter pills */}
         <div className="mb-5 flex flex-wrap gap-2.5">
-          {FILTER_ORDER.map((key) => {
+          {TABS.map(({ key, label, dot }) => {
             const isAll = key === "all";
-            const meta = isAll ? null : STATUS_META[key as StatusKey];
             const count = counts[key] ?? 0;
             const active = activeFilter === key;
             return (
@@ -798,10 +823,10 @@ function DecisionReviewerDashboard() {
               >
                 <span
                   className={`h-2 w-2 rounded-full ${
-                    isAll ? (active ? "bg-white" : "bg-stone-400") : meta!.dot
+                    isAll && active ? "bg-white" : dot
                   }`}
                 />
-                <span className="font-medium">{isAll ? "All" : meta!.filterLabel}</span>
+                <span className="font-medium">{label}</span>
                 <span
                   className={`ml-1 inline-flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 font-sans text-xs font-medium ${
                     active ? "bg-white/20 text-white" : "bg-stone-100 text-stone-600"
