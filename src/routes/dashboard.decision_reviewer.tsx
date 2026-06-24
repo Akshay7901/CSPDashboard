@@ -845,7 +845,7 @@ function DecisionReviewerDashboard() {
 
         {/* Table */}
         <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
-          <div className="hidden grid-cols-[2.2fr_1.3fr_1fr_1fr_1.4fr_140px] items-center gap-6 border-b border-stone-200 bg-stone-50/60 px-6 py-3 font-sans text-xs font-semibold uppercase tracking-wider text-[#7A6A5A] md:grid">
+          <div className="hidden grid-cols-[2.2fr_1.3fr_1fr_1fr_1.1fr_100px] items-center gap-6 border-b border-stone-200 bg-stone-50/60 px-6 py-3 font-sans text-xs font-semibold uppercase tracking-wider text-[#7A6A5A] md:grid">
             <HeaderCell label="Title" />
             <HeaderCell label="Author" />
             <HeaderCell label="Country" />
@@ -860,7 +860,7 @@ function DecisionReviewerDashboard() {
               return (
                 <li
                   key={p.id}
-                  className="relative grid grid-cols-1 items-center gap-6 border-b border-stone-100 px-6 py-5 last:border-b-0 md:grid-cols-[2.2fr_1.3fr_1fr_1fr_1.4fr_140px]"
+                  className="relative grid grid-cols-1 items-center gap-6 border-b border-stone-100 px-6 py-5 last:border-b-0 md:grid-cols-[2.2fr_1.3fr_1fr_1fr_1.1fr_100px]"
                 >
                   <span
                     className={`absolute left-0 top-0 h-full w-1.5 ${meta.rowBar}`}
@@ -916,11 +916,11 @@ function DecisionReviewerDashboard() {
                       <button
                         type="button"
                         onClick={() => setConfirmDeleteTicket(p.id)}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 text-red-700 hover:bg-red-50"
+                        className="inline-flex items-center gap-1 rounded-lg border border-red-200 px-2.5 py-1 font-sans text-xs font-medium text-red-700 hover:bg-red-50"
                         title="Permanently delete proposal (admin only)"
-                        aria-label="Delete proposal"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Delete
                       </button>
                     )}
                   </div>
