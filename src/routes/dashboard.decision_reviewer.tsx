@@ -103,7 +103,7 @@ const STATUS_MAP: Record<string, StatusKey> = {
   contract_issued: "contract",
   queries_raised: "question",
   awaiting_author_approval: "contract",
-  author_approved: "signed",
+  author_approved: "contract",
   locked: "signed",
   declined: "declined",
   awaiting_more_info: "revisions",
@@ -120,7 +120,7 @@ const API_STATUSES_BY_KEY: Record<StatusKey, string[]> = {
   major_revisions: [],
   contract: ["contract_issued", "awaiting_author_approval"],
   question: ["queries_raised"],
-  signed: ["author_approved", "locked", "contract_signed", "contract_received"],
+  signed: ["locked", "contract_signed", "contract_received"],
   declined: ["declined"],
 };
 const ALL_API_STATUSES = Array.from(
@@ -141,7 +141,7 @@ const DISPLAY_STATUS_MAP: Record<string, StatusKey> = {
   "awaiting author approval": "contract",
   "queries raised": "question",
   "question raised": "question",
-  "author approved": "signed",
+  "author approved": "contract",
   locked: "signed",
   "contract signed": "signed",
   declined: "declined",
@@ -636,9 +636,9 @@ function DecisionReviewerDashboard() {
       in_review: sum("in_review"),
       review_returned: sum("review_returned"),
       major_revisions: 0,
-      contract: sum("contract_issued", "awaiting_author_approval"),
+      contract: sum("contract_issued", "awaiting_author_approval", "author_approved"),
       question: sum("queries_raised"),
-      signed: sum("author_approved", "locked", "contract_received"),
+      signed: sum("locked", "contract_received", "contract_signed"),
       declined: sum("declined"),
     } as Record<string, number>;
   }, [statusSummary, mergedProposals.length]);
@@ -900,7 +900,7 @@ function DecisionReviewerDashboard() {
                           p.status === "signed" ? "bg-white" : meta.dot
                         }`}
                       />
-                      {p.status === "signed" ? meta.label : (p.displayStatus || meta.label)}
+                      {p.displayStatus || meta.label}
                     </span>
                   </div>
                   <div className="flex items-center gap-4 justify-self-end">
