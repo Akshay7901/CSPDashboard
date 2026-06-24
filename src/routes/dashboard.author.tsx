@@ -32,6 +32,7 @@ type PillKey =
   | "contract"
   | "major_revisions"
   | "signed"
+  | "approved"
   | "declined";
 
 // Statuses where the author needs to take action.
@@ -277,6 +278,7 @@ const PILLS: { key: PillKey; label: string; dot: string; match: (p: LocalProposa
     match: (p) => p.status === "major_revisions",
   },
   { key: "signed", label: "Signed", dot: "bg-emerald-500", match: (p) => p.status === "signed" },
+  { key: "approved", label: "Approved", dot: "bg-emerald-500", match: (p) => p.status === "approved" },
   {
     key: "declined",
     label: "Not progressing",
