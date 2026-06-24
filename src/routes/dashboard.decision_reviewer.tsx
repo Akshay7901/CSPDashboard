@@ -636,9 +636,9 @@ function DecisionReviewerDashboard() {
       in_review: sum("in_review"),
       review_returned: sum("review_returned"),
       major_revisions: 0,
-      contract: sum("contract_issued", "awaiting_author_approval"),
+      contract: sum("contract_issued", "awaiting_author_approval", "author_approved"),
       question: sum("queries_raised"),
-      signed: sum("author_approved", "locked", "contract_received"),
+      signed: sum("locked", "contract_received", "contract_signed"),
       declined: sum("declined"),
     } as Record<string, number>;
   }, [statusSummary, mergedProposals.length]);
