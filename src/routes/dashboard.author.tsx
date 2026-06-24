@@ -25,14 +25,12 @@ export const Route = createFileRoute("/dashboard/author")({
 
 type PillKey =
   | "all"
-  | "attention"
-  | "in_review"
-  | "revisions"
-  | "awaiting_info"
-  | "contract"
-  | "major_revisions"
-  | "signed"
-  | "approved"
+  | "submitted"
+  | "additional_info_required"
+  | "peer_review"
+  | "feedback_and_contract_issued"
+  | "final_review_and_confirmation"
+  | "confirmed_and_finalised"
   | "declined";
 
 // Statuses where the author needs to take action.
