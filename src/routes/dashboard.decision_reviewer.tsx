@@ -255,7 +255,7 @@ const TABS: { key: TabKey; label: string; dot: string }[] = [
   { key: "review_returned", label: "Review Returned", dot: "bg-indigo-500" },
   { key: "contract_issued", label: "Contract Issued", dot: "bg-violet-500" },
   { key: "queries_raised", label: "Queries Raised", dot: "bg-teal-500" },
-  { key: "awaiting_author_approval", label: "Awaiting Author Approval", dot: "bg-fuchsia-500" },
+  { key: "awaiting_author_approval", label: "Contract Received", dot: "bg-fuchsia-500" },
   { key: "author_approved", label: "Author Approved", dot: "bg-emerald-500" },
   { key: "locked", label: "Locked", dot: "bg-emerald-700" },
   { key: "declined", label: "Declined", dot: "bg-stone-400" },
