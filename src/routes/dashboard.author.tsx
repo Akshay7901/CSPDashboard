@@ -24,7 +24,6 @@ export const Route = createFileRoute("/dashboard/author")({
 });
 
 type PillKey =
-  | "all"
   | "submitted"
   | "additional_info_required"
   | "peer_review"
@@ -238,7 +237,6 @@ function toProposal(p: ApiProposalItem): LocalProposal {
 }
 
 const PILLS: { key: PillKey; label: string; dot: string; match: (p: LocalProposal) => boolean }[] = [
-  { key: "all", label: "All proposals", dot: "", match: () => true },
   {
     key: "submitted",
     label: "Submitted",
@@ -502,7 +500,7 @@ function configFor(p: LocalProposal): CardConfig {
 
 function AuthorDashboard() {
   const navigate = useNavigate();
-  const [activePill, setActivePill] = useState<PillKey>("all");
+  const [activePill, setActivePill] = useState<PillKey | null>(null);
   const [authorEmail, setAuthorEmail] = useState<string>("");
   const [authorName, setAuthorName] = useState<string>("");
   const [myProposals, setMyProposals] = useState<LocalProposalWithInfo[]>([]);
@@ -684,7 +682,6 @@ function AuthorDashboard() {
 
   const counts = useMemo(() => {
     const c: Record<PillKey, number> = {
-      all: 0,
       submitted: 0,
       additional_info_required: 0,
       peer_review: 0,
@@ -700,8 +697,9 @@ function AuthorDashboard() {
   }, [myProposals]);
 
   const visible = useMemo(() => {
-    const pill = PILLS.find((p) => p.key === activePill)!;
-    return myProposals.filter(pill.match);
+    if (!activePill) return myProposals;
+    const pill = PILLS.find((p) => p.key === activePill);
+    return pill ? myProposals.filter(pill.match) : myProposals;
   }, [activePill, myProposals]);
 
   const attentionList = visible.filter(
@@ -799,7 +797,6 @@ function AuthorDashboard() {
         <div className="mt-6 flex flex-wrap gap-2">
           {PILLS.map((pill) => {
             const active = activePill === pill.key;
-            const isAll = pill.key === "all";
             return (
               <button
                 key={pill.key}
@@ -807,9 +804,7 @@ function AuthorDashboard() {
                 className={
                   "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition-colors " +
                   (active
-                    ? isAll
-                      ? "border-[#00422F] bg-[#00422F] text-white"
-                      : "border-[#00422F] bg-[#00422F] text-white"
+                    ? "border-[#00422F] bg-[#00422F] text-white"
                     : "border-stone-200 bg-white text-stone-700 hover:border-stone-300")
                 }
               >
