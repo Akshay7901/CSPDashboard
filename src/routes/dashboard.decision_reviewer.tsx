@@ -806,9 +806,8 @@ function DecisionReviewerDashboard() {
 
         {/* Filter pills */}
         <div className="mb-5 flex flex-wrap gap-2.5">
-          {FILTER_ORDER.map((key) => {
+          {TABS.map(({ key, label, dot }) => {
             const isAll = key === "all";
-            const meta = isAll ? null : STATUS_META[key as StatusKey];
             const count = counts[key] ?? 0;
             const active = activeFilter === key;
             return (
@@ -824,10 +823,10 @@ function DecisionReviewerDashboard() {
               >
                 <span
                   className={`h-2 w-2 rounded-full ${
-                    isAll ? (active ? "bg-white" : "bg-stone-400") : meta!.dot
+                    isAll && active ? "bg-white" : dot
                   }`}
                 />
-                <span className="font-medium">{isAll ? "All" : meta!.filterLabel}</span>
+                <span className="font-medium">{label}</span>
                 <span
                   className={`ml-1 inline-flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 font-sans text-xs font-medium ${
                     active ? "bg-white/20 text-white" : "bg-stone-100 text-stone-600"
