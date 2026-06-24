@@ -1421,7 +1421,9 @@ function ProposalDetailPage() {
   }, [latestContract]);
   const isContractSigned = useMemo(() => {
     const cs = (latestContract?.status || "").toLowerCase();
-    return cs === "signed";
+    if (cs !== "signed") return false;
+    const ps = (data?.status || "").toLowerCase().replace(/\s+/g, "_");
+    return ["contract_signed", "locked", "contract_received"].includes(ps);
   }, [latestContract]);
 
   useEffect(() => {
