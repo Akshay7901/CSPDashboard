@@ -601,6 +601,40 @@ function AuthorDashboard() {
           ),
         );
       }
+      // For "signed" proposals, check if metadata is awaiting author approval.
+      // Backend keeps proposal status as signed/locked while metadata flips to
+      // sent_to_author, so we must fetch metadata to surface the action.
+      const signedList = mapped.filter((p) => p.status === "signed");
+      if (signedList.length > 0) {
+        const metaResults = await Promise.all(
+          signedList.map(async (p) => {
+            try {
+              const r = await proposalApiFetch(
+                `/${encodeURIComponent(p.id)}/metadata`,
+                { headers },
+              );
+              if (!r.ok) return { id: p.id, needs: false };
+              const b = (await r.json().catch(() => ({}))) as {
+                metadata_status?: string;
+                approved_at?: string;
+              };
+              const needs =
+                b.metadata_status === "sent_to_author" && !b.approved_at;
+              return { id: p.id, needs };
+            } catch {
+              return { id: p.id, needs: false };
+            }
+          }),
+        );
+        const needsById = new Map(metaResults.map((m) => [m.id, m.needs]));
+        setMyProposals((prev) =>
+          prev.map((p) =>
+            needsById.has(p.id)
+              ? { ...p, metadataNeedsApproval: needsById.get(p.id) || false }
+              : p,
+          ),
+        );
+      }
     } catch {
       if (!silent) setLoadError("Network error. Please try again.");
     } finally {
