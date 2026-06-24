@@ -987,17 +987,7 @@ function DecisionReviewerDashboard() {
                       <ChevronRight className="h-4 w-4" />
                     </Link>
                     {normalizeRaw(p.rawStatus) === "author_approved" && (
-                      <button
-                        type="button"
-                        onClick={() => handleLock(p.id)}
-                        disabled={lockingTicket === p.id}
-                        className="inline-flex items-center gap-1 rounded-lg border border-emerald-300 bg-emerald-50 px-2.5 py-1 font-sans text-xs font-medium text-emerald-800 hover:bg-emerald-100 disabled:opacity-50"
-                        title="Lock proposal and generate production files"
-                      >
-                        <Lock className="h-3.5 w-3.5" />
-                        {lockingTicket === p.id ? "Locking…" : "Lock"}
-                      </button>
-                    )}
+                      null}
                     {isAdmin && (
                       <button
                         type="button"
