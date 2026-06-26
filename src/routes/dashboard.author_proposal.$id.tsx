@@ -762,6 +762,26 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
   const allFiles: ManuscriptFile[] = [
     ...(files.sampleChapter ? [files.sampleChapter] : []),
     ...(files.additionalFiles || []),
+    ...(() => {
+      const sd = (cd as any).supporting_documents ?? (cd as any).supporting_materials;
+      if (!sd) return [];
+      const arr = Array.isArray(sd) ? sd : [sd];
+      return arr
+        .map((d: any): ManuscriptFile | null => {
+          if (!d) return null;
+          if (typeof d === "string") {
+            return { url: d, filename: d.split("/").pop() || d };
+          }
+          const url = d.url || d.file_url || d.href || d.link;
+          if (!url) return null;
+          return {
+            url,
+            filename: d.filename || d.name || d.title || url.split("/").pop() || "Document",
+            size_bytes: d.size_bytes || d.size,
+          };
+        })
+        .filter((x): x is ManuscriptFile => !!x);
+    })(),
   ];
   const fmtBool = (v?: boolean | string) => {
     if (typeof v === "string") {
