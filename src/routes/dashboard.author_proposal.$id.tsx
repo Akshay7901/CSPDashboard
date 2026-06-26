@@ -879,9 +879,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
       <AuthorMetadataPanel
         ticket={proposal.ticket}
         proposalStatus={proposal.status}
-        isPostApproval={
-          status === "approved"
-        }
+        isPostApproval={status === "approved"}
         fallbackData={{
           ticket_number: proposal.ticket,
           metadata_status: "approved",
