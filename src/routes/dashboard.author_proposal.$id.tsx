@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ChevronLeft, ChevronDown, FileText, Check, X, Calendar, Send, Save, AlertCircle, Upload, Paperclip, Download, HelpCircle, CheckCircle2, LogOut } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
 import { initialsFromName, type StatusKey } from "@/lib/proposals";
@@ -1158,6 +1158,9 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
             </Card>
           )}
 
+          {/* Dynamic: every other key present in current_data */}
+          <DynamicProposalFields data={cd as unknown as Record<string, unknown>} />
+
         </div>
       </div>
       </div>
@@ -1176,6 +1179,150 @@ function StatCard({ label, value }: { label: string; value: string }) {
       <p className="font-sans text-xs font-medium" style={{ color: "#7A6A5A" }}>{label}</p>
       <p className="mt-1 font-sans text-sm font-bold" style={{ color: "#2C1A0E" }}>{value}</p>
     </div>
+  );
+}
+
+// Keys already surfaced by the curated cards above — exclude from the
+// generic "Additional Proposal Information" renderer so we don't duplicate.
+const CONSUMED_CD_KEYS = new Set<string>([
+  "email",
+  "secondary_email",
+  "address",
+  "biography",
+  "institution",
+  "country",
+  "job_title",
+  "phone",
+  "main_title",
+  "sub_title",
+  "book_type",
+  "word_count",
+  "expected_completion_date",
+  "corresponding_author_name",
+  "first_name",
+  "last_name",
+  "title",
+  "subject",
+  "secondary_subjects",
+  "keywords",
+  "language",
+  "overview",
+  "key_features",
+  "key_features_and_unique_contribution",
+  "unique_selling_points",
+  "intended_audience",
+  "audience",
+  "table_of_contents",
+  "primary_market",
+  "competing_titles",
+  "why_needed",
+  "why_is_this_book_needed",
+  "suggested_reviewers",
+  "reviewers",
+  "has_tables",
+  "illustrations",
+  "number_of_illustrations",
+  "under_review_elsewhere",
+  "is_previously_published",
+  "permissions_required",
+  "additional_info",
+  "conferences",
+  "promotional_channels",
+  "manuscript_files",
+  "co_authors",
+  "additional_authors",
+  "contributors",
+]);
+
+function humanizeKey(key: string): string {
+  return key
+    .replace(/[_-]+/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .replace(/\bUrl\b/g, "URL")
+    .replace(/\bId\b/g, "ID");
+}
+
+function isUrl(v: string): boolean {
+  return /^https?:\/\//i.test(v.trim());
+}
+
+function renderDynamicValue(value: unknown): ReactNode {
+  if (value === null || value === undefined || value === "") return "—";
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (typeof value === "number") return String(value);
+  if (typeof value === "string") {
+    if (isUrl(value)) {
+      const filename = value.split("/").pop() || value;
+      return (
+        <a
+          href={value}
+          target="_blank"
+          rel="noreferrer"
+          className="break-all font-medium text-amber-800 underline-offset-2 hover:underline"
+        >
+          {filename}
+        </a>
+      );
+    }
+    return (
+      <span className="whitespace-pre-wrap break-words">{value}</span>
+    );
+  }
+  if (Array.isArray(value)) {
+    if (value.length === 0) return "—";
+    if (value.every((v) => typeof v === "string" || typeof v === "number")) {
+      return value.join(", ");
+    }
+    return (
+      <pre className="whitespace-pre-wrap break-words rounded bg-stone-100 p-2 font-mono text-xs">
+        {JSON.stringify(value, null, 2)}
+      </pre>
+    );
+  }
+  if (typeof value === "object") {
+    return (
+      <pre className="whitespace-pre-wrap break-words rounded bg-stone-100 p-2 font-mono text-xs">
+        {JSON.stringify(value, null, 2)}
+      </pre>
+    );
+  }
+  return String(value);
+}
+
+function DynamicProposalFields({ data }: { data: Record<string, unknown> }) {
+  const entries = Object.entries(data).filter(([k, v]) => {
+    if (CONSUMED_CD_KEYS.has(k)) return false;
+    if (v === null || v === undefined) return false;
+    if (typeof v === "string" && v.trim() === "") return false;
+    if (Array.isArray(v) && v.length === 0) return false;
+    return true;
+  });
+  if (entries.length === 0) return null;
+  return (
+    <Card
+      title="Additional Proposal Information"
+      subtitle="All other details submitted with this proposal"
+      id="section-extra-fields"
+    >
+      <div className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
+        {entries.map(([k, v]) => (
+          <div key={k}>
+            <p
+              className="font-sans text-xs font-medium"
+              style={{ color: "#7A6A5A" }}
+            >
+              {humanizeKey(k)}
+            </p>
+            <div
+              className="mt-0.5 font-sans text-sm font-medium leading-relaxed"
+              style={{ color: "#2C1A0E" }}
+            >
+              {renderDynamicValue(v)}
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
   );
 }
 
