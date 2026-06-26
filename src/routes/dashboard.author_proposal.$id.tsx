@@ -921,7 +921,9 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
         }}
       />
 
-      {/* Reviewer Feedback — always visible */}
+      {/* Reviewer Feedback — only after the proposal has left the
+          "submitted/new" state, otherwise there is nothing to show. */}
+      {status !== "submitted" && (
       <section className="mt-6 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
         <button
           type="button"
@@ -947,6 +949,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
           </div>
         )}
       </section>
+      )}
 
       <ContractIssuedView ticket={proposal.ticket} proposal={proposal} authorFullName={authorFullName} />
 
