@@ -1162,6 +1162,10 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
       </div>
       </div>
       )}
+      <InfoRequestPanel
+        ticket={proposal.ticket}
+        infoRequests={proposal.infoRequests}
+      />
     </>
   );
 }
