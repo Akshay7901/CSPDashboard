@@ -1468,7 +1468,7 @@ function ProposalDetailPage() {
     const cs = (latestContract?.status || "").toLowerCase();
     if (cs !== "signed") return false;
     const ps = (data?.status || "").toLowerCase().replace(/\s+/g, "_");
-    return ["contract_signed", "locked", "contract_received"].includes(ps);
+    return ["contract_signed", "contract_received"].includes(ps);
   }, [latestContract, data?.status]);
 
   const hasSignedContract = useMemo(
