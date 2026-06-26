@@ -250,8 +250,7 @@ type TabKey =
 
 // Derive each tab's dot from STATUS_META so the tab indicator matches
 // the badge color used in the row for the same status.
-const tabDot = (raw: string): string =>
-  STATUS_META[normalizeStatus(raw, raw)]?.dot || "bg-stone-400";
+const tabDot = (raw: string): string => getStatusMeta(raw, raw).dot;
 const TABS: { key: TabKey; label: string; dot: string }[] = [
   { key: "all", label: "All", dot: "bg-stone-400" },
   { key: "new", label: "Submitted", dot: tabDot("new") },
