@@ -24,6 +24,7 @@ import {
   formatDate,
   initialsFromName,
   displayNameFromEmail,
+  getStatusMeta,
 } from "@/lib/proposals";
 import { proposalApiFetch } from "@/lib/proposalApi";
 import { ChangePasswordButton } from "@/components/change-password-dialog";
