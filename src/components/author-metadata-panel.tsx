@@ -356,16 +356,20 @@ export function AuthorMetadataPanel({
                 <h3 className="font-serif text-sm font-bold text-stone-900">Cover image</h3>
               </div>
               <div className="grid gap-4 md:grid-cols-[200px_1fr]">
-                <div className="flex h-48 items-center justify-center overflow-hidden rounded-lg border border-stone-200 bg-white">
-                  {metadata?.cover_image?.s3_url ? (
+                <div
+                  className={`flex h-48 items-center justify-center overflow-hidden rounded-lg bg-white ${
+                    coverDisplayUrl ? "border border-stone-200" : "border-2 border-dashed border-stone-300"
+                  }`}
+                >
+                  {coverDisplayUrl ? (
                     <img
-                      src={metadata?.cover_image.s3_url}
+                      src={coverDisplayUrl}
                       alt="Cover"
                       className="h-full w-full object-contain"
                     />
                   ) : (
                     <p className="px-3 text-center font-sans text-xs text-stone-400">
-                      No cover image uploaded yet
+                      No cover image uploaded
                     </p>
                   )}
                 </div>
@@ -381,13 +385,25 @@ export function AuthorMetadataPanel({
                         {metadata?.cover_image.width_px || "?"}×{metadata?.cover_image.height_px || "?"} px
                         {metadata?.cover_image.dpi ? ` · ${metadata?.cover_image.dpi} dpi` : ""}
                       </p>
+                      {typeof metadata?.cover_image.file_size_bytes === "number" && (
+                        <p className="text-stone-700">
+                          <span className="text-stone-500">Size:</span>{" "}
+                          {(metadata.cover_image.file_size_bytes / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      )}
+                      {typeof metadata?.cover_image.version === "number" && (
+                        <p className="text-stone-700">
+                          <span className="text-stone-500">Version:</span>{" "}
+                          v{metadata.cover_image.version}
+                        </p>
+                      )}
                       {metadata?.cover_image.source && (
                         <p className="text-stone-700">
                           <span className="text-stone-500">Source:</span>{" "}
                           {metadata?.cover_image.source}
                         </p>
                       )}
-                      {canEditCover && (
+                      {canDeleteCover && (
                         <button
                           type="button"
                           onClick={onDeleteCover}
@@ -401,7 +417,7 @@ export function AuthorMetadataPanel({
                     </>
                   ) : (
                     <p className="text-stone-600">
-                      Upload a high-resolution cover image (JPEG/TIFF, minimum 2360×2360 px at 300 dpi, max 50 MB).
+                      Upload a high-resolution cover image (JPEG/PNG/TIFF, minimum 2360×2360 px at 300 dpi, max 50 MB).
                     </p>
                   )}
                 </div>
@@ -417,7 +433,7 @@ export function AuthorMetadataPanel({
                       <input
                         ref={fileInputRef}
                         type="file"
-                        accept=".jpg,.jpeg,.tif,.tiff,image/jpeg,image/tiff"
+                        accept=".jpg,.jpeg,.png,.tif,.tiff,image/jpeg,image/png,image/tiff"
                         onChange={(e) => void handlePickFile(e.target.files?.[0] || null)}
                         className="mt-1 block w-full text-sm text-stone-700 file:mr-3 file:rounded-md file:border-0 file:bg-stone-800 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-stone-900"
                       />
@@ -441,6 +457,17 @@ export function AuthorMetadataPanel({
                       />
                     </div>
                   </div>
+                  {uploading && (
+                    <div className="space-y-1">
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-stone-200">
+                        <div
+                          className="h-full bg-emerald-600 transition-all"
+                          style={{ width: `${uploadPct}%` }}
+                        />
+                      </div>
+                      <p className="font-sans text-xs text-stone-500">Uploading… {uploadPct}%</p>
+                    </div>
+                  )}
                   <div className="flex flex-wrap items-center gap-2">
                     <button
                       type="button"
