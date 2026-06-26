@@ -231,9 +231,6 @@ function ReviewerCommentsList({ ticket }: { ticket: string }) {
                 {it.label}
               </span>
             </div>
-            {it.page && (
-              <span className="font-sans text-xs text-stone-500">{it.page}</span>
-            )}
           </div>
           <p className="mt-2 whitespace-pre-line font-sans text-[14px] leading-relaxed text-stone-700">
             {it.text}
