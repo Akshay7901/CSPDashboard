@@ -755,6 +755,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
   const isContractView =
     status === "contract" || status === "signed" || status === "approved";
   const [showOriginal, setShowOriginal] = useState(false);
+  const [previewFile, setPreviewFile] = useState<ManuscriptFile | null>(null);
   const title = contractTitleOverride || cd.main_title || proposal.ticket;
   const subtitle = contractSubtitleOverride || cd.sub_title;
   const kind = cd.book_type || "Proposal";
