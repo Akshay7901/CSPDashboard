@@ -2280,12 +2280,7 @@ function ProposalDetailPage() {
                               ticket={ticket}
                               viewer="dr"
                               onOpenQueryChange={setMetadataHasOpenQuery}
-                              onChanged={() => {
-                                // After the DR responds, push the metadata
-                                // back to the author automatically so they
-                                // immediately see the updated values.
-                                void sendMetadataToAuthor();
-                              }}
+                              onAfterRespond={sendMetadataToAuthor}
                               fieldLabels={{
                                 full_title: "Title (full)",
                                 title: "Title",

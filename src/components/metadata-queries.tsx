@@ -16,6 +16,8 @@ type Props = {
   /** Optional list of metadata field keys the author can tag a query against. */
   raisableFields?: { key: string; label: string }[];
   onChanged?: () => void;
+  /** DR only: called after query responses are saved, before the thread reloads. */
+  onAfterRespond?: () => Promise<void> | void;
   /** Notified whenever the open-query state changes (author has an unanswered query). */
   onOpenQueryChange?: (hasOpen: boolean) => void;
   /**
@@ -41,6 +43,7 @@ export function MetadataQueries({
   canRaise = true,
   raisableFields,
   onChanged,
+  onAfterRespond,
   onOpenQueryChange,
   fieldValues,
   fieldLabels,
@@ -172,6 +175,7 @@ export function MetadataQueries({
       for (const id of queryIds) {
         await respondMetadataQuery(ticket, id, responseText.trim());
       }
+      await onAfterRespond?.();
       setResponseText("");
       setFieldEdits({});
       setRowEdits({});
@@ -401,7 +405,7 @@ export function MetadataQueries({
                 <Send className="h-3.5 w-3.5" />
                 {submitting
                   ? "Sending…"
-                  : `Send Response${openIds.length > 1 ? ` to ${openIds.length}` : ""}`}
+                    : `Send Response & Metadata${openIds.length > 1 ? ` to ${openIds.length}` : ""}`}
               </button>
             </div>
           );
