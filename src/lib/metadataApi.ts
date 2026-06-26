@@ -15,6 +15,7 @@ export type CoverImage = {
   id?: number;
   version?: number;
   s3_url?: string;
+  url?: string;
   filename?: string;
   mime_type?: string;
   width_px?: number;
@@ -174,8 +175,10 @@ export async function validateCoverImageFile(file: File): Promise<CoverImageVali
     file.type === "image/jpeg" || name.endsWith(".jpg") || name.endsWith(".jpeg");
   const isTiff =
     file.type === "image/tiff" || name.endsWith(".tif") || name.endsWith(".tiff");
-  if (!isJpeg && !isTiff) {
-    return { ok: false, error: "File must be a JPEG (.jpg/.jpeg) or TIFF (.tif/.tiff) image." };
+  const isPng =
+    file.type === "image/png" || name.endsWith(".png");
+  if (!isJpeg && !isTiff && !isPng) {
+    return { ok: false, error: "File must be a JPEG, PNG, or TIFF image." };
   }
   if (file.size > COVER_MAX_BYTES) {
     return { ok: false, error: "File exceeds the 50 MB maximum size." };
@@ -219,22 +222,41 @@ export async function uploadCoverImage(
   ticket: string,
   file: File,
   source: string,
+  onProgress?: (pct: number) => void,
 ): Promise<CoverImage> {
   const fd = new FormData();
-  fd.append("file", file);
+  fd.append("cover_image", file);
   fd.append("source", source);
   const token = getPortalToken();
-  const res = await proposalApiFetch(
-    `/${encodeURIComponent(ticket)}/metadata/cover-image`,
-    {
-      method: "POST",
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      body: fd,
-    },
-  );
-  const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
-  if (!res.ok) throw new Error((body.error as string) || (body.message as string) || `Upload failed (${res.status})`);
-  return (body.cover_image as CoverImage) || {};
+  const url = `https://api.cambridgescholars.com/api/proposals/${encodeURIComponent(
+    ticket,
+  )}/metadata/cover-image`;
+
+  return new Promise<CoverImage>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", url);
+    if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    if (onProgress) {
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+      };
+    }
+    xhr.onload = () => {
+      let body: Record<string, unknown> = {};
+      try { body = JSON.parse(xhr.responseText || "{}"); } catch { /* noop */ }
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve((body.cover_image as CoverImage) || {});
+      } else {
+        reject(
+          new Error(
+            (body.error as string) || (body.message as string) || `Upload failed (${xhr.status})`,
+          ),
+        );
+      }
+    };
+    xhr.onerror = () => reject(new Error("Network error during upload"));
+    xhr.send(fd);
+  });
 }
 
 export async function deleteCoverImage(ticket: string) {
