@@ -17,6 +17,7 @@ import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
 import { ChangePasswordButton } from "@/components/change-password-dialog";
 import { formatDate, initialsFromName, type Proposal, type StatusKey } from "@/lib/proposals";
 import { proposalApiFetch } from "@/lib/proposalApi";
+import { getContract } from "@/lib/contractsApi";
 
 export const Route = createFileRoute("/dashboard/author")({
   head: () => ({ meta: [{ title: "Author Portal — My Proposals" }] }),
@@ -659,6 +660,43 @@ function AuthorDashboard() {
           prev.map((p) =>
             needsById.has(p.id)
               ? { ...p, metadataNeedsApproval: needsById.get(p.id) || false }
+              : p,
+          ),
+        );
+      }
+      // For "contract" proposals, check whether the contract has actually
+      // been signed by the author. The backend may keep proposal_status as
+      // "Feedback & Contract Issued" until production confirms, so we
+      // promote to "signed" locally once the contract is completed.
+      const contractList = mapped.filter((p) => p.status === "contract");
+      if (contractList.length > 0) {
+        const results = await Promise.all(
+          contractList.map(async (p) => {
+            try {
+              const contracts = await getContract(p.id);
+              const signed = contracts.some((c) => {
+                const ds = (c.docusign_status || "").toLowerCase();
+                const st = (c.status || "").toLowerCase();
+                return (
+                  !!c.docusign_completed_at ||
+                  ds === "completed" ||
+                  ds === "signed" ||
+                  st === "signed" ||
+                  st === "completed" ||
+                  st === "countersigned"
+                );
+              });
+              return { id: p.id, signed };
+            } catch {
+              return { id: p.id, signed: false };
+            }
+          }),
+        );
+        const signedMap = new Map(results.map((r) => [r.id, r.signed]));
+        setMyProposals((prev) =>
+          prev.map((p) =>
+            signedMap.get(p.id)
+              ? { ...p, status: "signed" as StatusKey }
               : p,
           ),
         );
