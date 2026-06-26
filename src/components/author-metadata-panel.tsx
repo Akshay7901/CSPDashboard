@@ -165,6 +165,11 @@ export function AuthorMetadataPanel({
 
   if (!loading && !metadata && !approvedByProposal) return null;
 
+  // Do not show the metadata section until the decision reviewer has
+  // sent the metadata to the author. Before that the record may exist
+  // in a "draft" state on the backend, but the author should not see it.
+  if (!loading && !isSent && !isApproved && !approvedByProposal) return null;
+
   void notVisible;
 
   const onApprove = async () => {
