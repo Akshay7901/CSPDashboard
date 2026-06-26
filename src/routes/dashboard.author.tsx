@@ -18,6 +18,9 @@ import { ChangePasswordButton } from "@/components/change-password-dialog";
 import { formatDate, initialsFromName, type Proposal, type StatusKey } from "@/lib/proposals";
 import { proposalApiFetch } from "@/lib/proposalApi";
 import { getContract } from "@/lib/contractsApi";
+import { ContractQueries } from "@/components/contract-queries";
+import { MetadataQueries } from "@/components/metadata-queries";
+import { MessageSquare, ChevronDown } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard/author")({
   head: () => ({ meta: [{ title: "Author Portal — My Proposals" }] }),
@@ -1086,7 +1089,47 @@ function ProposalCard({ p }: { p: LocalProposalWithInfo }) {
             </Link>
           </div>
         )}
+
+        <QueriesSection p={p} />
       </div>
     </article>
+  );
+}
+
+function QueriesSection({ p }: { p: LocalProposalWithInfo }) {
+  const [open, setOpen] = useState(false);
+  const showMetadata =
+    p.status === "signed" ||
+    p.status === "approved" ||
+    !!p.metadataNeedsApproval;
+  return (
+    <div className="mt-4 border-t border-stone-100 pt-3">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between rounded-lg px-2 py-2 text-left font-sans text-sm font-semibold text-stone-700 hover:bg-stone-50"
+        aria-expanded={open}
+      >
+        <span className="inline-flex items-center gap-2">
+          <MessageSquare className="h-4 w-4 text-stone-500" />
+          Queries &amp; responses
+        </span>
+        <ChevronDown
+          className={`h-4 w-4 text-stone-500 transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+      {open && (
+        <div className="mt-3 space-y-4">
+          <ContractQueries ticket={p.id} viewer="author" />
+          {showMetadata && (
+            <MetadataQueries
+              ticket={p.id}
+              viewer="author"
+              canRaise={!!p.metadataNeedsApproval}
+            />
+          )}
+        </div>
+      )}
+    </div>
   );
 }
