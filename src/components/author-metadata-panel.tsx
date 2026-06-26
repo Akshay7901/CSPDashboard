@@ -114,8 +114,52 @@ export function AuthorMetadataPanel({
     [],
   );
 
-  // Hide panel entirely if there is no metadata visible to the author.
-  if (!loading && (notVisible || !metadata)) return null;
+  // If the author has already approved (or the API no longer exposes the
+  // record), keep the panel visible with a confirmation card so the author
+  // can see that their submission is on file — never hide it silently.
+  const approvedByProposal =
+    proposalStatus === "author_approved" ||
+    proposalStatus === "locked" ||
+    proposalStatus === "contract_signed" ||
+    proposalStatus === "confirmed_and_finalised" ||
+    proposalStatus === "confirmed_and_finalized";
+
+  if (!loading && !metadata) {
+    return (
+      <section className="mt-6 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 bg-gradient-to-r from-emerald-50 via-emerald-50/60 to-white px-6 py-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white shadow-sm">
+              <BookOpen className="h-4 w-4" strokeWidth={2.2} />
+            </div>
+            <h2 className="font-serif text-base font-bold text-stone-900">Metadata</h2>
+          </div>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 font-sans text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
+            {approvedByProposal ? "Submitted" : "Unavailable"}
+          </span>
+        </div>
+        <div className="p-6">
+          {approvedByProposal ? (
+            <div className="flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
+              <div>
+                <p className="font-sans text-sm font-semibold text-emerald-900">
+                  Your metadata has been submitted.
+                </p>
+                <p className="mt-0.5 font-sans text-xs text-emerald-800/80">
+                  The publisher has received your approved record and will proceed to lock and publish it.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <p className="font-sans text-sm text-stone-600">
+              {error || "Metadata is not available to view at the moment."}
+            </p>
+          )}
+        </div>
+      </section>
+    );
+  }
 
   const onApprove = async () => {
     setApproving(true);
