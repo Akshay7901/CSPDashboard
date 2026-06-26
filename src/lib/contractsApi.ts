@@ -65,16 +65,9 @@ function authHeaders(): HeadersInit {
 }
 
 export async function getContract(ticket: string): Promise<ContractDetail[]> {
-  // Cache-bust + no-store so polled requests always reflect the latest
-  // DocuSign webhook state (otherwise the browser/CDN can serve a stale
-  // "sent" response for minutes after the contract is actually signed).
-  const res = await proposalApiFetch(
-    `/${encodeURIComponent(ticket)}/contract?_t=${Date.now()}`,
-    {
-      headers: { ...authHeaders(), "Cache-Control": "no-cache", Pragma: "no-cache" },
-      cache: "no-store",
-    },
-  );
+  const res = await proposalApiFetch(`/${encodeURIComponent(ticket)}/contract`, {
+    headers: authHeaders(),
+  });
   if (!res.ok) return [];
   const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
   if (Array.isArray(body.contracts)) return body.contracts as ContractDetail[];
