@@ -2120,7 +2120,9 @@ function ProposalDetailPage() {
                           <div className="space-y-4">
                             {isMetaLocked && (
                               <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 font-sans text-sm text-amber-800">
-                                Metadata has been sent to the author for approval. Editing is disabled until the author responds.
+                                {isLocked
+                                  ? "Metadata has been locked — no further changes can be made."
+                                  : "Metadata has been sent to the author for approval. Editing is disabled until the author responds."}
                               </div>
                             )}
                             {metadata.metadata_status === "sent_to_author" &&
