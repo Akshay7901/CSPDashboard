@@ -227,11 +227,6 @@ function ReviewerCommentsList({ ticket }: { ticket: string }) {
         <div key={it.key} className="rounded-xl border border-stone-200 bg-white p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2.5">
-              <span
-                className={`inline-flex items-center rounded-md px-2 py-0.5 font-sans text-[11px] font-semibold ${SEVERITY_TOKENS[it.severity] || SEVERITY_TOKENS.General}`}
-              >
-                {it.severity}
-              </span>
               <span className="font-serif text-[15px] font-bold text-[#2C1A0E]">
                 {it.label}
               </span>
