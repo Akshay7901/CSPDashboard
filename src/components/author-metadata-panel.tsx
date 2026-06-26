@@ -48,10 +48,17 @@ export function AuthorMetadataPanel({
   ticket,
   proposalStatus,
   isPostApproval,
+  fallbackData,
 }: {
   ticket: string;
   proposalStatus?: string;
   isPostApproval?: boolean;
+  /**
+   * Synthesized metadata derived from the proposal's `current_data` payload.
+   * Used when the dedicated `/metadata` endpoint returns 404/403 (e.g.
+   * after author approval) so the author can still see their record.
+   */
+  fallbackData?: ProposalMetadata | null;
 }) {
   const [metadata, setMetadata] = useState<ProposalMetadata | null>(null);
   const [loading, setLoading] = useState(true);
@@ -79,14 +86,17 @@ export function AuthorMetadataPanel({
       if (res.status === 403 || res.status === 404) {
         setNotVisible(true);
         // After author approval the API may stop exposing the record.
-        // Fall back to the last cached snapshot so the metadata stays
-        // visible permanently for the author.
+        // Fall back to (a) the last cached snapshot, or (b) data
+        // synthesized from the proposal's `current_data` payload.
+        let restored: ProposalMetadata | null = null;
         try {
           const cached = localStorage.getItem(`author_metadata_cache:${ticket}`);
-          if (cached) setMetadata(JSON.parse(cached) as ProposalMetadata);
+          if (cached) restored = JSON.parse(cached) as ProposalMetadata;
         } catch {
           /* ignore */
         }
+        if (!restored && fallbackData) restored = fallbackData;
+        if (restored) setMetadata(restored);
       } else {
         setError(res.error || "Failed to load metadata.");
       }
