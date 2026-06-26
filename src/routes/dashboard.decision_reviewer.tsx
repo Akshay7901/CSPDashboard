@@ -975,9 +975,7 @@ function DecisionReviewerDashboard() {
                       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-sans text-xs font-medium ${meta.badgeClass}`}
                     >
                       <span
-                        className={`h-1.5 w-1.5 rounded-full ${
-                          p.status === "signed" ? "bg-white" : meta.dot
-                        }`}
+                        className={`h-1.5 w-1.5 rounded-full ${meta.dot}`}
                       />
                       {p.displayStatus || meta.label}
                     </span>
