@@ -727,7 +727,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
         // Keep polling while contract is awaiting signature so the hero
         // flips to "Contract Signed" automatically once DocuSign completes.
         if (s === "sent" || s === "draft") {
-          timer = setTimeout(load, 20000);
+          timer = setTimeout(load, 10000);
         }
       } catch {
         // ignore
@@ -1550,7 +1550,7 @@ function ContractIssuedView({
         if (pending) {
           // Poll faster (4s) right after the author clicked "Sign", so the
           // page flips to "Contract Signed" as soon as DocuSign confirms.
-          const delay = awaitingSignature ? 4000 : 20000;
+          const delay = awaitingSignature ? 4000 : 10000;
           timer = setTimeout(() => load(false), delay);
         }
       } finally {
