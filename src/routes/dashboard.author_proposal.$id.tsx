@@ -364,6 +364,7 @@ type InfoRequestItem = {
   key?: string;
   label?: string;
   response_text?: string;
+  note?: string;
 };
 
 type InfoRequestFile = {
@@ -2519,7 +2520,7 @@ function InfoRequestPanel({
           <h1 className="mb-2 font-serif text-2xl font-bold text-stone-900">
             Editor needs additional information
           </h1>
-          {(req.note || req.message) && (
+          {(req.note || req.message) && !items.some((it) => (it.note || "").trim()) && (
             <div className="flex items-start gap-4">
               <div className="w-1 shrink-0 self-stretch rounded-full bg-stone-200" />
               <p className="whitespace-pre-wrap font-sans text-sm italic leading-relaxed text-stone-600">
@@ -2565,6 +2566,19 @@ function InfoRequestPanel({
                   </div>
 
                   <div className="space-y-4 rounded-lg border border-stone-100 bg-stone-50 p-5">
+                    {(it.note || "").trim() && (
+                      <div className="space-y-1.5">
+                        <label className="block font-sans text-xs font-bold uppercase tracking-tight text-stone-500">
+                          Editor's request
+                        </label>
+                        <div className="flex items-start gap-3 rounded-md border border-amber-200 bg-amber-50/60 px-3 py-2.5">
+                          <div className="w-1 shrink-0 self-stretch rounded-full bg-amber-300" />
+                          <p className="whitespace-pre-wrap font-sans text-sm italic leading-relaxed text-stone-700">
+                            {it.note}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                     <div className="space-y-2">
                       <label className="block font-sans text-xs font-bold uppercase tracking-tight text-stone-500">
                         Your updated text
