@@ -1395,6 +1395,11 @@ function ProposalDetailPage() {
     return s === "awaiting_more_info";
   }, [data?.status]);
 
+  const isLocked = useMemo(() => {
+    const s = (data?.status || "").toLowerCase().replace(/\s+/g, "_");
+    return s === "locked" || s === "confirmed_and_finalised" || s === "confirmed_and_finalized";
+  }, [data?.status]);
+
   // Latest unanswered author query (used for prominent DR action panel)
   const openQuery = useMemo<ContractQueryEntry | null>(() => {
     const answered = new Set(
@@ -3226,6 +3231,18 @@ function ProposalDetailPage() {
                       <p className="py-6 text-center font-sans text-sm text-stone-500">
                         No actions available
                       </p>
+                    ) : isLocked ? (
+                      <div className="rounded-xl border border-emerald-300 bg-emerald-50/70 px-5 py-6 text-center">
+                        <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-emerald-700 text-white shadow-sm">
+                          <Lock className="h-5 w-5" strokeWidth={2.5} />
+                        </div>
+                        <p className="mt-3 font-serif text-lg font-bold text-emerald-900">
+                          Proposal Locked
+                        </p>
+                        <p className="mt-1 font-sans text-xs leading-relaxed text-emerald-800/80">
+                          This proposal is locked — no further changes can be made.
+                        </p>
+                      </div>
                     ) : isContractSigned ? (
                       <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 px-5 py-6 text-center">
                         <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600 text-white shadow-sm">
