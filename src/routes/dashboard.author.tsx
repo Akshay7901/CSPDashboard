@@ -731,6 +731,30 @@ function AuthorDashboard() {
     return () => window.clearInterval(id);
   }, [authorEmail, loadMyProposals]);
 
+  // Fast poll while any proposal is awaiting contract signature, so the
+  // dashboard reflects the DocuSign webhook update on api.cambridgescholars.com
+  // within ~10s of the author signing. Pauses when the tab is hidden.
+  const hasPendingContract = useMemo(
+    () => myProposals.some((p) => p.status === "contract"),
+    [myProposals],
+  );
+  useEffect(() => {
+    if (!authorEmail || !hasPendingContract) return;
+    const tick = () => {
+      if (document.visibilityState === "hidden") return;
+      void loadMyProposals(authorEmail, true);
+    };
+    const id = window.setInterval(tick, 10000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") tick();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [authorEmail, hasPendingContract, loadMyProposals]);
+
   const displayName = authorName || (myProposals[0]?.authorName ?? "Author");
   const initials = initialsFromName(displayName);
 
