@@ -248,18 +248,22 @@ type TabKey =
   | "locked"
   | "declined";
 
+// Derive each tab's dot from STATUS_META so the tab indicator matches
+// the badge color used in the row for the same status.
+const tabDot = (raw: string): string =>
+  STATUS_META[normalizeStatus(raw, raw)]?.dot || "bg-stone-400";
 const TABS: { key: TabKey; label: string; dot: string }[] = [
   { key: "all", label: "All", dot: "bg-stone-400" },
-  { key: "new", label: "Submitted", dot: "bg-amber-400" },
-  { key: "awaiting_more_info", label: "Additional Info Required", dot: "bg-orange-500" },
-  { key: "in_review", label: "In Review", dot: "bg-sky-500" },
-  { key: "review_returned", label: "Review Returned", dot: "bg-indigo-500" },
-  { key: "contract_issued", label: "Contract Issued", dot: "bg-violet-500" },
-  { key: "queries_raised", label: "Queries Raised", dot: "bg-teal-500" },
-  { key: "awaiting_author_approval", label: "Contract Received", dot: "bg-fuchsia-500" },
-  { key: "author_approved", label: "Author Approved", dot: "bg-emerald-500" },
-  { key: "locked", label: "Locked", dot: "bg-emerald-700" },
-  { key: "declined", label: "Declined", dot: "bg-stone-400" },
+  { key: "new", label: "Submitted", dot: tabDot("new") },
+  { key: "awaiting_more_info", label: "Additional Info Required", dot: tabDot("awaiting_more_info") },
+  { key: "in_review", label: "In Review", dot: tabDot("in_review") },
+  { key: "review_returned", label: "Review Returned", dot: tabDot("review_returned") },
+  { key: "contract_issued", label: "Contract Issued", dot: tabDot("contract_issued") },
+  { key: "queries_raised", label: "Queries Raised", dot: tabDot("queries_raised") },
+  { key: "awaiting_author_approval", label: "Contract Received", dot: tabDot("awaiting_author_approval") },
+  { key: "author_approved", label: "Author Approved", dot: tabDot("author_approved") },
+  { key: "locked", label: "Locked", dot: tabDot("locked") },
+  { key: "declined", label: "Declined", dot: tabDot("declined") },
 ];
 
 const normalizeRaw = (raw?: string) =>
