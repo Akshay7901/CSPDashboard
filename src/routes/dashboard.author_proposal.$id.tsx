@@ -2190,63 +2190,6 @@ function ContractIssuedView({
         open={pdfOpen}
         onClose={() => setPdfOpen(false)}
       />
-
-      {previewFile && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4"
-          onClick={() => setPreviewFile(null)}
-        >
-          <div
-            className="flex h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between gap-3 border-b border-stone-200 px-5 py-3">
-              <div className="flex min-w-0 items-center gap-2">
-                <FileText className="h-5 w-5 shrink-0 text-amber-700" />
-                <p className="truncate font-sans text-sm font-semibold text-stone-900">
-                  {previewFile.filename}
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <a
-                  href={previewFile.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-md border border-stone-200 px-3 py-1.5 font-sans text-xs font-medium text-stone-700 hover:bg-stone-50"
-                >
-                  <Download className="h-3.5 w-3.5" />
-                  Open / Download
-                </a>
-                <button
-                  type="button"
-                  onClick={() => setPreviewFile(null)}
-                  aria-label="Close preview"
-                  className="rounded-md p-1.5 text-stone-500 hover:bg-stone-100 hover:text-stone-900"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-            <div className="flex-1 overflow-hidden bg-stone-100">
-              {/\.(png|jpe?g|gif|webp|svg|bmp)$/i.test(previewFile.filename) ? (
-                <div className="flex h-full w-full items-center justify-center overflow-auto p-4">
-                  <img
-                    src={previewFile.url}
-                    alt={previewFile.filename}
-                    className="max-h-full max-w-full object-contain"
-                  />
-                </div>
-              ) : (
-                <iframe
-                  src={previewFile.url}
-                  title={previewFile.filename}
-                  className="h-full w-full border-0 bg-white"
-                />
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </section>
     )
   );
