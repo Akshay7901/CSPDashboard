@@ -875,6 +875,7 @@ function ProposalDetailPage() {
     setReqRevMode("revisions");
     setReqRevAreas([]);
     setReqRevNote("");
+    setReqRevAreaNotes({});
     setReqRevDeadline("");
     setReqRevError(null);
     setReqRevSuccess(null);
@@ -885,6 +886,7 @@ function ProposalDetailPage() {
     setReqRevMode("major");
     setReqRevAreas([]);
     setReqRevNote("");
+    setReqRevAreaNotes({});
     setReqRevDeadline("");
     setReqRevError(null);
     setReqRevSuccess(null);
@@ -895,6 +897,9 @@ function ProposalDetailPage() {
     setReqRevAreas((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
     );
+
+  const updateReqRevAreaNote = (key: string, value: string) =>
+    setReqRevAreaNotes((prev) => ({ ...prev, [key]: value }));
 
   const submitRequestRevisions = async () => {
     if (reqRevAreas.length === 0 || !reqRevNote.trim()) return;
