@@ -57,8 +57,6 @@ export function MetadataQueries({
   const [responseText, setResponseText] = useState("");
   const [fieldEdits, setFieldEdits] = useState<Record<string, string>>({});
   const [rowEdits, setRowEdits] = useState<Record<string, string>>({});
-  const [applying, setApplying] = useState<string | null>(null);
-  const [appliedKeys, setAppliedKeys] = useState<Record<string, boolean>>({});
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -159,6 +157,12 @@ export function MetadataQueries({
         for (const [k, v] of Object.entries(fieldEdits)) {
           if ((fieldValues?.[k] ?? "") !== v) updates[k] = v;
         }
+        // Also persist any inline row edits made under the open queries.
+        for (const [rowKey, v] of Object.entries(rowEdits)) {
+          const fkey = rowKey.split(":")[1];
+          if (!fkey || fkey === "cover_image" || fkey === "authors") continue;
+          if ((fieldValues?.[fkey] ?? "") !== v) updates[fkey] = v;
+        }
         if (Object.keys(updates).length > 0) {
           await onSaveFields(updates);
         }
@@ -168,6 +172,7 @@ export function MetadataQueries({
       }
       setResponseText("");
       setFieldEdits({});
+      setRowEdits({});
       await reload();
       onChanged?.();
     } catch (e) {
@@ -302,10 +307,10 @@ export function MetadataQueries({
                           </p>
                         );
                       }
-                      const current = rowEdits[key] ?? queryText;
+                      const current =
+                        rowEdits[key] ?? (fieldValues?.[fkey] ?? queryText);
                       const multiline =
                         fkey === "display_bios" || fkey === "book_description";
-                      const isApplied = !!appliedKeys[key];
                       return (
                         <div
                           key={key}
@@ -333,46 +338,12 @@ export function MetadataQueries({
                               className="flex-1 rounded-md border border-stone-300 bg-white px-2 py-1.5 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
                             />
                           )}
-                          <button
-                            type="button"
-                            disabled={applying === key}
-                            onClick={async () => {
-                              if (!onSaveFields) return;
-                              setApplying(key);
-                              setError(null);
-                              try {
-                                await onSaveFields({ [fkey]: current });
-                                setAppliedKeys((p) => ({ ...p, [key]: true }));
-                                window.setTimeout(
-                                  () =>
-                                    setAppliedKeys((p) => {
-                                      const n = { ...p };
-                                      delete n[key];
-                                      return n;
-                                    }),
-                                  1800,
-                                );
-                              } catch (e) {
-                                setError((e as Error).message);
-                              } finally {
-                                setApplying(null);
-                              }
-                            }}
-                            className={`rounded-md px-3 py-1.5 font-sans text-xs font-semibold transition ${
-                              isApplied
-                                ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-300"
-                                : "bg-[#5B2EBA] text-white hover:bg-[#4a2599] disabled:opacity-50"
-                            }`}
-                          >
-                            {applying === key
-                              ? "Applying…"
-                              : isApplied
-                                ? "Applied ✓"
-                                : "Apply"}
-                          </button>
                         </div>
                       );
                     })}
+                    <p className="font-sans text-[11px] text-stone-500">
+                      These edits will be saved when you click <span className="font-semibold">Send Response</span> below.
+                    </p>
                   </div>
                 );
               })()}
