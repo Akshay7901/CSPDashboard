@@ -15,22 +15,18 @@ export async function proposalApiFetch(path: string, init?: RequestInit) {
   // status after the DocuSign webhook updates the backend. Without this,
   // the "Contract Signed" state can be delayed by 10+ minutes even though
   // the frontend polls every few seconds.
+  // Cache-bust GETs via a timestamp query param so the browser/CDN can't
+  // serve a stale contract status. We deliberately do NOT add Cache-Control
+  // or Pragma headers — those are non-simple headers that would trigger a
+  // CORS preflight against api.cambridgescholars.com and fail.
   const method = (init?.method ?? "GET").toUpperCase();
   if (method === "GET") {
     const sep = query ? "&" : "?";
     query = `${query}${sep}_t=${Date.now()}`;
   }
   const url = suffix ? `${EXTERNAL_API_BASE}/${suffix}${query}` : `${EXTERNAL_API_BASE}${query}`;
-  const mergedInit: RequestInit = {
-    ...init,
-    ...(method === "GET" ? { cache: "no-store" as RequestCache } : {}),
-    headers: {
-      ...(init?.headers as Record<string, string> | undefined),
-      ...(method === "GET"
-        ? { "Cache-Control": "no-cache", Pragma: "no-cache" }
-        : {}),
-    },
-  };
+  const mergedInit: RequestInit =
+    method === "GET" ? { ...init, cache: "no-store" as RequestCache } : (init ?? {});
   const res = await fetch(url, mergedInit);
   if (res.status === 401 && typeof window !== "undefined") {
     const isAuthCall = suffix.startsWith("auth/");
