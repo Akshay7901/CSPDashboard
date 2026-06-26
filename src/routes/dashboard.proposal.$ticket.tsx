@@ -677,6 +677,7 @@ function ProposalDetailPage() {
   const [reqRevOpen, setReqRevOpen] = useState(false);
   const [reqRevAreas, setReqRevAreas] = useState<string[]>([]);
   const [reqRevNote, setReqRevNote] = useState("");
+  const [reqRevAreaNotes, setReqRevAreaNotes] = useState<Record<string, string>>({});
   const [reqRevDeadline, setReqRevDeadline] = useState("");
   const [reqRevSubmitting, setReqRevSubmitting] = useState(false);
   const [reqRevError, setReqRevError] = useState<string | null>(null);
