@@ -1158,6 +1158,9 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
             </Card>
           )}
 
+          {/* Dynamic: every other key present in current_data */}
+          <DynamicProposalFields data={cd as unknown as Record<string, unknown>} />
+
         </div>
       </div>
       </div>
