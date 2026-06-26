@@ -36,7 +36,7 @@ import {
 } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
 import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
-import { formatDate, initialsFromName, displayNameFromEmail } from "@/lib/proposals";
+import { formatDate, initialsFromName, displayNameFromEmail, getStatusMeta } from "@/lib/proposals";
 import { proposalApiFetch } from "@/lib/proposalApi";
 import {
   listInternalNotes,
