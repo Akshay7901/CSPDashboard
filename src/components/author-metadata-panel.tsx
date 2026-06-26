@@ -105,6 +105,9 @@ export function AuthorMetadataPanel({
             /* ignore */
           }
         }
+        if (!restored && fallbackData && isPostApproval && isReleasedMetadata(fallbackData)) {
+          restored = fallbackData;
+        }
         if (restored) setMetadata(restored);
       } else {
         setError(res.error || "Failed to load metadata.");
