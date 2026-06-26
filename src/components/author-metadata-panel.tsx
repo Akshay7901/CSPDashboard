@@ -125,6 +125,10 @@ export function AuthorMetadataPanel({
     proposalStatus === "confirmed_and_finalized";
 
   if (!loading && !metadata) {
+    // Only show the panel after the decision reviewer has sent metadata
+    // (i.e., the author has already approved it). Otherwise hide entirely
+    // instead of showing an "Unavailable" placeholder.
+    if (!approvedByProposal) return null;
     return (
       <section className="mt-6 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 bg-gradient-to-r from-emerald-50 via-emerald-50/60 to-white px-6 py-4">
@@ -135,12 +139,11 @@ export function AuthorMetadataPanel({
             <h2 className="font-serif text-base font-bold text-stone-900">Metadata</h2>
           </div>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 font-sans text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
-            {approvedByProposal ? "Submitted" : "Unavailable"}
+            Submitted
           </span>
         </div>
         <div className="p-6">
-          {approvedByProposal ? (
-            <div className="flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+          <div className="flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
               <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
               <div>
                 <p className="font-sans text-sm font-semibold text-emerald-900">
@@ -150,16 +153,13 @@ export function AuthorMetadataPanel({
                   The publisher has received your approved record and will proceed to lock and publish it.
                 </p>
               </div>
-            </div>
-          ) : (
-            <p className="font-sans text-sm text-stone-600">
-              {error || "Metadata is not available to view at the moment."}
-            </p>
-          )}
+          </div>
         </div>
       </section>
     );
   }
+
+  void notVisible;
 
   const onApprove = async () => {
     setApproving(true);
