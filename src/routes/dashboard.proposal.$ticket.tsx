@@ -675,9 +675,15 @@ function ProposalDetailPage() {
     { key: "other", label: "Other" },
   ];
   const [reqRevOpen, setReqRevOpen] = useState(false);
-  const [reqRevAreas, setReqRevAreas] = useState<string[]>([]);
-  const [reqRevNote, setReqRevNote] = useState("");
-  const [reqRevAreaNotes, setReqRevAreaNotes] = useState<Record<string, string>>({});
+  type RevisionEntry = { id: string; key: string; note: string };
+  const newRevisionEntry = (): RevisionEntry => ({
+    id: `rev_${Math.random().toString(36).slice(2, 9)}`,
+    key: "",
+    note: "",
+  });
+  const [reqRevEntries, setReqRevEntries] = useState<RevisionEntry[]>([
+    newRevisionEntry(),
+  ]);
   const [reqRevDeadline, setReqRevDeadline] = useState("");
   const [reqRevSubmitting, setReqRevSubmitting] = useState(false);
   const [reqRevError, setReqRevError] = useState<string | null>(null);
