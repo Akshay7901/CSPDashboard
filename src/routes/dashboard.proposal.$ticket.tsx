@@ -2067,7 +2067,7 @@ function ProposalDetailPage() {
             <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px]">
               {/* Main column */}
               <div className="space-y-6">
-                {isContractSigned && (
+                {hasSignedContract && (
                   <Card className="overflow-hidden border-stone-200">
                     {/* Header */}
                     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 bg-gradient-to-r from-emerald-50 via-emerald-50/60 to-white px-6 py-4">
