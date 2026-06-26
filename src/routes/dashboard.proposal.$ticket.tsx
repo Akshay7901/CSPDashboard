@@ -879,9 +879,7 @@ function ProposalDetailPage() {
 
   const openRequestRevisions = () => {
     setReqRevMode("revisions");
-    setReqRevAreas([]);
-    setReqRevNote("");
-    setReqRevAreaNotes({});
+    setReqRevEntries([newRevisionEntry()]);
     setReqRevDeadline("");
     setReqRevError(null);
     setReqRevSuccess(null);
@@ -890,28 +888,30 @@ function ProposalDetailPage() {
 
   const openRequestMajorRevision = () => {
     setReqRevMode("major");
-    setReqRevAreas([]);
-    setReqRevNote("");
-    setReqRevAreaNotes({});
+    setReqRevEntries([newRevisionEntry()]);
     setReqRevDeadline("");
     setReqRevError(null);
     setReqRevSuccess(null);
     setReqRevOpen(true);
   };
 
-  const toggleReqRevArea = (key: string) =>
-    setReqRevAreas((prev) =>
-      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
+  const updateRevisionEntry = (id: string, patch: Partial<RevisionEntry>) =>
+    setReqRevEntries((prev) => prev.map((e) => (e.id === id ? { ...e, ...patch } : e)));
+  const addRevisionEntry = () =>
+    setReqRevEntries((prev) => [...prev, newRevisionEntry()]);
+  const removeRevisionEntry = (id: string) =>
+    setReqRevEntries((prev) =>
+      prev.length <= 1 ? prev : prev.filter((e) => e.id !== id),
     );
 
-  const updateReqRevAreaNote = (key: string, value: string) =>
-    setReqRevAreaNotes((prev) => ({ ...prev, [key]: value }));
-
   const submitRequestRevisions = async () => {
-    if (reqRevAreas.length === 0) return;
-    const missing = reqRevAreas.filter((k) => !(reqRevAreaNotes[k] || "").trim());
-    if (missing.length > 0) {
-      setReqRevError("Please add feedback for each selected area.");
+    const valid = reqRevEntries.filter((e) => e.key && e.note.trim());
+    if (valid.length === 0) {
+      setReqRevError("Please add at least one revision area with feedback.");
+      return;
+    }
+    if (valid.length !== reqRevEntries.length) {
+      setReqRevError("Please complete each revision entry or remove it.");
       return;
     }
     setReqRevSubmitting(true);
@@ -919,9 +919,14 @@ function ProposalDetailPage() {
     setReqRevSuccess(null);
     try {
       const token = getPortalToken();
-      const items = REVISION_AREAS.filter((a) => reqRevAreas.includes(a.key)).map(
-        ({ key, label }) => ({ key, label, note: (reqRevAreaNotes[key] || "").trim() }),
-      );
+      const items = valid.map((e) => {
+        const area = REVISION_AREAS.find((a) => a.key === e.key);
+        return {
+          key: e.key,
+          label: area?.label || e.key,
+          note: e.note.trim(),
+        };
+      });
       const combinedNote = items
         .map((i) => `${i.label}: ${i.note}`)
         .join("\n\n");
