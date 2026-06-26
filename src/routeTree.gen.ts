@@ -16,6 +16,7 @@ import { Route as DashboardEditorRouteImport } from './routes/dashboard.editor'
 import { Route as DashboardDecision_reviewerRouteImport } from './routes/dashboard.decision_reviewer'
 import { Route as DashboardAuthorRouteImport } from './routes/dashboard.author'
 import { Route as DashboardRoleRouteImport } from './routes/dashboard.$role'
+import { Route as ContractCompleteRouteImport } from './routes/contract.complete'
 import { Route as DashboardProposalTicketRouteImport } from './routes/dashboard.proposal.$ticket'
 import { Route as DashboardAuthor_proposalIdRouteImport } from './routes/dashboard.author_proposal.$id'
 import { Route as DashboardReviewerSubmissionIdRouteImport } from './routes/dashboard.reviewer.submission.$id'
@@ -57,6 +58,11 @@ const DashboardRoleRoute = DashboardRoleRouteImport.update({
   path: '/dashboard/$role',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContractCompleteRoute = ContractCompleteRouteImport.update({
+  id: '/contract/complete',
+  path: '/contract/complete',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardProposalTicketRoute = DashboardProposalTicketRouteImport.update({
   id: '/dashboard/proposal/$ticket',
   path: '/dashboard/proposal/$ticket',
@@ -84,6 +90,7 @@ const DashboardEditorSubmissionIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/contract/complete': typeof ContractCompleteRoute
   '/dashboard/$role': typeof DashboardRoleRoute
   '/dashboard/author': typeof DashboardAuthorRoute
   '/dashboard/decision_reviewer': typeof DashboardDecision_reviewerRoute
@@ -97,6 +104,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/contract/complete': typeof ContractCompleteRoute
   '/dashboard/$role': typeof DashboardRoleRoute
   '/dashboard/author': typeof DashboardAuthorRoute
   '/dashboard/decision_reviewer': typeof DashboardDecision_reviewerRoute
@@ -111,6 +119,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/contract/complete': typeof ContractCompleteRoute
   '/dashboard/$role': typeof DashboardRoleRoute
   '/dashboard/author': typeof DashboardAuthorRoute
   '/dashboard/decision_reviewer': typeof DashboardDecision_reviewerRoute
@@ -126,6 +135,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/contract/complete'
     | '/dashboard/$role'
     | '/dashboard/author'
     | '/dashboard/decision_reviewer'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/contract/complete'
     | '/dashboard/$role'
     | '/dashboard/author'
     | '/dashboard/decision_reviewer'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/login'
+    | '/contract/complete'
     | '/dashboard/$role'
     | '/dashboard/author'
     | '/dashboard/decision_reviewer'
@@ -166,6 +178,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
+  ContractCompleteRoute: typeof ContractCompleteRoute
   DashboardRoleRoute: typeof DashboardRoleRoute
   DashboardAuthorRoute: typeof DashboardAuthorRoute
   DashboardDecision_reviewerRoute: typeof DashboardDecision_reviewerRoute
@@ -226,6 +239,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRoleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contract/complete': {
+      id: '/contract/complete'
+      path: '/contract/complete'
+      fullPath: '/contract/complete'
+      preLoaderRoute: typeof ContractCompleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard/proposal/$ticket': {
       id: '/dashboard/proposal/$ticket'
       path: '/dashboard/proposal/$ticket'
@@ -283,6 +303,7 @@ const DashboardReviewerRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
+  ContractCompleteRoute: ContractCompleteRoute,
   DashboardRoleRoute: DashboardRoleRoute,
   DashboardAuthorRoute: DashboardAuthorRoute,
   DashboardDecision_reviewerRoute: DashboardDecision_reviewerRoute,
