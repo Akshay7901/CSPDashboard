@@ -880,7 +880,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
         ticket={proposal.ticket}
         proposalStatus={proposal.status}
         isPostApproval={
-          status === "approved" || status === "signed" || contractSigned
+          status === "approved"
         }
         fallbackData={{
           ticket_number: proposal.ticket,

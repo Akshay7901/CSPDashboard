@@ -156,12 +156,11 @@ export function AuthorMetadataPanel({
     !!isPostApproval ||
     proposalStatus === "author_approved" ||
     proposalStatus === "locked" ||
-    proposalStatus === "contract_signed" ||
     proposalStatus === "confirmed_and_finalised" ||
     proposalStatus === "confirmed_and_finalized" ||
     proposalStatus === "final_review_and_confirmation" ||
     // Display-label fallbacks (when parent passes the human-readable status)
-    /^(author approved|locked|contract signed|confirmed (and|&) finali[sz]ed|final review|metadata approved)$/i.test(
+    /^(author approved|locked|confirmed (and|&) finali[sz]ed|final review|metadata approved)$/i.test(
       (proposalStatus || "").trim(),
     );
 
