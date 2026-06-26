@@ -1216,7 +1216,7 @@ function ProposalDetailPage() {
         const st = (latest?.status || "").toLowerCase();
         const pending = st === "sent" || st === "draft";
         if (pending) {
-          timer = setTimeout(() => load(false), 10000);
+          timer = setTimeout(() => load(false), 5000);
         }
       } catch {
         if (!cancelled) setContracts([]);

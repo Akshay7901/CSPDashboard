@@ -1550,7 +1550,9 @@ function ContractIssuedView({
         if (pending) {
           // Poll faster (4s) right after the author clicked "Sign", so the
           // page flips to "Contract Signed" as soon as DocuSign confirms.
-          const delay = awaitingSignature ? 4000 : 10000;
+          // Tightened so the page flips to "Contract Signed" as soon as
+          // DocuSign confirms (2s right after Sign click, 5s passive).
+          const delay = awaitingSignature ? 2000 : 5000;
           timer = setTimeout(() => load(false), delay);
         }
       } finally {

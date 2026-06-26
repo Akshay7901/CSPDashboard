@@ -744,7 +744,7 @@ function AuthorDashboard() {
       if (document.visibilityState === "hidden") return;
       void loadMyProposals(authorEmail, true);
     };
-    const id = window.setInterval(tick, 10000);
+    const id = window.setInterval(tick, 5000);
     const onVisible = () => {
       if (document.visibilityState === "visible") tick();
     };

@@ -569,6 +569,31 @@ function DecisionReviewerDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Fast poll while any proposal is awaiting contract signature so the DR
+  // list reflects the DocuSign webhook update within ~5s. Pauses when the
+  // tab is hidden.
+  const hasPendingContract = useMemo(
+    () => apiProposals.some((p) => p.status === "contract"),
+    [apiProposals],
+  );
+  useEffect(() => {
+    if (!hasPendingContract) return;
+    const tick = () => {
+      if (document.visibilityState === "hidden") return;
+      void fetchProposals(true);
+    };
+    const id = window.setInterval(tick, 5000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") tick();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasPendingContract]);
+
   const addReviewer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newReviewer.name.trim() || !newReviewer.email.trim()) return;
