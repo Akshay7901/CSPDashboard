@@ -112,7 +112,7 @@ const STATUS_KEY_MAP: Record<string, StatusKey> = {
   new: "submitted",
   submitted: "submitted",
   in_review: "in_review",
-  "under review": "in_review",
+  under_review: "in_review",
   review_returned: "review_returned",
   contract_issued: "contract",
   queries_raised: "question",
