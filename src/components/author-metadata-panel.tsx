@@ -159,11 +159,6 @@ export function AuthorMetadataPanel({
     );
   }
 
-  // Hide entirely if the decision reviewer hasn't sent metadata yet.
-  if (!loading && metadata && !isSent && !isApproved && !notVisible) {
-    // metadata exists in some draft state but never sent to author — hide.
-    return null;
-  }
   void notVisible;
 
   const onApprove = async () => {
