@@ -902,15 +902,23 @@ function ProposalDetailPage() {
     setReqRevAreaNotes((prev) => ({ ...prev, [key]: value }));
 
   const submitRequestRevisions = async () => {
-    if (reqRevAreas.length === 0 || !reqRevNote.trim()) return;
+    if (reqRevAreas.length === 0) return;
+    const missing = reqRevAreas.filter((k) => !(reqRevAreaNotes[k] || "").trim());
+    if (missing.length > 0) {
+      setReqRevError("Please add feedback for each selected area.");
+      return;
+    }
     setReqRevSubmitting(true);
     setReqRevError(null);
     setReqRevSuccess(null);
     try {
       const token = getPortalToken();
       const items = REVISION_AREAS.filter((a) => reqRevAreas.includes(a.key)).map(
-        ({ key, label }) => ({ key, label }),
+        ({ key, label }) => ({ key, label, note: (reqRevAreaNotes[key] || "").trim() }),
       );
+      const combinedNote = items
+        .map((i) => `${i.label}: ${i.note}`)
+        .join("\n\n");
       const res = await proposalApiFetch(
         `/${encodeURIComponent(ticket)}/request-info`,
         {
@@ -921,7 +929,7 @@ function ProposalDetailPage() {
           },
           body: JSON.stringify({
             items,
-            note: reqRevNote.trim(),
+            note: combinedNote,
             ...(reqRevDeadline ? { resubmission_deadline: reqRevDeadline } : {}),
           }),
         },
