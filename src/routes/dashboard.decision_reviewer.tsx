@@ -250,21 +250,29 @@ type TabKey =
   | "declined";
 
 // Derive each tab's dot from STATUS_META so the tab indicator matches
-// the badge color used in the row for the same status.
-const tabDot = (raw: string): string => getStatusMeta(raw, raw).dot;
-const TABS: { key: TabKey; label: string; dot: string }[] = [
-  { key: "all", label: "All", dot: "bg-stone-400" },
-  { key: "new", label: "Submitted", dot: tabDot("new") },
-  { key: "awaiting_more_info", label: "Additional Info Required", dot: tabDot("awaiting_more_info") },
-  { key: "in_review", label: "In Review", dot: tabDot("in_review") },
-  { key: "review_returned", label: "Review Returned", dot: tabDot("review_returned") },
-  { key: "contract_issued", label: "Contract Issued", dot: tabDot("contract_issued") },
-  { key: "queries_raised", label: "Queries Raised", dot: tabDot("queries_raised") },
-  { key: "awaiting_author_approval", label: "Contract Received", dot: tabDot("awaiting_author_approval") },
-  { key: "author_approved", label: "Author Approved", dot: tabDot("author_approved") },
-  { key: "locked", label: "Locked", dot: tabDot("locked") },
-  { key: "declined", label: "Declined", dot: tabDot("declined") },
-];
+// the badge color used in the row for the same status. Pass the tab's
+// display label so display-aware mappings (e.g. "Contract Received" →
+// signed/green) win over the raw key bucket.
+const tabDot = (raw: string, label: string): string =>
+  getStatusMeta(raw, label).dot;
+const TABS: { key: TabKey; label: string; dot: string }[] = (
+  [
+    { key: "all", label: "All" },
+    { key: "new", label: "Submitted" },
+    { key: "awaiting_more_info", label: "Additional Info Required" },
+    { key: "in_review", label: "In Review" },
+    { key: "review_returned", label: "Review Returned" },
+    { key: "contract_issued", label: "Contract Issued" },
+    { key: "queries_raised", label: "Queries Raised" },
+    { key: "awaiting_author_approval", label: "Contract Received" },
+    { key: "author_approved", label: "Author Approved" },
+    { key: "locked", label: "Locked" },
+    { key: "declined", label: "Declined" },
+  ] as { key: TabKey; label: string }[]
+).map((t) => ({
+  ...t,
+  dot: t.key === "all" ? "bg-stone-400" : tabDot(t.key, t.label),
+}));
 
 const normalizeRaw = (raw?: string) =>
   (raw || "").trim().toLowerCase().replace(/\s+/g, "_");
