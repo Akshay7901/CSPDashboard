@@ -17,6 +17,7 @@ import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
 import { ChangePasswordButton } from "@/components/change-password-dialog";
 import { formatDate, initialsFromName, type Proposal, type StatusKey } from "@/lib/proposals";
 import { proposalApiFetch } from "@/lib/proposalApi";
+import { getContract } from "@/lib/contractsApi";
 
 export const Route = createFileRoute("/dashboard/author")({
   head: () => ({ meta: [{ title: "Author Portal — My Proposals" }] }),
