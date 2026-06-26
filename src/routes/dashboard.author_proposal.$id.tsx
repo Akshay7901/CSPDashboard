@@ -1246,7 +1246,7 @@ function isUrl(v: string): boolean {
   return /^https?:\/\//i.test(v.trim());
 }
 
-function renderDynamicValue(value: unknown): React.ReactNode {
+function renderDynamicValue(value: unknown): ReactNode {
   if (value === null || value === undefined || value === "") return "—";
   if (typeof value === "boolean") return value ? "Yes" : "No";
   if (typeof value === "number") return String(value);
