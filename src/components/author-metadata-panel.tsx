@@ -44,6 +44,11 @@ const AUTHOR_FIELDS: { key: keyof MetadataAuthor; label: string }[] = [
   { key: "country", label: "Country" },
 ];
 
+function isReleasedMetadata(record: ProposalMetadata | null | undefined) {
+  const status = (record?.metadata_status || "").trim().toLowerCase();
+  return status === "sent_to_author" || status === "approved" || !!record?.approved_at;
+}
+
 export function AuthorMetadataPanel({
   ticket,
   proposalStatus,
@@ -92,12 +97,14 @@ export function AuthorMetadataPanel({
         if (isPostApproval) {
           try {
             const cached = localStorage.getItem(`author_metadata_cache:${ticket}`);
-            if (cached) restored = JSON.parse(cached) as ProposalMetadata;
+            if (cached) {
+              const parsed = JSON.parse(cached) as ProposalMetadata;
+              if (isReleasedMetadata(parsed)) restored = parsed;
+            }
           } catch {
             /* ignore */
           }
         }
-        if (!restored && fallbackData && isPostApproval) restored = fallbackData;
         if (restored) setMetadata(restored);
       } else {
         setError(res.error || "Failed to load metadata.");
@@ -105,6 +112,18 @@ export function AuthorMetadataPanel({
       setLoading(false);
       return;
     }
+    if (!isReleasedMetadata(res.data)) {
+      setMetadata(null);
+      setNotVisible(true);
+      try {
+        localStorage.removeItem(`author_metadata_cache:${ticket}`);
+      } catch {
+        /* ignore quota errors */
+      }
+      setLoading(false);
+      return;
+    }
+
     setMetadata(res.data);
     // Cache the latest snapshot so we can keep displaying it after the
     // proposal advances past `sent_to_author` and the API hides the record.
@@ -129,10 +148,7 @@ export function AuthorMetadataPanel({
 
   const status = metadata?.metadata_status || "";
   const isSent = status === "sent_to_author";
-  const isApproved =
-    status === "approved" ||
-    proposalStatus === "author_approved" ||
-    !!metadata?.approved_at;
+  const isApproved = status === "approved" || !!metadata?.approved_at;
 
   const canApprove = isSent && proposalStatus === "awaiting_author_approval";
   const canEditCover = !isApproved;
@@ -149,20 +165,10 @@ export function AuthorMetadataPanel({
     [],
   );
 
-  // If the author has already approved (or the API no longer exposes the
-  // record), keep the panel visible with a confirmation card so the author
-  // can see that their submission is on file — never hide it silently.
-  const approvedByProposal =
-    !!isPostApproval ||
-    proposalStatus === "author_approved" ||
-    proposalStatus === "locked" ||
-    proposalStatus === "confirmed_and_finalised" ||
-    proposalStatus === "confirmed_and_finalized" ||
-    proposalStatus === "final_review_and_confirmation" ||
-    // Display-label fallbacks (when parent passes the human-readable status)
-    /^(author approved|locked|confirmed (and|&) finali[sz]ed|final review|metadata approved)$/i.test(
-      (proposalStatus || "").trim(),
-    );
+  // The author must only see metadata after the decision reviewer explicitly
+  // sends it (`sent_to_author`) or after the author has approved that sent
+  // record. Proposal/contract statuses alone must not reveal draft metadata.
+  const approvedByProposal = false;
 
   if (loading && !metadata) return null;
   if (!loading && !metadata && !approvedByProposal) return null;
