@@ -675,9 +675,15 @@ function ProposalDetailPage() {
     { key: "other", label: "Other" },
   ];
   const [reqRevOpen, setReqRevOpen] = useState(false);
-  const [reqRevAreas, setReqRevAreas] = useState<string[]>([]);
-  const [reqRevNote, setReqRevNote] = useState("");
-  const [reqRevAreaNotes, setReqRevAreaNotes] = useState<Record<string, string>>({});
+  type RevisionEntry = { id: string; key: string; note: string };
+  const newRevisionEntry = (): RevisionEntry => ({
+    id: `rev_${Math.random().toString(36).slice(2, 9)}`,
+    key: "",
+    note: "",
+  });
+  const [reqRevEntries, setReqRevEntries] = useState<RevisionEntry[]>([
+    newRevisionEntry(),
+  ]);
   const [reqRevDeadline, setReqRevDeadline] = useState("");
   const [reqRevSubmitting, setReqRevSubmitting] = useState(false);
   const [reqRevError, setReqRevError] = useState<string | null>(null);
@@ -873,9 +879,7 @@ function ProposalDetailPage() {
 
   const openRequestRevisions = () => {
     setReqRevMode("revisions");
-    setReqRevAreas([]);
-    setReqRevNote("");
-    setReqRevAreaNotes({});
+    setReqRevEntries([newRevisionEntry()]);
     setReqRevDeadline("");
     setReqRevError(null);
     setReqRevSuccess(null);
@@ -884,28 +888,30 @@ function ProposalDetailPage() {
 
   const openRequestMajorRevision = () => {
     setReqRevMode("major");
-    setReqRevAreas([]);
-    setReqRevNote("");
-    setReqRevAreaNotes({});
+    setReqRevEntries([newRevisionEntry()]);
     setReqRevDeadline("");
     setReqRevError(null);
     setReqRevSuccess(null);
     setReqRevOpen(true);
   };
 
-  const toggleReqRevArea = (key: string) =>
-    setReqRevAreas((prev) =>
-      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
+  const updateRevisionEntry = (id: string, patch: Partial<RevisionEntry>) =>
+    setReqRevEntries((prev) => prev.map((e) => (e.id === id ? { ...e, ...patch } : e)));
+  const addRevisionEntry = () =>
+    setReqRevEntries((prev) => [...prev, newRevisionEntry()]);
+  const removeRevisionEntry = (id: string) =>
+    setReqRevEntries((prev) =>
+      prev.length <= 1 ? prev : prev.filter((e) => e.id !== id),
     );
 
-  const updateReqRevAreaNote = (key: string, value: string) =>
-    setReqRevAreaNotes((prev) => ({ ...prev, [key]: value }));
-
   const submitRequestRevisions = async () => {
-    if (reqRevAreas.length === 0) return;
-    const missing = reqRevAreas.filter((k) => !(reqRevAreaNotes[k] || "").trim());
-    if (missing.length > 0) {
-      setReqRevError("Please add feedback for each selected area.");
+    const valid = reqRevEntries.filter((e) => e.key && e.note.trim());
+    if (valid.length === 0) {
+      setReqRevError("Please add at least one revision area with feedback.");
+      return;
+    }
+    if (valid.length !== reqRevEntries.length) {
+      setReqRevError("Please complete each revision entry or remove it.");
       return;
     }
     setReqRevSubmitting(true);
@@ -913,9 +919,14 @@ function ProposalDetailPage() {
     setReqRevSuccess(null);
     try {
       const token = getPortalToken();
-      const items = REVISION_AREAS.filter((a) => reqRevAreas.includes(a.key)).map(
-        ({ key, label }) => ({ key, label, note: (reqRevAreaNotes[key] || "").trim() }),
-      );
+      const items = valid.map((e) => {
+        const area = REVISION_AREAS.find((a) => a.key === e.key);
+        return {
+          key: e.key,
+          label: area?.label || e.key,
+          note: e.note.trim(),
+        };
+      });
       const combinedNote = items
         .map((i) => `${i.label}: ${i.note}`)
         .join("\n\n");
@@ -3739,55 +3750,81 @@ function ProposalDetailPage() {
               </button>
             </div>
             <div className="flex-1 overflow-y-auto px-7 pb-5">
-              <div>
+              <div className="space-y-4">
                 <p className="font-sans text-sm font-semibold text-[#2C1A0E]">
-                  Areas Requiring Revision <span className="text-rose-600">*</span>
+                  Revision Requests <span className="text-rose-600">*</span>
                 </p>
-                <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {REVISION_AREAS.map((area) => {
-                    const checked = reqRevAreas.includes(area.key);
-                    return (
-                      <label
-                        key={area.key}
-                        className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 font-sans text-sm transition-colors ${
-                          checked
-                            ? "border-amber-400 bg-amber-50 text-amber-900"
-                            : "border-stone-200 bg-white text-stone-700 hover:border-stone-300"
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={() => toggleReqRevArea(area.key)}
-                          className="h-4 w-4 rounded border-stone-300 text-amber-600 focus:ring-amber-500"
+                {reqRevEntries.map((entry, idx) => {
+                  const takenKeys = reqRevEntries
+                    .filter((e) => e.id !== entry.id)
+                    .map((e) => e.key)
+                    .filter(Boolean);
+                  return (
+                    <div
+                      key={entry.id}
+                      className="rounded-xl border border-stone-200 bg-stone-50/60 p-4"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="font-sans text-xs font-semibold uppercase tracking-wide text-[#7A6A5A]">
+                          Revision {idx + 1}
+                        </span>
+                        {reqRevEntries.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeRevisionEntry(entry.id)}
+                            className="font-sans text-xs font-semibold text-rose-600 hover:text-rose-700"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                      <div className="mt-3">
+                        <label className="font-sans text-xs font-semibold text-[#2C1A0E]">
+                          Area
+                        </label>
+                        <select
+                          value={entry.key}
+                          onChange={(e) =>
+                            updateRevisionEntry(entry.id, { key: e.target.value })
+                          }
+                          className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"
+                        >
+                          <option value="">Select an area…</option>
+                          {REVISION_AREAS.filter(
+                            (a) => a.key === entry.key || !takenKeys.includes(a.key),
+                          ).map((a) => (
+                            <option key={a.key} value={a.key}>
+                              {a.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="mt-3">
+                        <label className="font-sans text-xs font-semibold text-[#2C1A0E]">
+                          Feedback
+                        </label>
+                        <textarea
+                          value={entry.note}
+                          onChange={(e) =>
+                            updateRevisionEntry(entry.id, { note: e.target.value })
+                          }
+                          rows={3}
+                          placeholder="Explain what needs to be updated and why…"
+                          className="mt-1.5 w-full resize-none rounded-xl border border-stone-200 bg-white px-3.5 py-3 font-sans text-sm text-stone-800 placeholder:text-stone-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"
                         />
-                        <span>{area.label}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-              {reqRevAreas.length > 0 && (
-                <div className="mt-5 space-y-4">
-                  <p className="font-sans text-sm font-semibold text-[#2C1A0E]">
-                    Editorial Feedback <span className="text-rose-600">*</span>
-                  </p>
-                  {REVISION_AREAS.filter((a) => reqRevAreas.includes(a.key)).map((area) => (
-                    <div key={area.key}>
-                      <label className="font-sans text-xs font-semibold uppercase tracking-wide text-[#7A6A5A]">
-                        {area.label}
-                      </label>
-                      <textarea
-                        value={reqRevAreaNotes[area.key] || ""}
-                        onChange={(e) => updateReqRevAreaNote(area.key, e.target.value)}
-                        rows={3}
-                        placeholder={`Explain what needs to be updated for ${area.label}…`}
-                        className="mt-1.5 w-full resize-none rounded-xl border border-stone-200 bg-white px-3.5 py-3 font-sans text-sm text-stone-800 placeholder:text-stone-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"
-                      />
+                      </div>
                     </div>
-                  ))}
-                </div>
-              )}
+                  );
+                })}
+                <button
+                  type="button"
+                  onClick={addRevisionEntry}
+                  disabled={reqRevEntries.length >= REVISION_AREAS.length}
+                  className="w-full rounded-xl border border-dashed border-amber-400 bg-amber-50/50 px-4 py-2.5 font-sans text-sm font-semibold text-amber-800 hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  + Add new revision
+                </button>
+              </div>
               <div className="mt-5">
                 <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
                   Resubmission Deadline{" "}
@@ -3824,8 +3861,8 @@ function ProposalDetailPage() {
                 onClick={submitRequestRevisions}
                 disabled={
                   reqRevSubmitting ||
-                  reqRevAreas.length === 0 ||
-                  reqRevAreas.some((k) => !(reqRevAreaNotes[k] || "").trim())
+                  reqRevEntries.length === 0 ||
+                  reqRevEntries.some((e) => !e.key || !e.note.trim())
                 }
                 className="rounded-xl bg-[#C97A6A] px-5 py-2.5 font-sans text-sm font-semibold text-white hover:bg-[#b56656] disabled:cursor-not-allowed disabled:bg-[#E9C8C0] disabled:text-white/80"
               >
