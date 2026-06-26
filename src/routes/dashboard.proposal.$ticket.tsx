@@ -35,7 +35,8 @@ import {
   Lock,
 } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
-import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
+import { portalLogout, getPortalSession, getPortalToken, isAdmin } from "@/lib/auth";
+import { deleteCoverImage as apiDeleteCoverImage } from "@/lib/metadataApi";
 import { formatDate, initialsFromName, displayNameFromEmail, getStatusMeta } from "@/lib/proposals";
 import { proposalApiFetch } from "@/lib/proposalApi";
 import {
@@ -605,9 +606,14 @@ function ProposalDetailPage() {
     approved_at?: string;
     cover_image?: {
       s3_url?: string;
+      url?: string;
       filename?: string;
       width_px?: number;
       height_px?: number;
+      dpi?: number;
+      file_size_bytes?: number;
+      version?: number;
+      source?: string;
       uploaded_at?: string;
     } | null;
   };
@@ -2155,7 +2161,9 @@ function ProposalDetailPage() {
                       )}
 
                       {!metadataLoading && !metadataError && metadata && (() => {
-                        const coverUrl = metadata.cover_image?.s3_url;
+                        const coverImg = metadata.cover_image;
+                        const coverUrl = coverImg?.url || coverImg?.s3_url;
+                        const canDeleteCover = isAdmin();
                         const authorsList = metaForm.authors;
                          const isMetaLocked =
                            isLocked ||
@@ -2212,16 +2220,64 @@ function ProposalDetailPage() {
                               <MetaRow label="Keywords" value={metaForm.keywords} onChange={(v) => updateMetaField("keywords", v)} disabled={isMetaLocked} />
                               <MetaRow label="Website Classification" value={metaForm.website_classification} onChange={(v) => updateMetaField("website_classification", v)} disabled={isMetaLocked} />
                               <MetaRow label="BIC Codes" value={metaForm.bic} onChange={(v) => updateMetaField("bic", v)} disabled={isMetaLocked} />
-                              {coverUrl && (
-                                <div className="grid grid-cols-[220px_1fr] gap-0 border-t border-stone-200">
-                                  <div className="flex items-center bg-stone-50/60 px-5 py-4 font-sans text-sm font-medium text-stone-700">
-                                    Cover Image
-                                  </div>
-                                  <div className="border-l border-stone-200 px-4 py-4">
-                                    <img src={coverUrl} alt="Cover" className="h-40 rounded-lg border border-stone-200 object-cover shadow-sm" />
-                                  </div>
+                              <div className="grid grid-cols-[220px_1fr] gap-0 border-t border-stone-200">
+                                <div className="flex items-center bg-stone-50/60 px-5 py-4 font-sans text-sm font-medium text-stone-700">
+                                  Cover Image
                                 </div>
-                              )}
+                                <div className="border-l border-stone-200 px-4 py-4">
+                                  {coverUrl ? (
+                                    <div className="flex flex-wrap items-start gap-4">
+                                      <img
+                                        src={coverUrl}
+                                        alt="Cover"
+                                        className="h-40 rounded-lg border border-stone-200 object-contain shadow-sm"
+                                      />
+                                      <div className="space-y-1 font-sans text-xs text-stone-600">
+                                        {coverImg?.filename && (
+                                          <p><span className="text-stone-400">File:</span> {coverImg.filename}</p>
+                                        )}
+                                        {(coverImg?.width_px || coverImg?.height_px) && (
+                                          <p>
+                                            <span className="text-stone-400">Dimensions:</span>{" "}
+                                            {coverImg?.width_px || "?"}×{coverImg?.height_px || "?"} px
+                                            {coverImg?.dpi ? ` · ${coverImg.dpi} dpi` : ""}
+                                          </p>
+                                        )}
+                                        {typeof coverImg?.file_size_bytes === "number" && (
+                                          <p>
+                                            <span className="text-stone-400">Size:</span>{" "}
+                                            {(coverImg.file_size_bytes / 1024 / 1024).toFixed(2)} MB
+                                          </p>
+                                        )}
+                                        {typeof coverImg?.version === "number" && (
+                                          <p><span className="text-stone-400">Version:</span> v{coverImg.version}</p>
+                                        )}
+                                        {canDeleteCover && (
+                                          <button
+                                            type="button"
+                                            onClick={async () => {
+                                              if (!confirm("Remove the current cover image? This cannot be undone.")) return;
+                                              try {
+                                                await apiDeleteCoverImage(ticket);
+                                                setMetadata((prev) => prev ? { ...prev, cover_image: null } : prev);
+                                              } catch (e) {
+                                                alert((e as Error).message);
+                                              }
+                                            }}
+                                            className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-rose-200 bg-white px-3 py-1.5 font-sans text-xs font-semibold text-rose-700 hover:bg-rose-50"
+                                          >
+                                            Remove cover
+                                          </button>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="flex h-32 items-center justify-center rounded-lg border-2 border-dashed border-stone-300 px-4 font-sans text-xs text-stone-400">
+                                      No cover image uploaded
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
 
                               {authorsList.map((a, i) => (
                                 <div key={i}>
