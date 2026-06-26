@@ -17,9 +17,11 @@ import {
   uploadCoverImage,
   validateCoverImageFile,
   type MetadataAuthor,
+  type CoverImage,
   type ProposalMetadata,
 } from "@/lib/metadataApi";
 import { MetadataQueries } from "@/components/metadata-queries";
+import { isAdmin } from "@/lib/auth";
 
 const FIELD_DEFS: { key: string; label: string; multiline?: boolean }[] = [
   { key: "full_title", label: "Title (full)" },
@@ -77,6 +79,7 @@ export function AuthorMetadataPanel({
   const [uploading, setUploading] = useState(false);
   const [coverError, setCoverError] = useState<string | null>(null);
   const [coverSuccess, setCoverSuccess] = useState<string | null>(null);
+  const [uploadPct, setUploadPct] = useState(0);
   const [sourceText, setSourceText] = useState("");
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -155,6 +158,9 @@ export function AuthorMetadataPanel({
 
   const canApprove = isSent && proposalStatus === "awaiting_author_approval";
   const canEditCover = !isApproved;
+  const canDeleteCover = isAdmin();
+  const coverImg: CoverImage | null | undefined = metadata?.cover_image;
+  const coverDisplayUrl = coverImg?.url || coverImg?.s3_url;
 
   const md = metadata?.metadata || {};
   const authors = md.authors || [];
@@ -225,17 +231,25 @@ export function AuthorMetadataPanel({
     setUploading(true);
     setCoverError(null);
     setCoverSuccess(null);
+    setUploadPct(0);
     try {
-      await uploadCoverImage(ticket, pendingFile, sourceText.trim());
+      const newCover = await uploadCoverImage(
+        ticket,
+        pendingFile,
+        sourceText.trim(),
+        (pct) => setUploadPct(pct),
+      );
       setCoverSuccess("Cover image uploaded.");
       setPendingFile(null);
       setSourceText("");
       if (fileInputRef.current) fileInputRef.current.value = "";
-      await reload();
+      // Update directly from response — no re-fetch needed.
+      setMetadata((prev) => (prev ? { ...prev, cover_image: newCover } : prev));
     } catch (e) {
       setCoverError((e as Error).message);
     } finally {
       setUploading(false);
+      setUploadPct(0);
     }
   };
 
@@ -248,7 +262,7 @@ export function AuthorMetadataPanel({
     try {
       await deleteCoverImage(ticket);
       setCoverSuccess("Cover image removed.");
-      await reload();
+      setMetadata((prev) => (prev ? { ...prev, cover_image: null } : prev));
     } catch (e) {
       setCoverError((e as Error).message);
     } finally {
