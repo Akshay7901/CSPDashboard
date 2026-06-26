@@ -519,6 +519,12 @@ function ProposalDetailPage() {
   const [previewDoc, setPreviewDoc] = useState<{ url: string; filename: string } | null>(null);
   const [notes, setNotes] = useState("");
   const [savedAt, setSavedAt] = useState<string | null>(null);
+  const [internalNotes, setInternalNotes] = useState<InternalNote[]>([]);
+  const [notesLoading, setNotesLoading] = useState(false);
+  const [notesError, setNotesError] = useState<string | null>(null);
+  const [savingNote, setSavingNote] = useState(false);
+  const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
+  const [editingNoteText, setEditingNoteText] = useState("");
   const [reviewersOpen, setReviewersOpen] = useState(false);
   const [reviewers, setReviewers] = useState<PeerReviewer[]>([]);
   const [reviewersLoading, setReviewersLoading] = useState(false);
