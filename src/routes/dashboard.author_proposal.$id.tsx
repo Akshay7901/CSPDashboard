@@ -941,22 +941,26 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
             <ul className="space-y-3 border-t border-stone-200 p-5">
               {allFiles.map((f, i) => (
                 <li key={`${f.filename}-${i}`}>
-                  <a
-                    href={f.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group flex items-start gap-3 rounded-lg border border-transparent p-2 hover:border-stone-200 hover:bg-white"
-                  >
+                  <div className="group flex items-start gap-2 rounded-lg border border-transparent p-2 hover:border-stone-200 hover:bg-white">
                     <FileText className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-stone-900 group-hover:underline">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-stone-900">
                         {f.filename}
                       </p>
                       {f.size_bytes ? (
                         <p className="text-xs text-stone-500">{formatBytes(f.size_bytes)}</p>
                       ) : null}
                     </div>
-                  </a>
+                    <button
+                      type="button"
+                      onClick={() => setPreviewFile(f)}
+                      title="Preview"
+                      aria-label={`Preview ${f.filename}`}
+                      className="shrink-0 rounded-md p-1.5 text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
