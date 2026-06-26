@@ -364,6 +364,7 @@ type InfoRequestItem = {
   key?: string;
   label?: string;
   response_text?: string;
+  note?: string;
 };
 
 type InfoRequestFile = {
