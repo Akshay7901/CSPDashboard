@@ -47,9 +47,11 @@ const AUTHOR_FIELDS: { key: keyof MetadataAuthor; label: string }[] = [
 export function AuthorMetadataPanel({
   ticket,
   proposalStatus,
+  isPostApproval,
 }: {
   ticket: string;
   proposalStatus?: string;
+  isPostApproval?: boolean;
 }) {
   const [metadata, setMetadata] = useState<ProposalMetadata | null>(null);
   const [loading, setLoading] = useState(true);
@@ -139,11 +141,17 @@ export function AuthorMetadataPanel({
   // record), keep the panel visible with a confirmation card so the author
   // can see that their submission is on file — never hide it silently.
   const approvedByProposal =
+    !!isPostApproval ||
     proposalStatus === "author_approved" ||
     proposalStatus === "locked" ||
     proposalStatus === "contract_signed" ||
     proposalStatus === "confirmed_and_finalised" ||
-    proposalStatus === "confirmed_and_finalized";
+    proposalStatus === "confirmed_and_finalized" ||
+    proposalStatus === "final_review_and_confirmation" ||
+    // Display-label fallbacks (when parent passes the human-readable status)
+    /^(author approved|locked|contract signed|confirmed (and|&) finali[sz]ed|final review|metadata approved)$/i.test(
+      (proposalStatus || "").trim(),
+    );
 
   if (!loading && !metadata) {
     // Only show the panel after the decision reviewer has sent metadata

@@ -876,7 +876,13 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
         />
       </section>
 
-      <AuthorMetadataPanel ticket={proposal.ticket} proposalStatus={proposal.status} />
+      <AuthorMetadataPanel
+        ticket={proposal.ticket}
+        proposalStatus={proposal.status}
+        isPostApproval={
+          status === "approved" || status === "signed" || contractSigned
+        }
+      />
 
       {/* Reviewer Feedback — always visible */}
       <section className="mt-6 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
