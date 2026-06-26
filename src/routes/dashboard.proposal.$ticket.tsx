@@ -38,6 +38,13 @@ import cspLogo from "@/assets/csp-logo.png";
 import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
 import { formatDate, initialsFromName, displayNameFromEmail } from "@/lib/proposals";
 import { proposalApiFetch } from "@/lib/proposalApi";
+import {
+  listInternalNotes,
+  createInternalNote,
+  updateInternalNote,
+  deleteInternalNote,
+  type InternalNote,
+} from "@/lib/notesApi";
 import { toast } from "sonner";
 import {
   getContract,
