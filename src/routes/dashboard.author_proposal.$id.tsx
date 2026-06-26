@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ChevronLeft, ChevronDown, FileText, Check, X, Calendar, Send, Save, AlertCircle, Upload, Paperclip, Download, HelpCircle, CheckCircle2, LogOut } from "lucide-react";
+import { ChevronLeft, ChevronDown, FileText, Check, X, Calendar, Send, Save, AlertCircle, Upload, Paperclip, Download, HelpCircle, CheckCircle2, LogOut, Eye } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
 import { initialsFromName, type StatusKey } from "@/lib/proposals";
 import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
@@ -755,6 +755,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
   const isContractView =
     status === "contract" || status === "signed" || status === "approved";
   const [showOriginal, setShowOriginal] = useState(false);
+  const [previewFile, setPreviewFile] = useState<ManuscriptFile | null>(null);
   const title = contractTitleOverride || cd.main_title || proposal.ticket;
   const subtitle = contractSubtitleOverride || cd.sub_title;
   const kind = cd.book_type || "Proposal";
@@ -940,22 +941,26 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
             <ul className="space-y-3 border-t border-stone-200 p-5">
               {allFiles.map((f, i) => (
                 <li key={`${f.filename}-${i}`}>
-                  <a
-                    href={f.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group flex items-start gap-3 rounded-lg border border-transparent p-2 hover:border-stone-200 hover:bg-white"
-                  >
+                  <div className="group flex items-start gap-2 rounded-lg border border-transparent p-2 hover:border-stone-200 hover:bg-white">
                     <FileText className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-stone-900 group-hover:underline">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-stone-900">
                         {f.filename}
                       </p>
                       {f.size_bytes ? (
                         <p className="text-xs text-stone-500">{formatBytes(f.size_bytes)}</p>
                       ) : null}
                     </div>
-                  </a>
+                    <button
+                      type="button"
+                      onClick={() => setPreviewFile(f)}
+                      title="Preview"
+                      aria-label={`Preview ${f.filename}`}
+                      className="shrink-0 rounded-md p-1.5 text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -1189,6 +1194,62 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
         ticket={proposal.ticket}
         infoRequests={proposal.infoRequests}
       />
+      {previewFile && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setPreviewFile(null)}
+        >
+          <div
+            className="flex h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-3 border-b border-stone-200 px-5 py-3">
+              <div className="flex min-w-0 items-center gap-2">
+                <FileText className="h-5 w-5 shrink-0 text-amber-700" />
+                <p className="truncate font-sans text-sm font-semibold text-stone-900">
+                  {previewFile.filename}
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <a
+                  href={previewFile.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-stone-200 px-3 py-1.5 font-sans text-xs font-medium text-stone-700 hover:bg-stone-50"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Open / Download
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setPreviewFile(null)}
+                  aria-label="Close preview"
+                  className="rounded-md p-1.5 text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-hidden bg-stone-100">
+              {/\.(png|jpe?g|gif|webp|svg|bmp)$/i.test(previewFile.filename) ? (
+                <div className="flex h-full w-full items-center justify-center overflow-auto p-4">
+                  <img
+                    src={previewFile.url}
+                    alt={previewFile.filename}
+                    className="max-h-full max-w-full object-contain"
+                  />
+                </div>
+              ) : (
+                <iframe
+                  src={previewFile.url}
+                  title={previewFile.filename}
+                  className="h-full w-full border-0 bg-white"
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
