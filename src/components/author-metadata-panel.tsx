@@ -317,9 +317,9 @@ export function AuthorMetadataPanel({
               </div>
               <div className="grid gap-4 md:grid-cols-[200px_1fr]">
                 <div className="flex h-48 items-center justify-center overflow-hidden rounded-lg border border-stone-200 bg-white">
-                  {metadata.cover_image?.s3_url ? (
+                  {metadata?.cover_image?.s3_url ? (
                     <img
-                      src={metadata.cover_image.s3_url}
+                      src={metadata?.cover_image.s3_url}
                       alt="Cover"
                       className="h-full w-full object-contain"
                     />
@@ -330,21 +330,21 @@ export function AuthorMetadataPanel({
                   )}
                 </div>
                 <div className="space-y-2 font-sans text-sm">
-                  {metadata.cover_image ? (
+                  {metadata?.cover_image ? (
                     <>
                       <p className="text-stone-700">
                         <span className="text-stone-500">File:</span>{" "}
-                        {metadata.cover_image.filename || "—"}
+                        {metadata?.cover_image.filename || "—"}
                       </p>
                       <p className="text-stone-700">
                         <span className="text-stone-500">Dimensions:</span>{" "}
-                        {metadata.cover_image.width_px || "?"}×{metadata.cover_image.height_px || "?"} px
-                        {metadata.cover_image.dpi ? ` · ${metadata.cover_image.dpi} dpi` : ""}
+                        {metadata?.cover_image.width_px || "?"}×{metadata?.cover_image.height_px || "?"} px
+                        {metadata?.cover_image.dpi ? ` · ${metadata?.cover_image.dpi} dpi` : ""}
                       </p>
-                      {metadata.cover_image.source && (
+                      {metadata?.cover_image.source && (
                         <p className="text-stone-700">
                           <span className="text-stone-500">Source:</span>{" "}
-                          {metadata.cover_image.source}
+                          {metadata?.cover_image.source}
                         </p>
                       )}
                       {canEditCover && (
@@ -413,7 +413,7 @@ export function AuthorMetadataPanel({
                       ) : (
                         <Upload className="h-4 w-4" />
                       )}
-                      {uploading ? "Uploading…" : metadata.cover_image ? "Replace cover" : "Upload cover"}
+                      {uploading ? "Uploading…" : metadata?.cover_image ? "Replace cover" : "Upload cover"}
                     </button>
                     {coverError && (
                       <span className="font-sans text-xs text-rose-700">{coverError}</span>
