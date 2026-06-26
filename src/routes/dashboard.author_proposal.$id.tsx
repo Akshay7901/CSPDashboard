@@ -882,6 +882,43 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
         isPostApproval={
           status === "approved" || status === "signed" || contractSigned
         }
+        fallbackData={{
+          ticket_number: proposal.ticket,
+          metadata_status: "approved",
+          proposal_status: proposal.status,
+          approved_at: proposal.updatedAt,
+          metadata: {
+            full_title: [cd.main_title, cd.sub_title].filter(Boolean).join(": "),
+            title: cd.main_title,
+            subtitle: cd.sub_title,
+            category: cd.book_type,
+            book_description:
+              cd.detailed_description || cd.short_description || cd.overview,
+            keywords: Array.isArray(cd.secondary_subjects) && cd.secondary_subjects.length
+              ? cd.secondary_subjects.join(", ")
+              : cd.keywords,
+            authors: [
+              {
+                title: cd.author_title,
+                first_name: cd.author_first_name,
+                last_name: cd.author_last_name,
+                email: cd.email,
+                email_2: cd.secondary_email,
+                institution: cd.institution,
+                country: cd.country,
+              },
+              ...(Array.isArray(cd.co_authors)
+                ? (cd.co_authors as Array<Record<string, unknown>>).map((c) => ({
+                    first_name: (c.first_name as string) || "",
+                    last_name: (c.last_name as string) || "",
+                    email: (c.email as string) || "",
+                    institution: (c.institution as string) || "",
+                    country: (c.country as string) || "",
+                  }))
+                : []),
+            ],
+          },
+        }}
       />
 
       {/* Reviewer Feedback — always visible */}
