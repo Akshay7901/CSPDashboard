@@ -1395,6 +1395,11 @@ function ProposalDetailPage() {
     return s === "awaiting_more_info";
   }, [data?.status]);
 
+  const isLocked = useMemo(() => {
+    const s = (data?.status || "").toLowerCase().replace(/\s+/g, "_");
+    return s === "locked" || s === "confirmed_and_finalised" || s === "confirmed_and_finalized";
+  }, [data?.status]);
+
   // Latest unanswered author query (used for prominent DR action panel)
   const openQuery = useMemo<ContractQueryEntry | null>(() => {
     const answered = new Set(
