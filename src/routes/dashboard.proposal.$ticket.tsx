@@ -3349,7 +3349,7 @@ function ProposalDetailPage() {
                       Not visible to the author
                     </p>
                   </div>
-                  <form onSubmit={onSaveNotes} className="space-y-3 px-5 pb-5">
+                  <form onSubmit={onSaveNotes} className="space-y-3 px-5 pb-4 pt-4">
                     <textarea
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
@@ -3359,16 +3359,107 @@ function ProposalDetailPage() {
                     />
                     <button
                       type="submit"
-                      className="w-full rounded-xl bg-[#3D2A1E] px-4 py-3 font-sans text-sm font-semibold text-white hover:bg-[#2c1e15]"
+                      disabled={savingNote || !notes.trim()}
+                      className="w-full rounded-xl bg-[#3D2A1E] px-4 py-3 font-sans text-sm font-semibold text-white hover:bg-[#2c1e15] disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      Save Notes
+                      {savingNote ? "Saving…" : "Add Note"}
                     </button>
-                    {savedAt && (
-                      <p className="text-center font-sans text-xs text-stone-500">
-                        Saved at {savedAt}
+                    {notesError && (
+                      <p className="text-center font-sans text-xs text-rose-600">
+                        {notesError}
                       </p>
                     )}
                   </form>
+                  <div className="space-y-3 border-t border-stone-200 px-5 py-4">
+                    {notesLoading && internalNotes.length === 0 && (
+                      <p className="font-sans text-xs text-stone-500">Loading notes…</p>
+                    )}
+                    {!notesLoading && internalNotes.length === 0 && !notesError && (
+                      <p className="font-sans text-xs text-stone-500">
+                        No internal notes yet.
+                      </p>
+                    )}
+                    {internalNotes.map((n) => {
+                      const session = getPortalSession();
+                      const myEmail = (session?.email || "").toLowerCase();
+                      const role = (session?.role || "").toLowerCase();
+                      const isOwner =
+                        n.created_by?.toLowerCase() === myEmail;
+                      const canModify = role === "admin" || isOwner;
+                      const isEditing = editingNoteId === n.id;
+                      return (
+                        <div
+                          key={n.id}
+                          className="rounded-xl border border-stone-200 bg-stone-50/60 p-3"
+                        >
+                          <div className="mb-1.5 flex items-center justify-between gap-2">
+                            <p className="font-sans text-xs font-semibold text-stone-700">
+                              {n.created_by_name || n.created_by}
+                            </p>
+                            <p className="font-sans text-[11px] text-stone-500">
+                              {formatDate(n.created_at)}
+                            </p>
+                          </div>
+                          {isEditing ? (
+                            <div className="space-y-2">
+                              <textarea
+                                value={editingNoteText}
+                                onChange={(e) => setEditingNoteText(e.target.value)}
+                                rows={3}
+                                className="w-full resize-none rounded-lg border border-stone-300 bg-white px-2.5 py-2 font-sans text-sm text-stone-800 focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
+                              />
+                              <div className="flex gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => onUpdateNote(n.id)}
+                                  className="rounded-lg bg-[#3D2A1E] px-3 py-1.5 font-sans text-xs font-semibold text-white hover:bg-[#2c1e15]"
+                                >
+                                  Save
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingNoteId(null);
+                                    setEditingNoteText("");
+                                  }}
+                                  className="rounded-lg border border-stone-300 bg-white px-3 py-1.5 font-sans text-xs font-semibold text-stone-700 hover:bg-stone-50"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <p className="whitespace-pre-wrap font-sans text-sm text-stone-800">
+                                {n.note}
+                              </p>
+                              {canModify && (
+                                <div className="mt-2 flex gap-3">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setEditingNoteId(n.id);
+                                      setEditingNoteText(n.note);
+                                    }}
+                                    className="font-sans text-xs font-semibold text-stone-600 hover:text-stone-900"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => onDeleteNote(n.id)}
+                                    className="font-sans text-xs font-semibold text-rose-600 hover:text-rose-800"
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </Card>
 
                 {/* Submission Info */}
