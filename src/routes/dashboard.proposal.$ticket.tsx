@@ -2094,14 +2094,11 @@ function ProposalDetailPage() {
                       ? "Request Revision"
                       : data.status;
                   const sMeta = getStatusMeta(data.status, rawLabel);
-                  const isSolid = sMeta.key === "signed" || sMeta.key === "approved";
                   return (
                     <span
                       className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 font-sans text-xs font-medium ${sMeta.badgeClass}`}
                     >
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full ${isSolid ? "bg-white" : sMeta.dot}`}
-                      />
+                      <span className={`h-1.5 w-1.5 rounded-full ${sMeta.dot}`} />
                       {rawLabel}
                     </span>
                   );
