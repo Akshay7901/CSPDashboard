@@ -833,6 +833,10 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
 
   return (
     <>
+      <InfoRequestPanel
+        ticket={proposal.ticket}
+        infoRequests={proposal.infoRequests}
+      />
       {/* Hero card: title + status pill + stepper */}
       <section id="section-hero" className="mt-6 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm scroll-mt-24">
         <div className="flex flex-wrap items-start justify-between gap-4">
