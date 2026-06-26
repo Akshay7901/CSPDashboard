@@ -307,8 +307,7 @@ export function MetadataQueries({
                           </p>
                         );
                       }
-                      const current =
-                        rowEdits[key] ?? (fieldValues?.[fkey] ?? queryText);
+                      const current = rowEdits[key] ?? queryText;
                       const multiline =
                         fkey === "display_bios" || fkey === "book_description";
                       return (
