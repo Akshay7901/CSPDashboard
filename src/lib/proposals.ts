@@ -81,7 +81,7 @@ export const STATUS_META: Record<StatusKey, StatusMeta> = {
     label: "Contract Signed",
     filterLabel: "Signed",
     dot: "bg-emerald-500",
-    badgeClass: "bg-emerald-600 text-white",
+    badgeClass: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
     rowBar: "bg-emerald-500",
   },
   approved: {
@@ -89,7 +89,7 @@ export const STATUS_META: Record<StatusKey, StatusMeta> = {
     label: "Metadata Approved",
     filterLabel: "Approved",
     dot: "bg-emerald-500",
-    badgeClass: "bg-emerald-600 text-white",
+    badgeClass: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
     rowBar: "bg-emerald-500",
   },
   declined: {
