@@ -225,7 +225,7 @@ export async function uploadCoverImage(
   onProgress?: (pct: number) => void,
 ): Promise<CoverImage> {
   const fd = new FormData();
-  fd.append("cover_image", file);
+  fd.append("file", file);
   fd.append("source", source);
   const token = getPortalToken();
   const url = `https://api.cambridgescholars.com/api/proposals/${encodeURIComponent(
