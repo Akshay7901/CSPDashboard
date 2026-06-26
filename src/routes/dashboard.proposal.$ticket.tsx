@@ -1793,9 +1793,69 @@ function ProposalDetailPage() {
       },
     ]);
 
-  const onSaveNotes = (e: FormEvent) => {
+  const refreshInternalNotes = async () => {
+    setNotesLoading(true);
+    setNotesError(null);
+    try {
+      const list = await listInternalNotes(ticket);
+      setInternalNotes(list);
+    } catch (e) {
+      setNotesError((e as Error).message);
+    } finally {
+      setNotesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const session = getPortalSession();
+    const role = (session?.role || "").toLowerCase();
+    if (role !== "admin" && role !== "decision_reviewer") return;
+    refreshInternalNotes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ticket]);
+
+  const onSaveNotes = async (e: FormEvent) => {
     e.preventDefault();
-    setSavedAt(new Date().toLocaleTimeString());
+    const text = notes.trim();
+    if (!text) return;
+    setSavingNote(true);
+    setNotesError(null);
+    try {
+      const created = await createInternalNote(ticket, text);
+      setInternalNotes((prev) => [created, ...prev]);
+      setNotes("");
+      setSavedAt(new Date().toLocaleTimeString());
+    } catch (err) {
+      setNotesError((err as Error).message);
+      toast.error((err as Error).message);
+    } finally {
+      setSavingNote(false);
+    }
+  };
+
+  const onUpdateNote = async (noteId: number) => {
+    const text = editingNoteText.trim();
+    if (!text) return;
+    try {
+      const updated = await updateInternalNote(ticket, noteId, text);
+      setInternalNotes((prev) => prev.map((n) => (n.id === noteId ? updated : n)));
+      setEditingNoteId(null);
+      setEditingNoteText("");
+      toast.success("Note updated");
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
+
+  const onDeleteNote = async (noteId: number) => {
+    if (!confirm("Delete this internal note?")) return;
+    try {
+      await deleteInternalNote(ticket, noteId);
+      setInternalNotes((prev) => prev.filter((n) => n.id !== noteId));
+      toast.success("Note deleted");
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
   };
 
   const openReviewers = async () => {
