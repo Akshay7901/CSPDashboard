@@ -153,40 +153,7 @@ export function AuthorMetadataPanel({
       (proposalStatus || "").trim(),
     );
 
-  if (!loading && !metadata) {
-    // Only show the panel after the decision reviewer has sent metadata
-    // (i.e., the author has already approved it). Otherwise hide entirely
-    // instead of showing an "Unavailable" placeholder.
-    if (!approvedByProposal) return null;
-    return (
-      <section className="mt-6 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 bg-gradient-to-r from-emerald-50 via-emerald-50/60 to-white px-6 py-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white shadow-sm">
-              <BookOpen className="h-4 w-4" strokeWidth={2.2} />
-            </div>
-            <h2 className="font-serif text-base font-bold text-stone-900">Metadata</h2>
-          </div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 font-sans text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
-            Submitted
-          </span>
-        </div>
-        <div className="p-6">
-          <div className="flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
-              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
-              <div>
-                <p className="font-sans text-sm font-semibold text-emerald-900">
-                  Your metadata has been submitted.
-                </p>
-                <p className="mt-0.5 font-sans text-xs text-emerald-800/80">
-                  The publisher has received your approved record and will proceed to lock and publish it.
-                </p>
-              </div>
-          </div>
-        </div>
-      </section>
-    );
-  }
+  if (!loading && !metadata && !approvedByProposal) return null;
 
   void notVisible;
 
