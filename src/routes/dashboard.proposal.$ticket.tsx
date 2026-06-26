@@ -35,7 +35,8 @@ import {
   Lock,
 } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
-import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
+import { portalLogout, getPortalSession, getPortalToken, isAdmin } from "@/lib/auth";
+import { deleteCoverImage as apiDeleteCoverImage } from "@/lib/metadataApi";
 import { formatDate, initialsFromName, displayNameFromEmail, getStatusMeta } from "@/lib/proposals";
 import { proposalApiFetch } from "@/lib/proposalApi";
 import {
@@ -605,9 +606,14 @@ function ProposalDetailPage() {
     approved_at?: string;
     cover_image?: {
       s3_url?: string;
+      url?: string;
       filename?: string;
       width_px?: number;
       height_px?: number;
+      dpi?: number;
+      file_size_bytes?: number;
+      version?: number;
+      source?: string;
       uploaded_at?: string;
     } | null;
   };
