@@ -879,14 +879,30 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
       <AuthorMetadataPanel ticket={proposal.ticket} proposalStatus={proposal.status} />
 
       {/* Reviewer Feedback — always visible */}
-      <section className="mt-6 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-        <h2 className="font-serif text-lg font-bold text-[#2C1A0E]">
-          Reviewer Feedback
-        </h2>
-        <p className="mt-1 font-sans text-xs text-[#7A6A5A]">
-          Editor's recommendation and peer reviewer comments on your proposal.
-        </p>
-        <ReviewerCommentsList ticket={proposal.ticket} />
+      <section className="mt-6 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
+        <button
+          type="button"
+          onClick={() => setReviewerFeedbackOpen((v) => !v)}
+          aria-expanded={reviewerFeedbackOpen}
+          className="flex w-full items-center justify-between gap-3 px-6 py-4 text-left transition-colors hover:bg-stone-50"
+        >
+          <div>
+            <h2 className="font-serif text-lg font-bold text-[#2C1A0E]">
+              Reviewer Feedback
+            </h2>
+            <p className="mt-1 font-sans text-xs text-[#7A6A5A]">
+              Editor's recommendation and peer reviewer comments on your proposal.
+            </p>
+          </div>
+          <ChevronDown
+            className={`h-5 w-5 shrink-0 text-[#7A6A5A] transition-transform ${reviewerFeedbackOpen ? "rotate-180" : ""}`}
+          />
+        </button>
+        {reviewerFeedbackOpen && (
+          <div className="border-t border-stone-200 px-6 py-5">
+            <ReviewerCommentsList ticket={proposal.ticket} />
+          </div>
+        )}
       </section>
 
       <ContractIssuedView ticket={proposal.ticket} proposal={proposal} authorFullName={authorFullName} />
