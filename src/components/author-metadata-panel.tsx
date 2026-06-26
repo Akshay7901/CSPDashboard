@@ -76,6 +76,15 @@ export function AuthorMetadataPanel({
     if (!res.ok) {
       if (res.status === 403 || res.status === 404) {
         setNotVisible(true);
+        // After author approval the API may stop exposing the record.
+        // Fall back to the last cached snapshot so the metadata stays
+        // visible permanently for the author.
+        try {
+          const cached = localStorage.getItem(`author_metadata_cache:${ticket}`);
+          if (cached) setMetadata(JSON.parse(cached) as ProposalMetadata);
+        } catch {
+          /* ignore */
+        }
       } else {
         setError(res.error || "Failed to load metadata.");
       }
@@ -83,6 +92,18 @@ export function AuthorMetadataPanel({
       return;
     }
     setMetadata(res.data);
+    // Cache the latest snapshot so we can keep displaying it after the
+    // proposal advances past `sent_to_author` and the API hides the record.
+    try {
+      if (res.data) {
+        localStorage.setItem(
+          `author_metadata_cache:${ticket}`,
+          JSON.stringify(res.data),
+        );
+      }
+    } catch {
+      /* ignore quota errors */
+    }
     setNotVisible(false);
     setLoading(false);
   };
