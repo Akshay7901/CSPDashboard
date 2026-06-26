@@ -1871,7 +1871,6 @@ function ContractIssuedView({
             </div>
           )}
 
-          <ReviewerCommentsList ticket={ticket} />
         </div>
       </div>
 
