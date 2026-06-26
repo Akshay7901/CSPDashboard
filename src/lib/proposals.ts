@@ -107,6 +107,40 @@ export interface SupportingDoc {
   sizeLabel: string;
 }
 
+// Map API raw status -> local StatusKey
+const STATUS_KEY_MAP: Record<string, StatusKey> = {
+  new: "submitted",
+  submitted: "submitted",
+  in_review: "in_review",
+  "under review": "in_review",
+  review_returned: "review_returned",
+  contract_issued: "contract",
+  queries_raised: "question",
+  question_raised: "question",
+  awaiting_author_approval: "contract",
+  author_approved: "contract",
+  locked: "signed",
+  contract_signed: "signed",
+  contract_received: "signed",
+  declined: "declined",
+  awaiting_more_info: "revisions",
+  additional_info_required: "revisions",
+  revisions_requested: "revisions",
+};
+
+export function normalizeStatusKey(raw?: string, display?: string): StatusKey {
+  const tryKey = (s?: string): StatusKey | undefined => {
+    if (!s) return undefined;
+    const k = s.trim().toLowerCase().replace(/\s+/g, "_");
+    return STATUS_KEY_MAP[k];
+  };
+  return tryKey(display) || tryKey(raw) || "submitted";
+}
+
+export function getStatusMeta(raw?: string, display?: string): StatusMeta {
+  return STATUS_META[normalizeStatusKey(raw, display)];
+}
+
 export interface SuggestedReviewer {
   name: string;
   affiliation: string;

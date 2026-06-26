@@ -36,7 +36,7 @@ import {
 } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
 import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
-import { formatDate, initialsFromName, displayNameFromEmail } from "@/lib/proposals";
+import { formatDate, initialsFromName, displayNameFromEmail, getStatusMeta } from "@/lib/proposals";
 import { proposalApiFetch } from "@/lib/proposalApi";
 import {
   listInternalNotes,
@@ -2088,14 +2088,24 @@ function ProposalDetailPage() {
                     <Check className="h-3.5 w-3.5" />
                     Contract Signed
                   </span>
-                ) : (
-                  <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1.5 font-sans text-xs font-medium text-indigo-700 ring-1 ring-indigo-200">
-                    <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
-                    {data.status?.toLowerCase().replace(/\s+/g, "_") === "awaiting_more_info"
+                ) : (() => {
+                  const rawLabel =
+                    data.status?.toLowerCase().replace(/\s+/g, "_") === "awaiting_more_info"
                       ? "Request Revision"
-                      : data.status}
-                  </span>
-                )}
+                      : data.status;
+                  const sMeta = getStatusMeta(data.status, rawLabel);
+                  const isSolid = sMeta.key === "signed" || sMeta.key === "approved";
+                  return (
+                    <span
+                      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 font-sans text-xs font-medium ${sMeta.badgeClass}`}
+                    >
+                      <span
+                        className={`h-1.5 w-1.5 rounded-full ${isSolid ? "bg-white" : sMeta.dot}`}
+                      />
+                      {rawLabel}
+                    </span>
+                  );
+                })()}
               </div>
               <div className="mt-5 flex flex-wrap items-center gap-x-7 gap-y-2 font-sans text-sm text-stone-600">
                 {cd.corresponding_author_name && (
