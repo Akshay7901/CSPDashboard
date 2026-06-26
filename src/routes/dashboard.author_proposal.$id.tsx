@@ -860,11 +860,6 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
 
       <AuthorMetadataPanel ticket={proposal.ticket} proposalStatus={proposal.status} />
 
-      <InfoRequestPanel
-        ticket={proposal.ticket}
-        infoRequests={proposal.infoRequests}
-      />
-
       <ContractIssuedView ticket={proposal.ticket} proposal={proposal} authorFullName={authorFullName} />
 
       {isContractView && (
