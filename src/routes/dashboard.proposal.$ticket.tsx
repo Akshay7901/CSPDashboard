@@ -3767,18 +3767,27 @@ function ProposalDetailPage() {
                   })}
                 </div>
               </div>
-              <div className="mt-5">
-                <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
-                  Editorial Feedback <span className="text-rose-600">*</span>
-                </label>
-                <textarea
-                  value={reqRevNote}
-                  onChange={(e) => setReqRevNote(e.target.value)}
-                  rows={5}
-                  placeholder="Explain what needs to be updated and why — this will be shared with the author..."
-                  className="mt-2 w-full resize-none rounded-xl border border-stone-200 bg-white px-3.5 py-3 font-sans text-sm text-stone-800 placeholder:text-stone-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"
-                />
-              </div>
+              {reqRevAreas.length > 0 && (
+                <div className="mt-5 space-y-4">
+                  <p className="font-sans text-sm font-semibold text-[#2C1A0E]">
+                    Editorial Feedback <span className="text-rose-600">*</span>
+                  </p>
+                  {REVISION_AREAS.filter((a) => reqRevAreas.includes(a.key)).map((area) => (
+                    <div key={area.key}>
+                      <label className="font-sans text-xs font-semibold uppercase tracking-wide text-[#7A6A5A]">
+                        {area.label}
+                      </label>
+                      <textarea
+                        value={reqRevAreaNotes[area.key] || ""}
+                        onChange={(e) => updateReqRevAreaNote(area.key, e.target.value)}
+                        rows={3}
+                        placeholder={`Explain what needs to be updated for ${area.label}…`}
+                        className="mt-1.5 w-full resize-none rounded-xl border border-stone-200 bg-white px-3.5 py-3 font-sans text-sm text-stone-800 placeholder:text-stone-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="mt-5">
                 <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
                   Resubmission Deadline{" "}
@@ -3814,7 +3823,9 @@ function ProposalDetailPage() {
                 type="button"
                 onClick={submitRequestRevisions}
                 disabled={
-                  reqRevSubmitting || reqRevAreas.length === 0 || !reqRevNote.trim()
+                  reqRevSubmitting ||
+                  reqRevAreas.length === 0 ||
+                  reqRevAreas.some((k) => !(reqRevAreaNotes[k] || "").trim())
                 }
                 className="rounded-xl bg-[#C97A6A] px-5 py-2.5 font-sans text-sm font-semibold text-white hover:bg-[#b56656] disabled:cursor-not-allowed disabled:bg-[#E9C8C0] disabled:text-white/80"
               >
