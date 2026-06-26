@@ -89,11 +89,13 @@ export function AuthorMetadataPanel({
         // Fall back to (a) the last cached snapshot, or (b) data
         // synthesized from the proposal's `current_data` payload.
         let restored: ProposalMetadata | null = null;
-        try {
-          const cached = localStorage.getItem(`author_metadata_cache:${ticket}`);
-          if (cached) restored = JSON.parse(cached) as ProposalMetadata;
-        } catch {
-          /* ignore */
+        if (isPostApproval) {
+          try {
+            const cached = localStorage.getItem(`author_metadata_cache:${ticket}`);
+            if (cached) restored = JSON.parse(cached) as ProposalMetadata;
+          } catch {
+            /* ignore */
+          }
         }
         if (!restored && fallbackData && isPostApproval) restored = fallbackData;
         if (restored) setMetadata(restored);
@@ -163,6 +165,7 @@ export function AuthorMetadataPanel({
       (proposalStatus || "").trim(),
     );
 
+  if (loading && !metadata) return null;
   if (!loading && !metadata && !approvedByProposal) return null;
 
   // Do not show the metadata section until the decision reviewer has
