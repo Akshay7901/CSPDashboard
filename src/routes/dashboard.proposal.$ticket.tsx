@@ -658,6 +658,17 @@ function ProposalDetailPage() {
     { key: "market_analysis", label: "Market Analysis" },
     { key: "scope_framing", label: "Scope / Framing" },
     { key: "word_count", label: "Word Count / Length" },
+    { key: "full_title", label: "Full Title" },
+    { key: "title", label: "Title" },
+    { key: "subtitle", label: "Subtitle" },
+    { key: "category", label: "Category" },
+    { key: "display_names", label: "Display Names" },
+    { key: "display_bios", label: "Display Bios" },
+    { key: "book_description", label: "Book Description" },
+    { key: "keywords", label: "Keywords" },
+    { key: "website_classification", label: "Website Classification" },
+    { key: "bic", label: "BIC Code" },
+    { key: "authors", label: "Authors" },
     { key: "other", label: "Other" },
   ];
   const [reqRevOpen, setReqRevOpen] = useState(false);
