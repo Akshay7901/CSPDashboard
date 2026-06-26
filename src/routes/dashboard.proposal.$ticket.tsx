@@ -2261,7 +2261,7 @@ function ProposalDetailPage() {
                                     >
                                       {metaSaving ? "Saving…" : "Save Draft"}
                                     </button>
-                                    {!isMetaApproved && (
+                                    {!isMetaApproved && !metadataHasOpenQuery && (
                                       <button
                                         type="button"
                                         onClick={sendMetadataToAuthor}
