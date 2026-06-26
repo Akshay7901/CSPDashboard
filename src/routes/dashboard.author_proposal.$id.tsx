@@ -1838,11 +1838,10 @@ function ContractIssuedView({
       </div>
 
       {/* Step 1 — Feedback (hidden once contract is signed) */}
-      {!isSigned && (
       <div>
         <div className="flex items-center gap-3 border-b border-stone-200 bg-stone-50/60 px-6 py-3">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-violet-600 font-sans text-xs font-bold text-white">
-            1
+          <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-sans text-xs font-bold text-white ${isSigned ? "bg-emerald-600" : "bg-violet-600"}`}>
+            {isSigned ? <Check className="h-3.5 w-3.5" /> : "1"}
           </span>
           <h3 className="font-sans text-sm font-semibold text-[#2C1A0E]">
             Read the reviewer's feedback
@@ -1864,7 +1863,6 @@ function ContractIssuedView({
           <ReviewerCommentsList ticket={ticket} />
         </div>
       </div>
-      )}
 
       {/* Step 2 — Sign */}
       <div className="px-6 py-6 md:px-8">
