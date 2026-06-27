@@ -1518,6 +1518,7 @@ function ContractIssuedView({
   const [signLoading, setSignLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [showQueries, setShowQueries] = useState(false);
+  const [queriesCount, setQueriesCount] = useState(0);
   const [reloadKey, setReloadKey] = useState(0);
   const [queryOpen, setQueryOpen] = useState(false);
   const [queryText, setQueryText] = useState("");
@@ -1581,7 +1582,10 @@ function ContractIssuedView({
     (async () => {
       try {
         const body = await getQueries(ticket);
-        if (!cancelled) setProposalStatus(body.proposal_status || "");
+        if (!cancelled) {
+          setProposalStatus(body.proposal_status || "");
+          setQueriesCount((body.queries || []).length);
+        }
       } catch {
         /* ignore */
       }
@@ -2185,7 +2189,7 @@ function ContractIssuedView({
           </p>
         )}
 
-        {showQueries && (
+        {(showQueries || queriesCount > 0) && (
           <div className="mt-5 rounded-2xl border border-stone-200 bg-white p-5">
             <ContractQueries
               ticket={ticket}
