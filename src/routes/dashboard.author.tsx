@@ -1090,7 +1090,6 @@ function ProposalCard({ p }: { p: LocalProposalWithInfo }) {
           </div>
         )}
 
-        <QueriesSection p={p} />
       </div>
     </article>
   );
