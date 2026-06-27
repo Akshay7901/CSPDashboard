@@ -37,6 +37,7 @@ export function SubmitConfirmGuard() {
     // These dashboards opt out of the submit confirmation popup.
     if (pathname.startsWith("/dashboard/reviewer")) return;
     if (pathname.startsWith("/dashboard/proposal")) return;
+    if (pathname.startsWith("/dashboard/author_proposal")) return;
 
     const handler = (event: MouseEvent) => {
       const target = event.target as HTMLElement | null;
