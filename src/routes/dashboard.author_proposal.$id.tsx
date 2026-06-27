@@ -1582,7 +1582,10 @@ function ContractIssuedView({
     (async () => {
       try {
         const body = await getQueries(ticket);
-        if (!cancelled) setProposalStatus(body.proposal_status || "");
+        if (!cancelled) {
+          setProposalStatus(body.proposal_status || "");
+          setQueriesCount((body.queries || []).length);
+        }
       } catch {
         /* ignore */
       }
