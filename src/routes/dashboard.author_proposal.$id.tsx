@@ -2195,6 +2195,7 @@ function ContractIssuedView({
               ticket={ticket}
               viewer="author"
               onChanged={() => setReloadKey((k) => k + 1)}
+              hideRaiseForm
             />
           </div>
         )}
