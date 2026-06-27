@@ -2741,11 +2741,20 @@ function ProposalDetailPage() {
                             )}
                           </p>
                         </div>
-                        {recommendationLabel && (
-                          <span className="inline-flex items-center rounded-full border border-amber-300 bg-amber-100 px-3 py-1 font-sans text-xs font-semibold text-amber-800">
-                            Recommended: {recommendationLabel}
-                          </span>
-                        )}
+                        <label className="inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-100 px-3 py-1 font-sans text-xs font-semibold text-amber-800">
+                          <span>Recommendation:</span>
+                          <select
+                            value={reviewRecommendation}
+                            onChange={(e) => setReviewRecommendation(e.target.value)}
+                            className="rounded-md border border-amber-300 bg-white px-2 py-0.5 font-sans text-xs font-semibold text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                          >
+                            {Object.entries(RECOMMENDATION_LABELS).map(([k, v]) => (
+                              <option key={k} value={k}>
+                                {v}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
                       </div>
                       {reviewerSummary && (
                         <div className="px-7 py-6">
