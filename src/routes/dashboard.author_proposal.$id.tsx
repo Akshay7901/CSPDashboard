@@ -2189,7 +2189,7 @@ function ContractIssuedView({
           </p>
         )}
 
-        {showQueries && (
+        {(showQueries || queriesCount > 0) && (
           <div className="mt-5 rounded-2xl border border-stone-200 bg-white p-5">
             <ContractQueries
               ticket={ticket}
