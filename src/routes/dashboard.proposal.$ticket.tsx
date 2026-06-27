@@ -2815,40 +2815,37 @@ function ProposalDetailPage() {
                             Save draft
                           </button>
                         </div>
-                      </div>
-                    </Card>
-
-                    {/* Recommendation (editable by Decision Reviewer) */}
-                    <Card>
-                      <CardHeader
-                        title="Recommendation"
-                        subtitle="Change before sending if needed"
-                      />
-                      <div className="space-y-3 px-7 py-6">
-                        {Object.entries(RECOMMENDATION_LABELS).map(([key, label]) => {
-                          const checked = reviewRecommendation === key;
-                          return (
-                            <label
-                              key={key}
-                              className={`flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 transition-colors ${
-                                checked
-                                  ? "border-sky-400 bg-sky-50/60 ring-2 ring-sky-100"
-                                  : "border-stone-200 bg-white hover:border-stone-300"
-                              }`}
-                            >
-                              <input
-                                type="radio"
-                                name="dr-recommendation"
-                                className="mt-1 h-4 w-4 cursor-pointer accent-sky-600"
-                                checked={checked}
-                                onChange={() => setReviewRecommendation(key)}
-                              />
-                              <div className="font-sans text-sm font-semibold text-stone-900">
-                                {label}
-                              </div>
-                            </label>
-                          );
-                        })}
+                        <div className="mt-2 border-t border-stone-200 pt-5">
+                          <p className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-700">
+                            Recommendation
+                          </p>
+                          <div className="mt-3 space-y-3">
+                            {Object.entries(RECOMMENDATION_LABELS).map(([key, label]) => {
+                              const checked = reviewRecommendation === key;
+                              return (
+                                <label
+                                  key={key}
+                                  className={`flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 transition-colors ${
+                                    checked
+                                      ? "border-sky-400 bg-sky-50/60 ring-2 ring-sky-100"
+                                      : "border-stone-200 bg-white hover:border-stone-300"
+                                  }`}
+                                >
+                                  <input
+                                    type="radio"
+                                    name="dr-recommendation"
+                                    className="mt-1 h-4 w-4 cursor-pointer accent-sky-600"
+                                    checked={checked}
+                                    onChange={() => setReviewRecommendation(key)}
+                                  />
+                                  <div className="font-sans text-sm font-semibold text-stone-900">
+                                    {label}
+                                  </div>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
                       </div>
                     </Card>
 
