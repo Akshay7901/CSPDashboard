@@ -34,6 +34,8 @@ export function SubmitConfirmGuard() {
 
   useEffect(() => {
     if (!pathname.startsWith("/dashboard")) return;
+    // Peer reviewer dashboard opts out of the submit confirmation popup.
+    if (pathname.startsWith("/dashboard/reviewer")) return;
 
     const handler = (event: MouseEvent) => {
       const target = event.target as HTMLElement | null;
