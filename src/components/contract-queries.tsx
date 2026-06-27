@@ -15,6 +15,7 @@ export function ContractQueries({
   collapsible = false,
   defaultOpen = true,
   onOpenChange,
+  hideRaiseForm = false,
 }: {
   ticket: string;
   viewer: "author" | "dr";
@@ -22,6 +23,7 @@ export function ContractQueries({
   collapsible?: boolean;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
+  hideRaiseForm?: boolean;
 }) {
   const [thread, setThread] = useState<ContractQueryEntry[]>([]);
   const [proposalStatus, setProposalStatus] = useState<string>("");
@@ -227,7 +229,7 @@ export function ContractQueries({
       </>
       )}
 
-      {open && viewer === "author" && (
+      {open && viewer === "author" && !hideRaiseForm && (
         (() => {
           const hasOpenQuery = thread.some(
             (t) => t.type === "query" && !answered.has(t.id),
