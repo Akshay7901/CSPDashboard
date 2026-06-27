@@ -2741,20 +2741,11 @@ function ProposalDetailPage() {
                             )}
                           </p>
                         </div>
-                        <label className="inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-100 px-3 py-1 font-sans text-xs font-semibold text-amber-800">
-                          <span>Recommendation:</span>
-                          <select
-                            value={reviewRecommendation}
-                            onChange={(e) => setReviewRecommendation(e.target.value)}
-                            className="rounded-md border border-amber-300 bg-white px-2 py-0.5 font-sans text-xs font-semibold text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                          >
-                            {Object.entries(RECOMMENDATION_LABELS).map(([k, v]) => (
-                              <option key={k} value={k}>
-                                {v}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
+                        {reviewRecommendation && (
+                          <span className="inline-flex items-center rounded-full border border-amber-300 bg-amber-100 px-3 py-1 font-sans text-xs font-semibold text-amber-800">
+                            Recommended: {RECOMMENDATION_LABELS[reviewRecommendation] || reviewRecommendation}
+                          </span>
+                        )}
                       </div>
                       {reviewerSummary && (
                         <div className="px-7 py-6">
@@ -2824,6 +2815,40 @@ function ProposalDetailPage() {
                             Save draft
                           </button>
                         </div>
+                      </div>
+                    </Card>
+
+                    {/* Recommendation (editable by Decision Reviewer) */}
+                    <Card>
+                      <CardHeader
+                        title="Recommendation"
+                        subtitle="Change before sending if needed"
+                      />
+                      <div className="space-y-3 px-7 py-6">
+                        {Object.entries(RECOMMENDATION_LABELS).map(([key, label]) => {
+                          const checked = reviewRecommendation === key;
+                          return (
+                            <label
+                              key={key}
+                              className={`flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 transition-colors ${
+                                checked
+                                  ? "border-sky-400 bg-sky-50/60 ring-2 ring-sky-100"
+                                  : "border-stone-200 bg-white hover:border-stone-300"
+                              }`}
+                            >
+                              <input
+                                type="radio"
+                                name="dr-recommendation"
+                                className="mt-1 h-4 w-4 cursor-pointer accent-sky-600"
+                                checked={checked}
+                                onChange={() => setReviewRecommendation(key)}
+                              />
+                              <div className="font-sans text-sm font-semibold text-stone-900">
+                                {label}
+                              </div>
+                            </label>
+                          );
+                        })}
                       </div>
                     </Card>
 
