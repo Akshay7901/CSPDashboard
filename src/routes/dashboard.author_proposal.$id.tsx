@@ -1518,6 +1518,7 @@ function ContractIssuedView({
   const [signLoading, setSignLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [showQueries, setShowQueries] = useState(false);
+  const [queriesCount, setQueriesCount] = useState(0);
   const [reloadKey, setReloadKey] = useState(0);
   const [queryOpen, setQueryOpen] = useState(false);
   const [queryText, setQueryText] = useState("");
