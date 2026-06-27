@@ -1752,7 +1752,6 @@ function ProposalDetailPage() {
     REVIEW_SECTIONS.forEach(({ key, label }) => {
       const v = rd[key];
       const text = typeof v === "string" ? v.trim() : "";
-      if (!text) return;
       seeded.push({
         id: `${key}-${seeded.length}`,
         severity: SECTION_SEVERITY[key] || "General",
