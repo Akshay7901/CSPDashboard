@@ -2804,14 +2804,6 @@ function ProposalDetailPage() {
                             />
                           </div>
                         ))}
-                        <button
-                          type="button"
-                          onClick={addComment}
-                          className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-stone-300 bg-white px-4 py-3 font-sans text-sm font-medium text-stone-600 hover:border-[#0E3D2F] hover:text-[#0E3D2F]"
-                        >
-                          <Plus className="h-4 w-4" />
-                          Add comment
-                        </button>
                         <div className="flex justify-end">
                           <button
                             type="button"
