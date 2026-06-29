@@ -351,7 +351,7 @@ export function AuthorMetadataPanel({
       </div>
 
       <div className="space-y-5 p-6">
-        {loading && (
+        {loading && !metadata && (
           <p className="font-sans text-sm text-stone-500">Loading metadata…</p>
         )}
         {error && (
@@ -360,7 +360,7 @@ export function AuthorMetadataPanel({
           </p>
         )}
 
-        {!loading && !error && (metadata || approvedByProposal) && (
+        {!error && (metadata || approvedByProposal) && (
           <>
             {isApproved && (
               <div className="flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
