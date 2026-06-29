@@ -925,7 +925,7 @@ function AuthorDashboard() {
 
         {/* Sections */}
         {attentionList.length > 0 && (
-          <Section title="NEEDS YOUR ATTENTION" dot="bg-orange-500">
+          <Section title="ACTION REQUIRED" dot="bg-orange-500">
             {attentionList.map((p) => (
               <ProposalCard key={p.id} p={p} />
             ))}
