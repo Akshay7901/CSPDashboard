@@ -81,6 +81,13 @@ function ReviewerSubmission() {
     competing_titles?: string;
     conferences?: string;
     promotional_channels?: string;
+    unique_contribution?: string;
+    marketing_info?: string;
+    additional_info?: string;
+    additional_notes?: string;
+    permissions_required?: string;
+    permissions_notes?: string;
+    co_authors_editors?: string;
     recommended_reviewers?: string;
     website_reference_number?: string;
     source?: string;
@@ -802,6 +809,13 @@ function ProposalDetails({
       competing_titles?: string;
       conferences?: string;
       promotional_channels?: string;
+      unique_contribution?: string;
+      marketing_info?: string;
+      additional_info?: string;
+      additional_notes?: string;
+      permissions_required?: string;
+      permissions_notes?: string;
+      co_authors_editors?: string;
       recommended_reviewers?: string;
       website_reference_number?: string;
       source?: string;
@@ -900,6 +914,7 @@ function ProposalDetails({
             }
           />
           <Field label="Email" value={cd.email || "—"} />
+          <Field label="Phone" value={cd.phone || "—"} />
           <Field label="Institution" value={cd.institution || "—"} />
           <Field label="Country" value={cd.country || "—"} />
         </div>
@@ -912,6 +927,40 @@ function ProposalDetails({
         </div>
         <Para label="Biography" value={cd.biography} />
       </Section>
+
+      {/* Co-authors / Editors / Contributors / Translators */}
+      {Array.isArray(cd.co_authors) && cd.co_authors.length > 0 ? (
+        <Section title="Co-authors / Editors / Contributors / Translators">
+          <ul className="divide-y divide-stone-100">
+            {(cd.co_authors as Array<Record<string, unknown>>).map((c, i) => {
+              const name =
+                [c.firstName || c.first_name, c.lastName || c.last_name]
+                  .filter(Boolean)
+                  .join(" ")
+                  .trim() ||
+                (c.name as string) ||
+                `Contributor ${i + 1}`;
+              return (
+                <li key={i} className="grid grid-cols-1 gap-4 py-4 first:pt-0 sm:grid-cols-2">
+                  <Field label="Role" value={(c.role as string) || "—"} />
+                  <Field label="Name" value={name} />
+                  <Field label="Email" value={(c.email as string) || "—"} />
+                  <Field
+                    label="Affiliation"
+                    value={(c.institution as string) || (c.affiliation as string) || "—"}
+                  />
+                </li>
+              );
+            })}
+          </ul>
+        </Section>
+      ) : cd.co_authors_editors ? (
+        <Section title="Additional Authors / Editors">
+          <p className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-700">
+            {cd.co_authors_editors}
+          </p>
+        </Section>
+      ) : null}
 
       {/* Manuscript Details */}
       <Section title="Manuscript Details">
@@ -966,11 +1015,32 @@ function ProposalDetails({
         </Section>
       )}
 
-      {/* Market & Competition */}
-      <Section title="Market & Competition">
-        <Para label="Why is this book needed?" value={cd.primary_market} />
-        <Para label="Competing Titles" value={cd.competing_titles} />
-      </Section>
+      {/* Marketing & Promotion */}
+      {(cd.primary_market ||
+        cd.competing_titles ||
+        cd.unique_contribution ||
+        cd.conferences ||
+        cd.promotional_channels ||
+        cd.marketing_info) && (
+        <Section title="Marketing & Promotion">
+          <Para label="Primary Market" value={cd.primary_market} />
+          <Para label="Competing Titles" value={cd.competing_titles} />
+          <Para
+            label="Unique Contribution vs Competing Titles"
+            value={cd.unique_contribution}
+          />
+          <Para
+            label="Relevant Conferences / Academic Events"
+            value={cd.conferences}
+          />
+          <Para label="Promotional Channels" value={cd.promotional_channels} />
+          {cd.marketing_info &&
+            cd.marketing_info !== cd.competing_titles &&
+            cd.marketing_info !== cd.primary_market && (
+              <Para label="Additional Marketing Notes" value={cd.marketing_info} />
+            )}
+        </Section>
+      )}
 
       {/* Author-Suggested Reviewers */}
       <Section title="Author-Suggested Reviewers">
@@ -990,12 +1060,21 @@ function ProposalDetails({
         )}
       </Section>
 
-      {/* Additional Notes */}
-      <Section title="Additional Notes">
-        <p className="font-sans text-sm leading-relaxed text-stone-800">
-          {additionalNotes || "—"}
-        </p>
-      </Section>
+      {/* Additional Comments & Permissions */}
+      {(additionalNotes || cd.additional_info || cd.permissions_required) && (
+        <Section title="Additional Comments & Permissions">
+          <Para label="Additional Notes from Author" value={additionalNotes} />
+          {cd.additional_info && (
+            <p className="mt-4 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-700 first:mt-0">
+              {cd.additional_info}
+            </p>
+          )}
+          <Para
+            label="Permissions Required from Copyright Holders"
+            value={cd.permissions_required}
+          />
+        </Section>
+      )}
 
       {/* Supporting Documents */}
       {allFiles.length > 0 && (
