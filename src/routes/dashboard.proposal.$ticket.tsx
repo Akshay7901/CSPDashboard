@@ -4764,6 +4764,8 @@ const ADDITIONAL_DETAILS_SKIP = new Set<string>([
   "estimated_word_count",
   "figures_tables_count",
   "illustration_count",
+  "has_tables",
+  "has_illustrations",
   "under_review_elsewhere",
   "is_previously_published",
   "expected_completion_date",
