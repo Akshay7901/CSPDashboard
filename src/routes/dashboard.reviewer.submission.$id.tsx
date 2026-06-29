@@ -378,9 +378,9 @@ function ReviewerSubmission() {
   };
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-[#FAF6EE] font-sans text-stone-800">
+    <div className="flex min-h-screen flex-col bg-[#FAF6EE] font-sans text-stone-800">
       {/* Header */}
-      <header className="border-b border-stone-200 bg-white">
+      <header className="sticky top-0 z-20 border-b border-stone-200 bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-8 py-4">
           <div className="flex items-center gap-3">
             <Link to="/dashboard/reviewer" className="flex items-center gap-3">
@@ -413,9 +413,9 @@ function ReviewerSubmission() {
       </header>
 
       {/* Two-pane layout */}
-      <div className="grid min-h-0 w-full flex-1 grid-cols-1 gap-6 px-0 py-0 lg:grid-cols-[minmax(0,550px)_1fr]">
+      <div className="grid w-full flex-1 grid-cols-1 items-start gap-6 px-0 py-0 lg:grid-cols-[minmax(0,550px)_1fr]">
         {/* LEFT — Review form */}
-        <section className="min-h-0 overflow-y-auto bg-white px-6 py-4">
+        <section className="bg-white px-6 py-4 lg:sticky lg:top-[68px] lg:max-h-[calc(100vh-68px)] lg:overflow-y-auto">
           <Link
             to="/dashboard/reviewer"
             className="mb-1 inline-flex items-center gap-1 font-sans text-xs text-[#7A6A5A] hover:underline"
@@ -840,7 +840,7 @@ function ProposalDetails({
     .filter(Boolean);
 
   return (
-    <section className="min-h-0 space-y-6 overflow-y-auto px-6 py-4">
+    <section className="space-y-6 px-6 py-4">
       {/* Title card */}
       <div className="rounded-2xl border border-stone-200 bg-white p-6">
         <div className="flex flex-wrap items-center gap-2">
