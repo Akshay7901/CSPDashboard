@@ -118,7 +118,11 @@ export function AuthorMetadataPanel({
       setLoading(false);
       return;
     }
-    if (!isReleasedMetadata(res.data)) {
+    // Once the author has already approved this proposal's metadata, any
+    // subsequent reviewer edits (even if the backend temporarily marks the
+    // record as "draft") should keep showing on the author dashboard so the
+    // updated values are reflected automatically without a re-approval round.
+    if (!isReleasedMetadata(res.data) && !isPostApproval) {
       setMetadata(null);
       setNotVisible(true);
       try {
@@ -185,7 +189,7 @@ export function AuthorMetadataPanel({
   // Do not show the metadata section until the decision reviewer has
   // sent the metadata to the author. Before that the record may exist
   // in a "draft" state on the backend, but the author should not see it.
-  if (!loading && !isSent && !isApproved && !approvedByProposal) return null;
+  if (!loading && !isSent && !isApproved && !approvedByProposal && !isPostApproval) return null;
 
   void notVisible;
 
