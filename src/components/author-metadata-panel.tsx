@@ -166,7 +166,12 @@ export function AuthorMetadataPanel({
       return;
     }
 
+    const dataChanged =
+      JSON.stringify(metadataRef.current) !== JSON.stringify(res.data);
     setMetadata(res.data);
+    if (dataChanged) {
+      setLastFetchedAt(new Date());
+    }
     // Cache the latest snapshot so we can keep displaying it after the
     // proposal advances past `sent_to_author` and the API hides the record.
     try {
@@ -182,6 +187,7 @@ export function AuthorMetadataPanel({
     setNotVisible(false);
     setLoading(false);
   };
+
 
   useEffect(() => {
     void reload();
