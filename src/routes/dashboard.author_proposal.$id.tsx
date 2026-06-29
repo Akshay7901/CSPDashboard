@@ -419,6 +419,7 @@ type CurrentData = Record<string, unknown> & {
   has_tables?: boolean;
   has_illustrations?: boolean;
   illustration_count?: number;
+  number_of_illustrations?: number | string;
   figures_tables_count?: number | string;
   is_previously_published?: boolean;
   under_review_elsewhere?: string | boolean;
@@ -795,12 +796,8 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
 
   const wordCount = cd.estimated_word_count ?? cd.word_count;
   const completionDate = cd.estimated_completion_date || cd.expected_completion_date;
-  const illustrationsValue = (() => {
-    if (cd.figures_tables_count) return String(cd.figures_tables_count);
-    if (cd.has_illustrations) return String(cd.illustration_count ?? "Yes");
-    if (cd.has_illustrations === false) return "No";
-    return "—";
-  })();
+  const illustrationCount = cd.illustration_count ?? cd.number_of_illustrations;
+  const illustrationsValue = fmtBool(cd.has_illustrations);
   const overviewText = cd.short_description || cd.detailed_description || cd.overview;
   const keyFeaturesText = cd.key_features || cd.detailed_description;
   const audienceText = cd.target_audience || cd.marketing_info;
@@ -991,6 +988,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
             label="Word Count"
             value={wordCount ? Number(wordCount).toLocaleString() : "—"}
           />
+          <StatCard label="Tables" value={fmtBool(cd.has_tables)} />
           <StatCard
             label="Illustrations"
             value={illustrationsValue}
@@ -1209,8 +1207,12 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <MiniStat label="Has tables" value={fmtBool(cd.has_tables)} />
               <MiniStat
-                label="Illustrations"
+                label="Has illustrations"
                 value={illustrationsValue}
+              />
+              <MiniStat
+                label="Illustration count"
+                value={illustrationCount !== undefined && illustrationCount !== null ? String(illustrationCount) : "—"}
               />
               <MiniStat
                 label="Previously published"
@@ -1365,7 +1367,9 @@ const CONSUMED_CD_KEYS = new Set<string>([
   "suggested_reviewers",
   "reviewers",
   "has_tables",
+  "has_illustrations",
   "illustrations",
+  "illustration_count",
   "number_of_illustrations",
   "under_review_elsewhere",
   "is_previously_published",

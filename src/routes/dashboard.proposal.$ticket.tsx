@@ -1346,7 +1346,10 @@ function ProposalDetailPage() {
     biography: pick("biography"),
     co_authors_editors: pick("co_authors_editors", "co_authors"),
     word_count: pick("word_count", "estimated_word_count"),
-    figures_tables_count: pick("figures_tables_count", "illustration_count"),
+    has_tables: pick("has_tables"),
+    has_illustrations: pick("has_illustrations"),
+    illustration_count: pick("illustration_count", "number_of_illustrations"),
+    figures_tables_count: pick("figures_tables_count"),
     under_review_elsewhere: pick(
       "under_review_elsewhere",
       "under_review_elsewhere_details",
@@ -2986,11 +2989,21 @@ function ProposalDetailPage() {
                 {/* Manuscript Details */}
                 <Card>
                   <CardHeader title="Manuscript Details" />
-                  <div className="grid grid-cols-2 gap-6 px-7 py-6 sm:grid-cols-4">
+                  <div className="grid grid-cols-2 gap-6 px-7 py-6 sm:grid-cols-3 lg:grid-cols-6">
                     <Stat label="Word Count" value={formatNumber(cd.word_count) || "—"} large />
                     <Stat
-                      label="Illustrations / Tables"
-                      value={cd.figures_tables_count || "—"}
+                      label="Tables"
+                      value={formatDetailValue(rawCd.has_tables) || cd.has_tables || "—"}
+                      large
+                    />
+                    <Stat
+                      label="Illustrations"
+                      value={formatDetailValue(rawCd.has_illustrations) || cd.has_illustrations || "—"}
+                      large
+                    />
+                    <Stat
+                      label="Illustration Count"
+                      value={formatNumber(cd.illustration_count) || "—"}
                       large
                     />
                     <Stat
@@ -4653,7 +4666,7 @@ function normalizeProposalData(
     setIfEmpty("sub_title", b.subtitle);
     setIfEmpty("book_type", b.type);
     setIfEmpty("word_count", b.wordCount || b.estimatedWordCount);
-    setIfEmpty("figures_tables_count", b.illustrationsCount || b.figuresCount || b.illustrationCount);
+    setIfEmpty("illustration_count", b.illustrationsCount || b.figuresCount || b.illustrationCount);
     setIfEmpty("languages_used", b.languages || b.language);
   }
   if (isObj(raw.description)) {
