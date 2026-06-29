@@ -915,7 +915,7 @@ function ProposalDetails({
 
       {/* Manuscript Details */}
       <Section title="Manuscript Details">
-        <div className="grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-3 xl:grid-cols-6">
+        <div className="grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-3">
           <Field
             label="Word Count"
             value={
