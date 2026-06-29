@@ -815,8 +815,8 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
   const wordCount = cd.estimated_word_count ?? cd.word_count;
   const completionDate = cd.estimated_completion_date || cd.expected_completion_date;
   const illustrationCount = cd.illustration_count ?? cd.number_of_illustrations;
-  const illustrationsValue = fmtBool(cd.has_illustrations);
   const overviewText = cd.short_description || cd.detailed_description || cd.overview;
+
   const keyFeaturesText = cd.key_features || cd.detailed_description;
   const audienceText = cd.target_audience || cd.marketing_info;
   const whyNeededText = cd.unique_selling_points || cd.marketing_info;
@@ -1019,16 +1019,12 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
             label="Word Count"
             value={wordCount ? Number(wordCount).toLocaleString() : "—"}
           />
-          <StatCard label="Tables" value={fmtBool(cd.has_tables)} />
-          <StatCard
-            label="Illustrations"
-            value={illustrationsValue}
-          />
           <StatCard
             label="Completion"
             value={formatMonthYear(completionDate)}
           />
         </div>
+
 
         <aside id="section-documents" className="row-span-2 scroll-mt-24 overflow-hidden rounded-2xl border border-stone-200 bg-stone-50/60">
           <h3 className="px-5 py-3.5 font-serif text-base font-bold" style={{ color: "#2C1A0E" }}>Documents</h3>
@@ -1284,19 +1280,15 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                       : "—"
                 }
               />
-              <MiniStat label="Has tables" value={fmtBool(cd.has_tables)} />
               <MiniStat
-                label="Has illustrations"
-                value={illustrationsValue}
-              />
-              <MiniStat
-                label="Illustration count"
+                label="illustrations/figures/tables"
                 value={illustrationCount !== undefined && illustrationCount !== null ? String(illustrationCount) : "—"}
               />
               <MiniStat
                 label="Languages"
                 value={cd.language || "—"}
               />
+
               <MiniStat
                 label="Est. Completion"
                 value={completionDate || "—"}
