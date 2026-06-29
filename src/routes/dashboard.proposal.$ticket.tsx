@@ -1652,7 +1652,14 @@ function ProposalDetailPage() {
         prev
           ? {
               ...prev,
-              metadata_status: "draft",
+              // If the author has already approved this metadata record,
+              // keep the status as "approved" so subsequent reviewer edits
+              // flow straight through to the author dashboard without
+              // requiring another approval round-trip.
+              metadata_status:
+                prev.metadata_status === "approved" || !!prev.approved_at
+                  ? "approved"
+                  : "draft",
               current_version:
                 (body.current_version as number) ?? prev.current_version,
               updated_at: new Date().toISOString(),
