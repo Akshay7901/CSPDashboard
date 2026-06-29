@@ -785,15 +785,21 @@ function AuthorDashboard() {
   }, [activePill, myProposals]);
 
   const attentionList = visible.filter(
-    (p) => ATTENTION.includes(p.status) || isAwaitingInfoRaw(p.rawStatus, p.rawDisplayStatus),
+    (p) =>
+      ATTENTION.includes(p.status) ||
+      isAwaitingInfoRaw(p.rawStatus, p.rawDisplayStatus) ||
+      (p as LocalProposalWithInfo).metadataNeedsApproval,
   );
   const progressList = visible.filter(
     (p) =>
       ["in_review", "review_returned", "submitted", "question"].includes(p.status) &&
-      !isAwaitingInfoRaw(p.rawStatus, p.rawDisplayStatus),
+      !isAwaitingInfoRaw(p.rawStatus, p.rawDisplayStatus) &&
+      !(p as LocalProposalWithInfo).metadataNeedsApproval,
   );
-  const doneList = visible.filter((p) =>
-    ["signed", "approved", "declined"].includes(p.status),
+  const doneList = visible.filter(
+    (p) =>
+      ["signed", "approved", "declined"].includes(p.status) &&
+      !(p as LocalProposalWithInfo).metadataNeedsApproval,
   );
 
   const onLogout = async () => {
