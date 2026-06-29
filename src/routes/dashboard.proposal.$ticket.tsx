@@ -1347,7 +1347,12 @@ function ProposalDetailPage() {
     co_authors_editors: pick("co_authors_editors", "co_authors"),
     word_count: pick("word_count", "estimated_word_count"),
     figures_tables_count: pick("figures_tables_count", "illustration_count"),
-    under_review_elsewhere: pick("under_review_elsewhere", "is_previously_published"),
+    under_review_elsewhere: pick(
+      "under_review_elsewhere",
+      "under_review_elsewhere_details",
+      "review_elsewhere",
+      "review_elsewhere_details",
+    ),
     expected_completion_date: pick("expected_completion_date", "estimated_completion_date"),
     expected_submission_date: pick("expected_submission_date", "submission_date"),
     manuscript_stage: pick("manuscript_stage", "stage", "current_stage"),
