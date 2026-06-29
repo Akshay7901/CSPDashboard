@@ -432,6 +432,7 @@ type CurrentData = Record<string, unknown> & {
   unique_selling_points?: string;
   target_audience?: string;
   marketing_info?: string;
+  unique_contribution?: string;
   additional_info?: string;
   keywords?: string;
   primary_market?: string;
@@ -819,7 +820,11 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
     }
     return [];
   })();
-  const hasNotes = !!(cd.additional_info || cd.conferences || cd.promotional_channels || cd.permissions_required || cd.under_review_elsewhere);
+  const hasNotes = !!(
+    cd.additional_info ||
+    (typeof cd.permissions_required === "string" && cd.permissions_required) ||
+    cd.under_review_elsewhere
+  );
 
   return (
     <>
@@ -1166,9 +1171,15 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
             </Card>
           )}
 
-          {/* Market & Competition */}
-          {(whyNeededText || cd.competing_titles || cd.primary_market) && (
-            <Card title="Market & Competition" id="section-market">
+          {/* Marketing & Promotion */}
+          {(whyNeededText ||
+            cd.competing_titles ||
+            cd.primary_market ||
+            cd.unique_contribution ||
+            cd.conferences ||
+            cd.promotional_channels ||
+            cd.marketing_info) && (
+            <Card title="Marketing & Promotion" id="section-market">
               <div className="space-y-4">
                 {cd.primary_market && (
                   <SubCard label="Primary Market">
@@ -1191,6 +1202,38 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                     </p>
                   </SubCard>
                 )}
+                {cd.unique_contribution && (
+                  <SubCard label="Unique Contribution vs Competing Titles">
+                    <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
+                      {cd.unique_contribution}
+                    </p>
+                  </SubCard>
+                )}
+                {cd.conferences && (
+                  <SubCard label="Relevant Conferences / Academic Events">
+                    <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
+                      {cd.conferences}
+                    </p>
+                  </SubCard>
+                )}
+                {cd.promotional_channels && (
+                  <SubCard label="Promotional Channels">
+                    <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
+                      {cd.promotional_channels}
+                    </p>
+                  </SubCard>
+                )}
+                {cd.marketing_info &&
+                  cd.marketing_info !== cd.competing_titles &&
+                  cd.marketing_info !== cd.primary_market &&
+                  cd.marketing_info !== whyNeededText &&
+                  cd.marketing_info !== audienceText && (
+                    <SubCard label="Additional Marketing Notes">
+                      <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
+                        {cd.marketing_info}
+                      </p>
+                    </SubCard>
+                  )}
               </div>
             </Card>
           )}
@@ -1204,7 +1247,17 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
 
           {/* Manuscript details / extras */}
           <Card title="Manuscript Details" id="section-manuscript">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+              <MiniStat
+                label="Word Count"
+                value={
+                  typeof wordCount === "number"
+                    ? wordCount.toLocaleString()
+                    : wordCount
+                      ? String(wordCount)
+                      : "—"
+                }
+              />
               <MiniStat label="Has tables" value={fmtBool(cd.has_tables)} />
               <MiniStat
                 label="Has illustrations"
@@ -1213,6 +1266,14 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
               <MiniStat
                 label="Illustration count"
                 value={illustrationCount !== undefined && illustrationCount !== null ? String(illustrationCount) : "—"}
+              />
+              <MiniStat
+                label="Languages"
+                value={cd.language || "—"}
+              />
+              <MiniStat
+                label="Est. Completion"
+                value={completionDate || "—"}
               />
               <MiniStat
                 label="Previously published"
@@ -1224,28 +1285,21 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
             </div>
           </Card>
 
-          {/* Additional notes */}
+          {/* Additional Comments & Permissions */}
           {hasNotes && (
-            <Card title="Additional Notes" subtitle="Copyright, permissions, special considerations" id="section-notes">
+            <Card title="Additional Comments & Permissions" subtitle="Copyright, permissions, special considerations" id="section-notes">
               <div className="space-y-4">
                 {cd.additional_info && (
-                  <SubCard label="Notes">
+                  <SubCard label="Additional Notes from Author">
                     <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
                       {cd.additional_info}
                     </p>
                   </SubCard>
                 )}
-                {cd.conferences && (
-                  <SubCard label="Conferences">
+                {typeof cd.permissions_required === "string" && cd.permissions_required && (
+                  <SubCard label="Permissions Required from Copyright Holders">
                     <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
-                      {cd.conferences}
-                    </p>
-                  </SubCard>
-                )}
-                {cd.promotional_channels && (
-                  <SubCard label="Promotional Channels">
-                    <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
-                      {cd.promotional_channels}
+                      {cd.permissions_required}
                     </p>
                   </SubCard>
                 )}
