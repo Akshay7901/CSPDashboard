@@ -181,6 +181,30 @@ export function AuthorMetadataPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ticket, isPostApproval]);
 
+  // After the author has approved, the decision reviewer may continue to
+  // edit metadata via "Save Draft". Re-fetch whenever the author returns
+  // to the tab (or every 60s while it stays open) so those edits show up
+  // automatically without requiring a manual refresh.
+  useEffect(() => {
+    const onFocus = () => {
+      void reload();
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") void reload();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === "visible") void reload();
+    }, 60_000);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.clearInterval(interval);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ticket, isPostApproval]);
+
   const status = metadata?.metadata_status || "";
   const isSent = status === "sent_to_author";
   const isApproved = status === "approved" || !!metadata?.approved_at;
