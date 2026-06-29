@@ -820,7 +820,11 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
     }
     return [];
   })();
-  const hasNotes = !!(cd.additional_info || cd.conferences || cd.promotional_channels || cd.permissions_required || cd.under_review_elsewhere);
+  const hasNotes = !!(
+    cd.additional_info ||
+    (typeof cd.permissions_required === "string" && cd.permissions_required) ||
+    cd.under_review_elsewhere
+  );
 
   return (
     <>
