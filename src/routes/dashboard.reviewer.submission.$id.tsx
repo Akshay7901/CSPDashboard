@@ -840,7 +840,7 @@ function ProposalDetails({
     .filter(Boolean);
 
   return (
-    <section className="min-h-0 space-y-6 overflow-y-auto px-6 py-4">
+    <section className="space-y-6 px-6 py-4">
       {/* Title card */}
       <div className="rounded-2xl border border-stone-200 bg-white p-6">
         <div className="flex flex-wrap items-center gap-2">
