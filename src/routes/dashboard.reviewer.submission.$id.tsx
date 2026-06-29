@@ -802,6 +802,13 @@ function ProposalDetails({
       competing_titles?: string;
       conferences?: string;
       promotional_channels?: string;
+      unique_contribution?: string;
+      marketing_info?: string;
+      additional_info?: string;
+      additional_notes?: string;
+      permissions_required?: string;
+      permissions_notes?: string;
+      co_authors_editors?: string;
       recommended_reviewers?: string;
       website_reference_number?: string;
       source?: string;
