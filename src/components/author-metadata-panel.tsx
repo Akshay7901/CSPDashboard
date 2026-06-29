@@ -60,6 +60,17 @@ function hasMetadataContent(record: ProposalMetadata | null | undefined) {
   });
 }
 
+function formatTimestamp(date: Date): string {
+  return date.toLocaleString(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
 export function AuthorMetadataPanel({
   ticket,
   proposalStatus,
@@ -80,6 +91,8 @@ export function AuthorMetadataPanel({
   const [loading, setLoading] = useState(true);
   const [notVisible, setNotVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastFetchedAt, setLastFetchedAt] = useState<Date | null>(null);
+  const metadataRef = useRef(metadata);
 
   const [approving, setApproving] = useState(false);
   const [approveError, setApproveError] = useState<string | null>(null);
@@ -95,6 +108,11 @@ export function AuthorMetadataPanel({
   const [showQueries, setShowQueries] = useState(false);
   const [hasOpenQuery, setHasOpenQuery] = useState(false);
   const cacheKey = `author_metadata_cache:${ticket}`;
+
+  useEffect(() => {
+    metadataRef.current = metadata;
+  }, [metadata]);
+
 
   const restorePostApprovalMetadata = () => {
     if (!isPostApproval) return null;
@@ -159,7 +177,12 @@ export function AuthorMetadataPanel({
       return;
     }
 
+    const dataChanged =
+      JSON.stringify(metadataRef.current) !== JSON.stringify(res.data);
     setMetadata(res.data);
+    if (dataChanged) {
+      setLastFetchedAt(new Date());
+    }
     // Cache the latest snapshot so we can keep displaying it after the
     // proposal advances past `sent_to_author` and the API hides the record.
     try {
@@ -175,6 +198,7 @@ export function AuthorMetadataPanel({
     setNotVisible(false);
     setLoading(false);
   };
+
 
   useEffect(() => {
     void reload();
@@ -341,6 +365,11 @@ export function AuthorMetadataPanel({
             <h2 className="font-serif text-base font-bold text-stone-900">
               Metadata
             </h2>
+            {lastFetchedAt && (
+              <p className="mt-0.5 font-sans text-xs text-stone-500">
+                Last updated: {formatTimestamp(lastFetchedAt)}
+              </p>
+            )}
           </div>
         </div>
         <span
