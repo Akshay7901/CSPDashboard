@@ -1167,9 +1167,15 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
             </Card>
           )}
 
-          {/* Market & Competition */}
-          {(whyNeededText || cd.competing_titles || cd.primary_market) && (
-            <Card title="Market & Competition" id="section-market">
+          {/* Marketing & Promotion */}
+          {(whyNeededText ||
+            cd.competing_titles ||
+            cd.primary_market ||
+            cd.unique_contribution ||
+            cd.conferences ||
+            cd.promotional_channels ||
+            cd.marketing_info) && (
+            <Card title="Marketing & Promotion" id="section-market">
               <div className="space-y-4">
                 {cd.primary_market && (
                   <SubCard label="Primary Market">
@@ -1192,6 +1198,38 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                     </p>
                   </SubCard>
                 )}
+                {cd.unique_contribution && (
+                  <SubCard label="Unique Contribution vs Competing Titles">
+                    <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
+                      {cd.unique_contribution}
+                    </p>
+                  </SubCard>
+                )}
+                {cd.conferences && (
+                  <SubCard label="Relevant Conferences / Academic Events">
+                    <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
+                      {cd.conferences}
+                    </p>
+                  </SubCard>
+                )}
+                {cd.promotional_channels && (
+                  <SubCard label="Promotional Channels">
+                    <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
+                      {cd.promotional_channels}
+                    </p>
+                  </SubCard>
+                )}
+                {cd.marketing_info &&
+                  cd.marketing_info !== cd.competing_titles &&
+                  cd.marketing_info !== cd.primary_market &&
+                  cd.marketing_info !== whyNeededText &&
+                  cd.marketing_info !== audienceText && (
+                    <SubCard label="Additional Marketing Notes">
+                      <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
+                        {cd.marketing_info}
+                      </p>
+                    </SubCard>
+                  )}
               </div>
             </Card>
           )}
