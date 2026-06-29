@@ -2596,55 +2596,6 @@ function ProposalDetailPage() {
                       </div>
                     </Card>
 
-                    {/* Editorial Feedback Sent */}
-                    {(latestContract?.addendum ||
-                      latestContract?.notes ||
-                      notes ||
-                      submittedDrReview) && (
-                      <Card>
-                        <div className="border-b border-stone-200 px-6 py-4">
-                          <h2 className="font-serif text-base font-bold text-stone-900">
-                            Editorial Feedback Sent
-                          </h2>
-                          <p className="mt-0.5 font-sans text-sm text-stone-500">
-                            This feedback was shared with the author alongside the contract
-                          </p>
-                        </div>
-                        <div className="space-y-6 px-6 py-5">
-                          {(latestContract?.notes || notes) && (
-                            <div>
-                              <SectionLabel>Note to Author</SectionLabel>
-                              <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
-                                {latestContract?.notes || notes}
-                              </p>
-                            </div>
-                          )}
-                          {latestContract?.addendum && (
-                            <div className="border-t border-stone-200 pt-5">
-                              <SectionLabel>Contract Amendments</SectionLabel>
-                              <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
-                                {latestContract.addendum}
-                              </p>
-                            </div>
-                          )}
-                          {submittedDrReview && (
-                            <div className="border-t border-stone-200 pt-5">
-                              <SectionLabel>Decision Reviewer's Review Comments</SectionLabel>
-                              <div className="mt-3">
-                                <ReviewSectionList
-                                  data={
-                                    (submittedDrReview.review_data || {}) as Record<
-                                      string,
-                                      unknown
-                                    >
-                                  }
-                                />
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </Card>
-                    )}
 
                     {/* Contract Queries — moved from right sidebar */}
                     {contracts.length > 0 && !hasOpenQuery && contractResendPrompt !== "prompt" && contractResendPrompt !== "skip" && (
