@@ -832,12 +832,7 @@ function ProposalDetails({
     .filter(Boolean);
 
   const isNonEnglish = !!cd.language && !/english/i.test(cd.language);
-  const illTables =
-    (cd.has_illustrations
-      ? `${cd.illustration_count ? cd.illustration_count : "Yes"} illustrations`
-      : "No illustrations") +
-    " · " +
-    (cd.has_tables ? "Tables: Yes" : "Tables: No");
+  const fmtBool = (value?: boolean) => (value ? "Yes" : "No");
 
   const suggestedReviewers = (cd.recommended_reviewers || "")
     .split(/\r?\n|;/)
@@ -929,7 +924,12 @@ function ProposalDetails({
                 : "—"
             }
           />
-          <Field label="Illustrations / Tables" value={illTables} />
+          <Field label="Tables" value={fmtBool(cd.has_tables)} />
+          <Field label="Illustrations" value={fmtBool(cd.has_illustrations)} />
+          <Field
+            label="Illustration Count"
+            value={cd.illustration_count ? cd.illustration_count.toLocaleString() : "—"}
+          />
           <Field label="Non-English Content" value={isNonEnglish ? "Yes" : "No"} />
           <Field label="Est. Completion" value={formatDate(cd.estimated_completion_date)} />
         </div>
