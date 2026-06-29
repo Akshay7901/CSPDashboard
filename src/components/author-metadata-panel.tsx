@@ -131,12 +131,6 @@ export function AuthorMetadataPanel({
     } catch {
       /* ignore */
     }
-    if (!restored && fallbackData && hasMetadataContent(fallbackData)) {
-      restored = {
-        ...fallbackData,
-        metadata_status: fallbackData.metadata_status || "approved",
-      };
-    }
     return restored;
   };
 
@@ -252,17 +246,13 @@ export function AuthorMetadataPanel({
   );
 
   // The author must only see metadata after the decision reviewer explicitly
-  // sends it (`sent_to_author`) or after the author has approved that sent
-  // record. Proposal/contract statuses alone must not reveal draft metadata.
-  const approvedByProposal = false;
-
+  // sends it (`sent_to_author`). Once the author approves, the released
+  // record (or its cached snapshot after post-approval) keeps the panel
+  // permanently visible. Proposal/contract statuses alone must not reveal
+  // draft metadata.
   if (loading && !metadata) return null;
-  if (!loading && !metadata && !approvedByProposal) return null;
-
-  // Do not show the metadata section until the decision reviewer has
-  // sent the metadata to the author. Before that the record may exist
-  // in a "draft" state on the backend, but the author should not see it.
-  if (!loading && !isSent && !isApproved && !approvedByProposal && !isPostApproval) return null;
+  if (!loading && !metadata) return null;
+  if (!loading && !isSent && !isApproved) return null;
 
   void notVisible;
 
@@ -389,7 +379,7 @@ export function AuthorMetadataPanel({
           </p>
         )}
 
-        {!error && (metadata || approvedByProposal) && (
+        {!error && metadata && (
           <>
             {isApproved && (
               <div className="flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
