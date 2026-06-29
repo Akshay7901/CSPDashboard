@@ -80,6 +80,8 @@ export function AuthorMetadataPanel({
   const [loading, setLoading] = useState(true);
   const [notVisible, setNotVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastFetchedAt, setLastFetchedAt] = useState<Date | null>(null);
+  const metadataRef = useRef(metadata);
 
   const [approving, setApproving] = useState(false);
   const [approveError, setApproveError] = useState<string | null>(null);
@@ -95,6 +97,11 @@ export function AuthorMetadataPanel({
   const [showQueries, setShowQueries] = useState(false);
   const [hasOpenQuery, setHasOpenQuery] = useState(false);
   const cacheKey = `author_metadata_cache:${ticket}`;
+
+  useEffect(() => {
+    metadataRef.current = metadata;
+  }, [metadata]);
+
 
   const restorePostApprovalMetadata = () => {
     if (!isPostApproval) return null;
