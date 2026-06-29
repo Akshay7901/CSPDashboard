@@ -933,7 +933,7 @@ function AuthorDashboard() {
           </Section>
         )}
         {doneList.length > 0 && (
-          <Section title="COMPLETED" dot="bg-emerald-500">
+          <Section title="WITH PUBLISHER" dot="bg-emerald-500">
             {doneList.map((p) => (
               <ProposalCard key={p.id} p={p} />
             ))}
