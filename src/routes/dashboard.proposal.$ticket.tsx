@@ -4522,8 +4522,8 @@ function Stat({
   large?: boolean;
 }) {
   return (
-    <div>
-      <p className="font-sans text-xs uppercase tracking-wide text-stone-500">
+    <div className="min-w-0">
+      <p className="font-sans text-xs uppercase tracking-wide text-stone-500 break-words">
         {label}
       </p>
       <p
