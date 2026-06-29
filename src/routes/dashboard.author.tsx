@@ -785,15 +785,21 @@ function AuthorDashboard() {
   }, [activePill, myProposals]);
 
   const attentionList = visible.filter(
-    (p) => ATTENTION.includes(p.status) || isAwaitingInfoRaw(p.rawStatus, p.rawDisplayStatus),
+    (p) =>
+      ATTENTION.includes(p.status) ||
+      isAwaitingInfoRaw(p.rawStatus, p.rawDisplayStatus) ||
+      (p as LocalProposalWithInfo).metadataNeedsApproval,
   );
   const progressList = visible.filter(
     (p) =>
       ["in_review", "review_returned", "submitted", "question"].includes(p.status) &&
-      !isAwaitingInfoRaw(p.rawStatus, p.rawDisplayStatus),
+      !isAwaitingInfoRaw(p.rawStatus, p.rawDisplayStatus) &&
+      !(p as LocalProposalWithInfo).metadataNeedsApproval,
   );
-  const doneList = visible.filter((p) =>
-    ["signed", "approved", "declined"].includes(p.status),
+  const doneList = visible.filter(
+    (p) =>
+      ["signed", "approved", "declined"].includes(p.status) &&
+      !(p as LocalProposalWithInfo).metadataNeedsApproval,
   );
 
   const onLogout = async () => {
@@ -801,8 +807,11 @@ function AuthorDashboard() {
     navigate({ to: "/login" });
   };
 
+  const metadataApprovalCount = myProposals.filter(
+    (p) => (p as LocalProposalWithInfo).metadataNeedsApproval,
+  ).length;
   const attentionCount =
-    counts.additional_info_required + counts.feedback_and_contract_issued;
+    counts.additional_info_required + counts.feedback_and_contract_issued + metadataApprovalCount;
 
   return (
     <main className="min-h-screen bg-[#FAF6EE] font-sans text-stone-900">
@@ -919,7 +928,7 @@ function AuthorDashboard() {
 
         {/* Sections */}
         {attentionList.length > 0 && (
-          <Section title="NEEDS YOUR ATTENTION" dot="bg-orange-500">
+          <Section title="ACTION REQUIRED" dot="bg-orange-500">
             {attentionList.map((p) => (
               <ProposalCard key={p.id} p={p} />
             ))}
