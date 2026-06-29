@@ -432,6 +432,7 @@ type CurrentData = Record<string, unknown> & {
   unique_selling_points?: string;
   target_audience?: string;
   marketing_info?: string;
+  unique_contribution?: string;
   additional_info?: string;
   keywords?: string;
   primary_market?: string;
