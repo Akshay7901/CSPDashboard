@@ -982,7 +982,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
 
       {/* Stats row + Documents sidebar */}
       <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-[1fr_320px]">
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-5">
           <StatCard label="Type" value={kind} />
           <StatCard
             label="Word Count"
