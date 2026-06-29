@@ -1015,11 +1015,32 @@ function ProposalDetails({
         </Section>
       )}
 
-      {/* Market & Competition */}
-      <Section title="Market & Competition">
-        <Para label="Why is this book needed?" value={cd.primary_market} />
-        <Para label="Competing Titles" value={cd.competing_titles} />
-      </Section>
+      {/* Marketing & Promotion */}
+      {(cd.primary_market ||
+        cd.competing_titles ||
+        cd.unique_contribution ||
+        cd.conferences ||
+        cd.promotional_channels ||
+        cd.marketing_info) && (
+        <Section title="Marketing & Promotion">
+          <Para label="Primary Market" value={cd.primary_market} />
+          <Para label="Competing Titles" value={cd.competing_titles} />
+          <Para
+            label="Unique Contribution vs Competing Titles"
+            value={cd.unique_contribution}
+          />
+          <Para
+            label="Relevant Conferences / Academic Events"
+            value={cd.conferences}
+          />
+          <Para label="Promotional Channels" value={cd.promotional_channels} />
+          {cd.marketing_info &&
+            cd.marketing_info !== cd.competing_titles &&
+            cd.marketing_info !== cd.primary_market && (
+              <Para label="Additional Marketing Notes" value={cd.marketing_info} />
+            )}
+        </Section>
+      )}
 
       {/* Author-Suggested Reviewers */}
       <Section title="Author-Suggested Reviewers">
