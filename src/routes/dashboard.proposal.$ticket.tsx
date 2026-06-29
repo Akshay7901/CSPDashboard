@@ -2989,7 +2989,7 @@ function ProposalDetailPage() {
                 {/* Manuscript Details */}
                 <Card>
                   <CardHeader title="Manuscript Details" />
-                  <div className="grid grid-cols-2 gap-6 px-7 py-6 sm:grid-cols-3 lg:grid-cols-6">
+                  <div className="grid grid-cols-2 gap-6 px-7 py-6 sm:grid-cols-3">
                     <Stat label="Word Count" value={formatNumber(cd.word_count) || "—"} large />
                     <Stat
                       label="Tables"
