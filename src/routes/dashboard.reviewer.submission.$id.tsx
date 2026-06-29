@@ -1060,12 +1060,21 @@ function ProposalDetails({
         )}
       </Section>
 
-      {/* Additional Notes */}
-      <Section title="Additional Notes">
-        <p className="font-sans text-sm leading-relaxed text-stone-800">
-          {additionalNotes || "—"}
-        </p>
-      </Section>
+      {/* Additional Comments & Permissions */}
+      {(additionalNotes || cd.additional_info || cd.permissions_required) && (
+        <Section title="Additional Comments & Permissions">
+          <Para label="Additional Notes from Author" value={additionalNotes} />
+          {cd.additional_info && (
+            <p className="mt-4 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-700 first:mt-0">
+              {cd.additional_info}
+            </p>
+          )}
+          <Para
+            label="Permissions Required from Copyright Holders"
+            value={cd.permissions_required}
+          />
+        </Section>
+      )}
 
       {/* Supporting Documents */}
       {allFiles.length > 0 && (
