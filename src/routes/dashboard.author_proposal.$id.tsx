@@ -1280,19 +1280,15 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                       : "—"
                 }
               />
-              <MiniStat label="Has tables" value={fmtBool(cd.has_tables)} />
               <MiniStat
-                label="Has illustrations"
-                value={illustrationsValue}
-              />
-              <MiniStat
-                label="Illustration count"
+                label="illustrations/figures/tables"
                 value={illustrationCount !== undefined && illustrationCount !== null ? String(illustrationCount) : "—"}
               />
               <MiniStat
                 label="Languages"
                 value={cd.language || "—"}
               />
+
               <MiniStat
                 label="Est. Completion"
                 value={completionDate || "—"}
