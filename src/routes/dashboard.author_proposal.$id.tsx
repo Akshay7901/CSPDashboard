@@ -1907,10 +1907,10 @@ function ContractIssuedView({
           <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#00422F]" strokeWidth={2} />
           <div className="min-w-0">
             <p className="font-sans text-sm font-semibold text-[#00422F]">
-              Contract signed — welcome to the CSP family!
+              Contract signed
             </p>
             <p className="mt-0.5 font-sans text-xs text-[#7A6A5A]">
-              Our production team will be in touch shortly with the next steps for bringing your book to publication.
+              A member of our team will be in touch with you shortly to discuss the next steps
             </p>
           </div>
         </div>
@@ -2142,10 +2142,10 @@ function ContractIssuedView({
               </span>
               <div className="min-w-0">
                 <p className="font-serif text-base font-bold text-emerald-900">
-                  Contract signed — welcome to the CSP family!
+                  Contract signed
                 </p>
                 <p className="mt-1 font-sans text-sm leading-relaxed text-emerald-800/90">
-                  Our production team will be in touch shortly with the next steps for bringing your book to publication.
+                  A member of our team will be in touch with you shortly to discuss the next steps
                 </p>
                 {contract.docusign_completed_at && (
                   <p className="mt-2 font-sans text-xs text-emerald-700/80">
