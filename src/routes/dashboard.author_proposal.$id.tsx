@@ -1019,16 +1019,12 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
             label="Word Count"
             value={wordCount ? Number(wordCount).toLocaleString() : "—"}
           />
-          <StatCard label="Tables" value={fmtBool(cd.has_tables)} />
-          <StatCard
-            label="Illustrations"
-            value={illustrationsValue}
-          />
           <StatCard
             label="Completion"
             value={formatMonthYear(completionDate)}
           />
         </div>
+
 
         <aside id="section-documents" className="row-span-2 scroll-mt-24 overflow-hidden rounded-2xl border border-stone-200 bg-stone-50/60">
           <h3 className="px-5 py-3.5 font-serif text-base font-bold" style={{ color: "#2C1A0E" }}>Documents</h3>
