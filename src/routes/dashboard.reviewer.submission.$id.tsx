@@ -914,6 +914,7 @@ function ProposalDetails({
             }
           />
           <Field label="Email" value={cd.email || "—"} />
+          <Field label="Phone" value={cd.phone || "—"} />
           <Field label="Institution" value={cd.institution || "—"} />
           <Field label="Country" value={cd.country || "—"} />
         </div>
@@ -926,6 +927,40 @@ function ProposalDetails({
         </div>
         <Para label="Biography" value={cd.biography} />
       </Section>
+
+      {/* Co-authors / Editors / Contributors / Translators */}
+      {Array.isArray(cd.co_authors) && cd.co_authors.length > 0 ? (
+        <Section title="Co-authors / Editors / Contributors / Translators">
+          <ul className="divide-y divide-stone-100">
+            {(cd.co_authors as Array<Record<string, unknown>>).map((c, i) => {
+              const name =
+                [c.firstName || c.first_name, c.lastName || c.last_name]
+                  .filter(Boolean)
+                  .join(" ")
+                  .trim() ||
+                (c.name as string) ||
+                `Contributor ${i + 1}`;
+              return (
+                <li key={i} className="grid grid-cols-1 gap-4 py-4 first:pt-0 sm:grid-cols-2">
+                  <Field label="Role" value={(c.role as string) || "—"} />
+                  <Field label="Name" value={name} />
+                  <Field label="Email" value={(c.email as string) || "—"} />
+                  <Field
+                    label="Affiliation"
+                    value={(c.institution as string) || (c.affiliation as string) || "—"}
+                  />
+                </li>
+              );
+            })}
+          </ul>
+        </Section>
+      ) : cd.co_authors_editors ? (
+        <Section title="Additional Authors / Editors">
+          <p className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-700">
+            {cd.co_authors_editors}
+          </p>
+        </Section>
+      ) : null}
 
       {/* Manuscript Details */}
       <Section title="Manuscript Details">
