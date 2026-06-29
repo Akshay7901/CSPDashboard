@@ -807,8 +807,11 @@ function AuthorDashboard() {
     navigate({ to: "/login" });
   };
 
+  const metadataApprovalCount = myProposals.filter(
+    (p) => (p as LocalProposalWithInfo).metadataNeedsApproval,
+  ).length;
   const attentionCount =
-    counts.additional_info_required + counts.feedback_and_contract_issued;
+    counts.additional_info_required + counts.feedback_and_contract_issued + metadataApprovalCount;
 
   return (
     <main className="min-h-screen bg-[#FAF6EE] font-sans text-stone-900">
