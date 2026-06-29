@@ -815,8 +815,8 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
   const wordCount = cd.estimated_word_count ?? cd.word_count;
   const completionDate = cd.estimated_completion_date || cd.expected_completion_date;
   const illustrationCount = cd.illustration_count ?? cd.number_of_illustrations;
-  const illustrationsValue = fmtBool(cd.has_illustrations);
   const overviewText = cd.short_description || cd.detailed_description || cd.overview;
+
   const keyFeaturesText = cd.key_features || cd.detailed_description;
   const audienceText = cd.target_audience || cd.marketing_info;
   const whyNeededText = cd.unique_selling_points || cd.marketing_info;
