@@ -258,6 +258,8 @@ const DISPLAY_STATUS_MAP: Record<string, StatusKey> = {
   "revisions requested": "revisions",
   "major revisions required": "major_revisions",
   "major revisions": "major_revisions",
+  "confirmed & finalised": "approved",
+  "confirmed & finalized": "approved",
 };
 
 function normalizeStatus(raw?: string, display?: string): StatusKey {
@@ -267,7 +269,10 @@ function normalizeStatus(raw?: string, display?: string): StatusKey {
   }
   if (raw) {
     const lower = raw.trim().toLowerCase();
-    const snake = lower.replace(/\s+/g, "_");
+    const snake = lower
+      .replace(/&/g, "and")
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "");
     if (STATUS_MAP[snake]) return STATUS_MAP[snake];
     if (DISPLAY_STATUS_MAP[lower]) return DISPLAY_STATUS_MAP[lower];
   }
@@ -746,6 +751,18 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
   // status even though the underlying contract is signed.
   const status: StatusKey =
     contractSigned && baseStatus !== "approved" ? "signed" : baseStatus;
+  const rawApprovalStatus = [proposal.internalStatus, proposal.status, proposal.displayStatus]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  const isPostApproval =
+    status === "approved" ||
+    status === "signed" ||
+    rawApprovalStatus.includes("author_approved") ||
+    rawApprovalStatus.includes("confirmed_and_finalised") ||
+    rawApprovalStatus.includes("confirmed_and_finalized") ||
+    rawApprovalStatus.includes("confirmed & finalised") ||
+    rawApprovalStatus.includes("confirmed & finalized");
   const tint = STATUS_TINT[status];
   const isContractView =
     status === "contract" || status === "signed" || status === "approved";
@@ -881,22 +898,31 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
       <AuthorMetadataPanel
         ticket={proposal.ticket}
         proposalStatus={proposal.status}
-        isPostApproval={status === "approved" || status === "signed"}
+        isPostApproval={isPostApproval}
         fallbackData={{
           ticket_number: proposal.ticket,
           metadata_status: "approved",
           proposal_status: proposal.status,
           approved_at: proposal.updatedAt,
           metadata: {
-            full_title: [cd.main_title, cd.sub_title].filter(Boolean).join(": "),
-            title: cd.main_title,
-            subtitle: cd.sub_title,
+            full_title:
+              ((cd as Record<string, unknown>).full_title as string | undefined) ||
+              [cd.main_title, cd.sub_title].filter(Boolean).join(": "),
+            title:
+              ((cd as Record<string, unknown>).title as string | undefined) ||
+              cd.main_title,
+            subtitle:
+              ((cd as Record<string, unknown>).subtitle as string | undefined) ||
+              cd.sub_title,
             category: cd.book_type,
+            display_names: cd.corresponding_author_name || authorFullName,
+            display_bios: cd.biography,
             book_description:
               cd.detailed_description || cd.short_description || cd.overview,
             keywords: Array.isArray(cd.secondary_subjects) && cd.secondary_subjects.length
               ? cd.secondary_subjects.join(", ")
               : cd.keywords,
+            website_classification: cd.subject,
             authors: [
               {
                 title: cd.author_title,

@@ -1648,38 +1648,43 @@ function ProposalDetailPage() {
         return;
       }
       // Optimistically update local metadata snapshot
-      setMetadata((prev) =>
-        prev
-          ? {
-              ...prev,
-              // If the author has already approved this metadata record,
-              // keep the status as "approved" so subsequent reviewer edits
-              // flow straight through to the author dashboard without
-              // requiring another approval round-trip.
-              metadata_status:
-                prev.metadata_status === "approved" || !!prev.approved_at
-                  ? "approved"
-                  : "draft",
-              current_version:
-                (body.current_version as number) ?? prev.current_version,
-              updated_at: new Date().toISOString(),
-              metadata: {
-                ...(prev.metadata || {}),
-                full_title: metaForm.full_title,
-                title: metaForm.title,
-                subtitle: metaForm.subtitle,
-                category: metaForm.category,
-                display_names: metaForm.display_names,
-                display_bios: metaForm.display_bios,
-                book_description: metaForm.book_description,
-                keywords: metaForm.keywords,
-                website_classification: metaForm.website_classification,
-                bic: metaForm.bic,
-                authors: metaForm.authors,
-              },
-            }
-          : prev,
-      );
+      setMetadata((prev) => {
+        if (!prev) return prev;
+        const next: ProposalMetadata = {
+          ...prev,
+          // If the author has already approved this metadata record,
+          // keep the status as "approved" so subsequent reviewer edits
+          // flow straight through to the author dashboard without
+          // requiring another approval round-trip.
+          metadata_status:
+            prev.metadata_status === "approved" || !!prev.approved_at
+              ? "approved"
+              : "draft",
+          current_version:
+            (body.current_version as number) ?? prev.current_version,
+          updated_at: new Date().toISOString(),
+          metadata: {
+            ...(prev.metadata || {}),
+            full_title: metaForm.full_title,
+            title: metaForm.title,
+            subtitle: metaForm.subtitle,
+            category: metaForm.category,
+            display_names: metaForm.display_names,
+            display_bios: metaForm.display_bios,
+            book_description: metaForm.book_description,
+            keywords: metaForm.keywords,
+            website_classification: metaForm.website_classification,
+            bic: metaForm.bic,
+            authors: metaForm.authors,
+          },
+        };
+        try {
+          localStorage.setItem(`author_metadata_cache:${ticket}`, JSON.stringify(next));
+        } catch {
+          /* ignore quota errors */
+        }
+        return next;
+      });
       setMetaSaveSuccess("Draft saved.");
     } catch {
       setMetaSaveError("Network error. Please try again.");

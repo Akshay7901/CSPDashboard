@@ -51,6 +51,15 @@ function isReleasedMetadata(record: ProposalMetadata | null | undefined) {
   return status === "sent_to_author" || status === "approved" || !!record?.approved_at;
 }
 
+function hasMetadataContent(record: ProposalMetadata | null | undefined) {
+  const md = record?.metadata;
+  if (!md) return false;
+  return Object.entries(md).some(([key, value]) => {
+    if (key === "authors") return Array.isArray(value) && value.length > 0;
+    return typeof value === "string" && value.trim().length > 0;
+  });
+}
+
 export function AuthorMetadataPanel({
   ticket,
   proposalStatus,
@@ -85,6 +94,33 @@ export function AuthorMetadataPanel({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [showQueries, setShowQueries] = useState(false);
   const [hasOpenQuery, setHasOpenQuery] = useState(false);
+  const cacheKey = `author_metadata_cache:${ticket}`;
+
+  const restorePostApprovalMetadata = () => {
+    if (!isPostApproval) return null;
+    let restored: ProposalMetadata | null = null;
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        const parsed = JSON.parse(cached) as ProposalMetadata;
+        if (isReleasedMetadata(parsed) || hasMetadataContent(parsed)) {
+          restored = {
+            ...parsed,
+            metadata_status: parsed.metadata_status || "approved",
+          };
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+    if (!restored && fallbackData && hasMetadataContent(fallbackData)) {
+      restored = {
+        ...fallbackData,
+        metadata_status: fallbackData.metadata_status || "approved",
+      };
+    }
+    return restored;
+  };
 
   const reload = async () => {
     setLoading(true);
@@ -96,22 +132,11 @@ export function AuthorMetadataPanel({
         // After author approval the API may stop exposing the record.
         // Fall back to (a) the last cached snapshot, or (b) data
         // synthesized from the proposal's `current_data` payload.
-        let restored: ProposalMetadata | null = null;
-        if (isPostApproval) {
-          try {
-            const cached = localStorage.getItem(`author_metadata_cache:${ticket}`);
-            if (cached) {
-              const parsed = JSON.parse(cached) as ProposalMetadata;
-              if (isReleasedMetadata(parsed)) restored = parsed;
-            }
-          } catch {
-            /* ignore */
-          }
+        const restored = restorePostApprovalMetadata();
+        if (restored) {
+          setMetadata(restored);
+          setNotVisible(false);
         }
-        if (!restored && fallbackData && isPostApproval && isReleasedMetadata(fallbackData)) {
-          restored = fallbackData;
-        }
-        if (restored) setMetadata(restored);
       } else {
         setError(res.error || "Failed to load metadata.");
       }
@@ -154,7 +179,7 @@ export function AuthorMetadataPanel({
   useEffect(() => {
     void reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ticket]);
+  }, [ticket, isPostApproval]);
 
   const status = metadata?.metadata_status || "";
   const isSent = status === "sent_to_author";
