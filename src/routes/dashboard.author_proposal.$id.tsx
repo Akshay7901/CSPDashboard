@@ -1243,7 +1243,17 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
 
           {/* Manuscript details / extras */}
           <Card title="Manuscript Details" id="section-manuscript">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+              <MiniStat
+                label="Word Count"
+                value={
+                  typeof wordCount === "number"
+                    ? wordCount.toLocaleString()
+                    : wordCount
+                      ? String(wordCount)
+                      : "—"
+                }
+              />
               <MiniStat label="Has tables" value={fmtBool(cd.has_tables)} />
               <MiniStat
                 label="Has illustrations"
@@ -1252,6 +1262,14 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
               <MiniStat
                 label="Illustration count"
                 value={illustrationCount !== undefined && illustrationCount !== null ? String(illustrationCount) : "—"}
+              />
+              <MiniStat
+                label="Languages"
+                value={cd.language || "—"}
+              />
+              <MiniStat
+                label="Est. Completion"
+                value={completionDate || "—"}
               />
               <MiniStat
                 label="Previously published"
@@ -1263,28 +1281,21 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
             </div>
           </Card>
 
-          {/* Additional notes */}
+          {/* Additional Comments & Permissions */}
           {hasNotes && (
-            <Card title="Additional Notes" subtitle="Copyright, permissions, special considerations" id="section-notes">
+            <Card title="Additional Comments & Permissions" subtitle="Copyright, permissions, special considerations" id="section-notes">
               <div className="space-y-4">
                 {cd.additional_info && (
-                  <SubCard label="Notes">
+                  <SubCard label="Additional Notes from Author">
                     <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
                       {cd.additional_info}
                     </p>
                   </SubCard>
                 )}
-                {cd.conferences && (
-                  <SubCard label="Conferences">
+                {typeof cd.permissions_required === "string" && cd.permissions_required && (
+                  <SubCard label="Permissions Required from Copyright Holders">
                     <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
-                      {cd.conferences}
-                    </p>
-                  </SubCard>
-                )}
-                {cd.promotional_channels && (
-                  <SubCard label="Promotional Channels">
-                    <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
-                      {cd.promotional_channels}
+                      {cd.permissions_required}
                     </p>
                   </SubCard>
                 )}
