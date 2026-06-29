@@ -60,6 +60,17 @@ function hasMetadataContent(record: ProposalMetadata | null | undefined) {
   });
 }
 
+function formatTimestamp(date: Date): string {
+  return date.toLocaleString(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
 export function AuthorMetadataPanel({
   ticket,
   proposalStatus,
