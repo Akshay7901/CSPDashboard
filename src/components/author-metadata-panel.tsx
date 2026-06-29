@@ -220,7 +220,7 @@ export function AuthorMetadataPanel({
     document.addEventListener("visibilitychange", onVisibility);
     const interval = window.setInterval(() => {
       if (document.visibilityState === "visible") void reload();
-    }, 60_000);
+    }, 10_000);
     return () => {
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisibility);
