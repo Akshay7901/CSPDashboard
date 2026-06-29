@@ -2984,17 +2984,7 @@ function ProposalDetailPage() {
                   <div className="grid grid-cols-2 gap-6 px-7 py-6 sm:grid-cols-3">
                     <Stat label="Word Count" value={formatNumber(cd.word_count) || "—"} large />
                     <Stat
-                      label="Tables"
-                      value={formatDetailValue(rawCd.has_tables) || cd.has_tables || "—"}
-                      large
-                    />
-                    <Stat
-                      label="Illustrations"
-                      value={formatDetailValue(rawCd.has_illustrations) || cd.has_illustrations || "—"}
-                      large
-                    />
-                    <Stat
-                      label="Illustration Count"
+                      label="illustrations/figures/tables"
                       value={formatNumber(cd.illustration_count) || "—"}
                       large
                     />
