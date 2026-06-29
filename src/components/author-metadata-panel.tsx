@@ -131,12 +131,6 @@ export function AuthorMetadataPanel({
     } catch {
       /* ignore */
     }
-    if (!restored && fallbackData && hasMetadataContent(fallbackData)) {
-      restored = {
-        ...fallbackData,
-        metadata_status: fallbackData.metadata_status || "approved",
-      };
-    }
     return restored;
   };
 
