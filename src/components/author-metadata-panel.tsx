@@ -365,6 +365,11 @@ export function AuthorMetadataPanel({
             <h2 className="font-serif text-base font-bold text-stone-900">
               Metadata
             </h2>
+            {lastFetchedAt && (
+              <p className="mt-0.5 font-sans text-xs text-stone-500">
+                Last updated: {formatTimestamp(lastFetchedAt)}
+              </p>
+            )}
           </div>
         </div>
         <span
