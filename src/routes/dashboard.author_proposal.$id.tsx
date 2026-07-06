@@ -1671,9 +1671,7 @@ function ContractIssuedView({
           setProposalStatus(body.proposal_status || "");
           const qs = body.queries || [];
           setQueriesCount(qs.length);
-          const hasResponded = qs.some(
-            (q: { responded_at?: string | null }) => !!q.responded_at,
-          );
+          const hasResponded = qs.some((q) => q.type === "response");
           if (hasResponded) {
             setShowQueries(true);
             setTimeout(() => {
