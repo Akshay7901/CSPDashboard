@@ -107,6 +107,8 @@ export function AuthorMetadataPanel({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [showQueries, setShowQueries] = useState(false);
   const [hasOpenQuery, setHasOpenQuery] = useState(false);
+  const [flashApprove, setFlashApprove] = useState(false);
+  const approveBtnRef = useRef<HTMLButtonElement | null>(null);
   const cacheKey = `author_metadata_cache:${ticket}`;
 
   useEffect(() => {
@@ -571,10 +573,14 @@ export function AuthorMetadataPanel({
                 {canApprove && (
                   <div className="min-w-0">
                     <p className="font-sans text-sm font-semibold text-emerald-900">
-                      Happy with the metadata?
+                      {flashApprove
+                        ? "The publisher has responded — please review the table above."
+                        : "Happy with the metadata?"}
                     </p>
                     <p className="font-sans text-xs text-emerald-800/80">
-                      Approve to finalise your record, or raise a query if anything needs changing.
+                      {flashApprove
+                        ? "If you're happy with the updated details, press Submit metadata to finalise your record."
+                        : "Approve to finalise your record, or raise a query if anything needs changing."}
                     </p>
                   </div>
                 )}
@@ -595,6 +601,7 @@ export function AuthorMetadataPanel({
                   </button>
                   <button
                     type="button"
+                    ref={approveBtnRef}
                     onClick={onApprove}
                     disabled={approving || hasOpenQuery}
                     title={
@@ -602,7 +609,9 @@ export function AuthorMetadataPanel({
                         ? "Resolve the open metadata query before submitting."
                         : undefined
                     }
-                    className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    className={`inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60 ${
+                      flashApprove ? "ring-4 ring-amber-300 animate-pulse" : ""
+                    }`}
                   >
                     {approving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                     {approving ? "Submitting…" : "Submit metadata"}
@@ -634,6 +643,11 @@ export function AuthorMetadataPanel({
                 canRaise={isSent && !isApproved}
                 raisableFields={raisableFields}
                 onOpenQueryChange={setHasOpenQuery}
+                onNewActivity={() => {
+                  setShowQueries(true);
+                  setFlashApprove(true);
+                  window.setTimeout(() => setFlashApprove(false), 6000);
+                }}
               />
             </div>
           </>
