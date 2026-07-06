@@ -245,7 +245,7 @@ function toProposal(p: ApiProposalItem): LocalProposal {
 }
 
 const PILLS: { key: PillKey; label: string; dot: string; match: (p: LocalProposal) => boolean }[] = [
-    {
+  {
     key: "submitted",
     label: "New",
     dot: "bg-amber-400",
