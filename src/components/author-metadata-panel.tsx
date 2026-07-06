@@ -4,6 +4,7 @@ import {
   BookOpen,
   Check,
   CheckCircle2,
+  ExternalLink,
   Image as ImageIcon,
   MessageSquarePlus,
   Trash2,
