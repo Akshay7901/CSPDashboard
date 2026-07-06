@@ -34,6 +34,15 @@ import {
   User as UserIcon,
   Lock,
 } from "lucide-react";
+import { History } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import cspLogo from "@/assets/csp-logo.png";
 import { portalLogout, getPortalSession, getPortalToken, isAdmin } from "@/lib/auth";
 import { deleteCoverImage as apiDeleteCoverImage } from "@/lib/metadataApi";
