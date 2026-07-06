@@ -114,6 +114,10 @@ export function AuthorMetadataPanel({
   // follow-up step (backend requires source at upload time, so submitting
   // attribution re-uploads the same file with the real source string).
   const uploadedFileRef = useRef<File | null>(null);
+  // Track whether we have already seeded the attribution form from the
+  // saved cover source. Once the user has edited the form, we stop syncing
+  // from the server to avoid overwriting their input.
+  const attributionInitialisedRef = useRef(false);
   const [attributionSaving, setAttributionSaving] = useState(false);
   const [attributionSaved, setAttributionSaved] = useState(false);
   const [showQueries, setShowQueries] = useState(false);
