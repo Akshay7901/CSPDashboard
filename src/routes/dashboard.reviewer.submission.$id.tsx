@@ -884,15 +884,24 @@ function ProposalDetails({
         {cd.sub_title && (
           <p className="mt-1 font-sans text-sm font-medium text-[#A6814A]">{cd.sub_title}</p>
         )}
-        {cd.proposed_title && (
-          <p className="mt-2 font-sans text-[11px] font-semibold uppercase tracking-wider text-stone-500">
-            Proposed Title:{" "}
-            <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
-              {cd.proposed_title}
-              {cd.proposed_subtitle ? `: ${cd.proposed_subtitle}` : ""}
-            </span>
-          </p>
-        )}
+        {(() => {
+          const pt = (cd.proposed_title || "").trim();
+          const ps = (cd.proposed_subtitle || "").trim();
+          const ot = (cd.main_title || "").trim();
+          const os = ((cd as Record<string, string | undefined>).sub_title || "").trim();
+          const showT = pt && pt !== ot ? pt : "";
+          const showS = ps && ps !== os ? ps : "";
+          if (!showT && !showS) return null;
+          return (
+            <p className="mt-2 font-sans text-[11px] font-semibold uppercase tracking-wider text-stone-500">
+              Proposed Title:{" "}
+              <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
+                {showT}
+                {showT && showS ? `: ${showS}` : showS}
+              </span>
+            </p>
+          );
+        })()}
       </div>
 
       {/* Primary Author / Editor */}
