@@ -2282,10 +2282,13 @@ function ProposalDetailPage() {
                     Contract Signed
                   </span>
                 ) : (() => {
+                  const normalizedStatus = data.status?.toLowerCase().replace(/\s+/g, "_") || "";
                   const rawLabel =
-                    data.status?.toLowerCase().replace(/\s+/g, "_") === "awaiting_more_info"
+                    normalizedStatus === "awaiting_more_info"
                       ? "Request Revision"
-                      : data.status;
+                      : normalizedStatus === "new" || normalizedStatus === "submitted"
+                        ? "New"
+                        : data.status;
                   const sMeta = getStatusMeta(data.status, rawLabel);
                   return (
                     <span
