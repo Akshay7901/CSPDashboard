@@ -2603,6 +2603,7 @@ function ProposalDetailPage() {
                                 );
                               }}
                             />
+                            </div>
                           </div>
                         );
                       })()}
