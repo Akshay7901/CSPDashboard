@@ -313,7 +313,6 @@ export function AuthorMetadataPanel({
           setSourceText(sourceStatement);
           setMetadata((prev) => (prev ? { ...prev, cover_image: newCover } : prev));
           setAttributionSaved(true);
-          setCoverSuccess("Attribution saved.");
         } catch (e) {
           setCoverError((e as Error).message);
         } finally {
