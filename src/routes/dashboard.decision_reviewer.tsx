@@ -258,7 +258,7 @@ const tabDot = (raw: string, label: string): string =>
 const TABS: { key: TabKey; label: string; dot: string }[] = (
   [
     { key: "all", label: "All" },
-    { key: "new", label: "Submitted" },
+    { key: "new", label: "NEW" },
     { key: "awaiting_more_info", label: "Additional Info Required" },
     { key: "in_review", label: "In Review" },
     { key: "review_returned", label: "Review Returned" },
