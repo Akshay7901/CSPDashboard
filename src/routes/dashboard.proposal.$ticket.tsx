@@ -46,6 +46,7 @@ import {
   deleteInternalNote,
   type InternalNote,
 } from "@/lib/notesApi";
+import { listProposalEvents, type ProposalEvent } from "@/lib/eventsApi";
 import { toast } from "sonner";
 import {
   getContract,
@@ -523,6 +524,9 @@ function ProposalDetailPage() {
   const [internalNotes, setInternalNotes] = useState<InternalNote[]>([]);
   const [notesLoading, setNotesLoading] = useState(false);
   const [notesError, setNotesError] = useState<string | null>(null);
+  const [events, setEvents] = useState<ProposalEvent[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(false);
+  const [eventsError, setEventsError] = useState<string | null>(null);
   const [savingNote, setSavingNote] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
   const [editingNoteText, setEditingNoteText] = useState("");
