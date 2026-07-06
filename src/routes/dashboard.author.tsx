@@ -924,10 +924,15 @@ function AuthorDashboard() {
             <p className="font-sans text-sm font-semibold text-text">Have a new book idea?</p>
             <p className="font-sans text-xs text-text-muted mt-0.5">Submit a new proposal to our editorial team.</p>
           </div>
-          <button className="inline-flex items-center gap-2 rounded-xl bg-[#E6674A] px-4 py-2.5 font-sans text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#d35a3f]">
+          <a
+            href="https://www.cambridgescholars.com/book-proposal-form"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#E6674A] px-4 py-2.5 font-sans text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#d35a3f]"
+          >
             <Plus className="h-4 w-4" />
             Submit a proposal
-          </button>
+          </a>
         </div>
 
         {/* Sections */}
