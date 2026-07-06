@@ -872,28 +872,26 @@ export function AuthorMetadataPanel({
                         <p className="font-sans text-xs text-stone-500">Uploading… {uploadPct}%</p>
                       </div>
                     )}
-                    <div className="flex flex-wrap items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={onUpload}
-                        disabled={uploading || !pendingFile}
-                        className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        {uploading ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Upload className="h-4 w-4" />
+                    {!metadata?.cover_image && (
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={onUpload}
+                          disabled={uploading || !pendingFile}
+                          className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {uploading ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Upload className="h-4 w-4" />
+                          )}
+                          {uploading ? "Uploading…" : "Upload cover"}
+                        </button>
+                        {!coverError && coverSuccess && (
+                          <span className="font-sans text-xs text-emerald-700">{coverSuccess}</span>
                         )}
-                        {uploading
-                          ? "Uploading…"
-                          : metadata?.cover_image
-                            ? "Replace cover"
-                            : "Upload cover"}
-                      </button>
-                      {!coverError && coverSuccess && (
-                        <span className="font-sans text-xs text-emerald-700">{coverSuccess}</span>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
