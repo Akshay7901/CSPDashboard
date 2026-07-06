@@ -824,9 +824,14 @@ function ProposalDetailPage() {
         // contract. The author panel will fall back to its empty state.
       }
 
+      const originalTitle = (cd.main_title || title || "").trim();
+      const originalSubtitle = (cd.sub_title || "").trim();
+      const enteredTitle = (contractFields.title || "").trim();
+      const enteredSubtitle = (contractFields.subtitle || "").trim();
+      const titleChanged = enteredTitle.length > 0 && enteredTitle !== originalTitle;
+      const subtitleChanged = enteredSubtitle !== originalSubtitle;
       const payload: Record<string, unknown> = {
         contract_type: contractType,
-        title: (contractFields.title || cd.main_title || title || "").trim(),
         expiry_days: contractExpiryDays,
         language: contractFields.language,
         author_copies: contractFields.author_copies,
@@ -836,8 +841,14 @@ function ProposalDetailPage() {
         secondary_rights_revenue: Number(contractFields.secondary_rights_revenue) || 0,
         publishing_agreement: contractFields.publishing_agreement,
       };
-      const subtitleValue = (contractFields.subtitle || cd.sub_title || "").trim();
-      if (subtitleValue) payload.subtitle = subtitleValue;
+      if (subtitleChanged && enteredSubtitle) {
+        payload.subtitle = enteredSubtitle;
+      }
+      // Only send title when the DR actually changed it, so the backend
+      // doesn't record an unchanged value as a "proposed" title.
+      if (titleChanged) {
+        payload.title = enteredTitle;
+      }
       if (contractAmendments.trim()) payload.addendum = contractAmendments.trim();
       if (contractNote.trim()) {
         payload.notes = contractNote.trim();
@@ -869,8 +880,8 @@ function ProposalDetailPage() {
       // proposed title/subtitle immediately, without waiting for the contracts
       // list to refetch.
       setOptimisticProposed({
-        title: (contractFields.title || "").trim() || undefined,
-        subtitle: (contractFields.subtitle || "").trim() || undefined,
+        title: titleChanged ? enteredTitle : undefined,
+        subtitle: subtitleChanged && enteredSubtitle ? enteredSubtitle : undefined,
       });
       // Force the contracts list to refetch so the header/hero pick up the
       // new title/subtitle/addendum the DR just submitted.
