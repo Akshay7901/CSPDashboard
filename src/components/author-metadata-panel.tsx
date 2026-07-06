@@ -104,11 +104,16 @@ export function AuthorMetadataPanel({
   const [coverSuccess, setCoverSuccess] = useState<string | null>(null);
   const [uploadPct, setUploadPct] = useState(0);
   const [sourceText, setSourceText] = useState("");
+  const [attributionType, setAttributionType] = useState<
+    "own" | "public" | "permission" | ""
+  >("");
+  const [attributionDetail, setAttributionDetail] = useState("");
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [showQueries, setShowQueries] = useState(false);
   const [hasOpenQuery, setHasOpenQuery] = useState(false);
   const [flashApprove, setFlashApprove] = useState(false);
+  const [showNoCoverConfirm, setShowNoCoverConfirm] = useState(false);
   const approveBtnRef = useRef<HTMLButtonElement | null>(null);
   const cacheKey = `author_metadata_cache:${ticket}`;
 
