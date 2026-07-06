@@ -2086,7 +2086,7 @@ function ProposalDetailPage() {
                 <History className="h-5 w-5" />
               </button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-md">
+            <SheetContent side="right" className="w-full overflow-y-auto bg-white sm:max-w-md">
               <SheetHeader>
                 <SheetTitle className="font-serif">Audit Trail</SheetTitle>
                 <SheetDescription>
