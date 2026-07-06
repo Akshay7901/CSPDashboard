@@ -105,7 +105,16 @@ export function AuthorMetadataPanel({
   const [uploadPct, setUploadPct] = useState(0);
   const [sourceText, setSourceText] = useState("");
   const [attributionType, setAttributionType] = useState<"own" | "public" | "permission" | "">("");
-  const [attributionDetail, setAttributionDetail] = useState("");
+  const [attributionDetails, setAttributionDetails] = useState<Record<"own" | "public" | "permission", string>>({
+    own: "",
+    public: "",
+    permission: "",
+  });
+  const attributionDetail = attributionType ? attributionDetails[attributionType] : "";
+  const setAttributionDetail = (value: string) => {
+    if (!attributionType) return;
+    setAttributionDetails((prev) => ({ ...prev, [attributionType]: value }));
+  };
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   // Cache the just-uploaded file so the author can submit attribution as a
@@ -241,7 +250,7 @@ export function AuthorMetadataPanel({
     const source = metadata?.cover_image?.source;
     if (!source || source === "Pending attribution") {
       setAttributionType("");
-      setAttributionDetail("");
+      setAttributionDetails({ own: "", public: "", permission: "" });
       setAttributionSaved(false);
       attributionInitialisedRef.current = false;
       return;
@@ -250,16 +259,16 @@ export function AuthorMetadataPanel({
 
     if (source.startsWith("I own the copyright to this image.")) {
       setAttributionType("own");
-      setAttributionDetail(source.replace("I own the copyright to this image.", "").trim());
+      setAttributionDetails((prev) => ({ ...prev, own: source.replace("I own the copyright to this image.", "").trim() }));
     } else if (source.startsWith("Public domain source:")) {
       setAttributionType("public");
-      setAttributionDetail(source.replace("Public domain source:", "").trim());
+      setAttributionDetails((prev) => ({ ...prev, public: source.replace("Public domain source:", "").trim() }));
     } else if (source.startsWith("Permission from copyright holder:")) {
       setAttributionType("permission");
-      setAttributionDetail(source.replace("Permission from copyright holder:", "").trim());
+      setAttributionDetails((prev) => ({ ...prev, permission: source.replace("Permission from copyright holder:", "").trim() }));
     } else {
       setAttributionType("");
-      setAttributionDetail("");
+      setAttributionDetails({ own: "", public: "", permission: "" });
       attributionInitialisedRef.current = false;
       return;
     }
