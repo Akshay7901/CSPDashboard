@@ -241,16 +241,21 @@ export function AuthorMetadataPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ticket, isPostApproval]);
 
-  // Sync attribution form state from the saved cover source whenever the
-  // server-side cover record changes (e.g. after a successful save or on load).
+  // Sync attribution form state from the saved cover source the first time
+  // we see a real saved source. Once initialised (or when the user has just
+  // uploaded a fresh "Pending attribution" cover), we reset and wait for the
+  // user to edit rather than overwriting their input.
   useEffect(() => {
     const source = metadata?.cover_image?.source;
     if (!source || source === "Pending attribution") {
       setAttributionType("");
       setAttributionDetail("");
       setAttributionSaved(false);
+      attributionInitialisedRef.current = false;
       return;
     }
+    if (attributionInitialisedRef.current) return;
+
     if (source.startsWith("I own the copyright to this image.")) {
       setAttributionType("own");
       setAttributionDetail(
@@ -267,9 +272,19 @@ export function AuthorMetadataPanel({
     } else {
       setAttributionType("");
       setAttributionDetail("");
+      attributionInitialisedRef.current = false;
+      return;
     }
     setAttributionSaved(true);
+    attributionInitialisedRef.current = true;
   }, [metadata?.cover_image?.source]);
+
+  // Mark the attribution form as dirty as soon as the user interacts with it.
+  useEffect(() => {
+    if (attributionType || attributionDetail) {
+      attributionInitialisedRef.current = true;
+    }
+  }, [attributionType, attributionDetail]);
 
   // Auto-save attribution whenever the author changes the option or details.
   // The backend requires the source string at upload time, so this re-uploads
