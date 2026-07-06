@@ -2095,18 +2095,10 @@ function ProposalDetailPage() {
                   All events for {ticket}
                 </SheetDescription>
               </SheetHeader>
-              <div className="mt-4 flex items-center justify-between">
+              <div className="mt-4">
                 <p className="font-sans text-xs text-black">
                   {events.length} event{events.length === 1 ? "" : "s"}
                 </p>
-                <button
-                  type="button"
-                  onClick={refreshEvents}
-                  disabled={eventsLoading}
-                  className="rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 font-sans text-xs font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-50"
-                >
-                  {eventsLoading ? "Refreshing…" : "Refresh"}
-                </button>
               </div>
               <div className="mt-4 space-y-3">
                 {eventsLoading && events.length === 0 && (
