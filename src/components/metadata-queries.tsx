@@ -392,7 +392,7 @@ export function MetadataQueries({
                       return (
                         <div
                           key={key}
-                          className="flex flex-col gap-2 sm:flex-row sm:items-start"
+                          className={`flex flex-col gap-2 sm:flex-row sm:items-start ${appliedKeys[key] ? "opacity-70" : ""}`}
                         >
                           <label className="font-sans text-xs font-medium text-stone-700 sm:w-32 sm:pt-2">
                             {fieldLabels?.[fkey] || fkey}
@@ -401,24 +401,26 @@ export function MetadataQueries({
                             <textarea
                               rows={2}
                               value={current}
+                              disabled={appliedKeys[key]}
                               onChange={(e) =>
                                 setRowEdits((prev) => ({ ...prev, [key]: e.target.value }))
                               }
-                              className="flex-1 resize-none rounded-md border border-stone-300 bg-white px-2 py-1.5 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
+                              className="flex-1 resize-none rounded-md border border-stone-300 bg-white px-2 py-1.5 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100 disabled:bg-stone-50 disabled:text-stone-500 disabled:cursor-not-allowed"
                             />
                           ) : (
                             <input
                               type="text"
                               value={current}
+                              disabled={appliedKeys[key]}
                               onChange={(e) =>
                                 setRowEdits((prev) => ({ ...prev, [key]: e.target.value }))
                               }
-                              className="flex-1 rounded-md border border-stone-300 bg-white px-2 py-1.5 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
+                              className="flex-1 rounded-md border border-stone-300 bg-white px-2 py-1.5 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100 disabled:bg-stone-50 disabled:text-stone-500 disabled:cursor-not-allowed"
                             />
                           )}
                           <button
                             type="button"
-                            disabled={applying === key || !current.trim()}
+                            disabled={applying === key || !current.trim() || appliedKeys[key]}
                             onClick={async () => {
                               if (!onSaveFields) return;
                               setApplying(key);
@@ -426,15 +428,6 @@ export function MetadataQueries({
                               try {
                                 await onSaveFields({ [fkey]: current });
                                 setAppliedKeys((p) => ({ ...p, [key]: true }));
-                                window.setTimeout(
-                                  () =>
-                                    setAppliedKeys((p) => {
-                                      const n = { ...p };
-                                      delete n[key];
-                                      return n;
-                                    }),
-                                  1800,
-                                );
                               } catch (e) {
                                 setError((e as Error).message);
                               } finally {
