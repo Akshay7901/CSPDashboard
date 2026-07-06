@@ -636,6 +636,17 @@ function ProposalDetailPage() {
   const [metadataLoading, setMetadataLoading] = useState(false);
   const [metadataError, setMetadataError] = useState<string | null>(null);
   const [metadataHasOpenQuery, setMetadataHasOpenQuery] = useState(false);
+  const metadataScrolledRef = useRef(false);
+  useEffect(() => {
+    if (metadataHasOpenQuery && !metadataScrolledRef.current) {
+      metadataScrolledRef.current = true;
+      setTimeout(() => {
+        const el = document.getElementById("dr-metadata-queries-section");
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 200);
+    }
+    if (!metadataHasOpenQuery) metadataScrolledRef.current = false;
+  }, [metadataHasOpenQuery]);
   type MetaForm = {
     full_title: string;
     title: string;
@@ -2499,6 +2510,7 @@ function ProposalDetailPage() {
                               </div>
                             </div>
 
+                            <div id="dr-metadata-queries-section" className="scroll-mt-24">
                             <MetadataQueries
                               ticket={ticket}
                               viewer="dr"
@@ -2591,6 +2603,7 @@ function ProposalDetailPage() {
                                 );
                               }}
                             />
+                            </div>
                           </div>
                         );
                       })()}
