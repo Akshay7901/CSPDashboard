@@ -110,6 +110,12 @@ export function AuthorMetadataPanel({
   const [attributionDetail, setAttributionDetail] = useState("");
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  // Cache the just-uploaded file so the author can submit attribution as a
+  // follow-up step (backend requires source at upload time, so submitting
+  // attribution re-uploads the same file with the real source string).
+  const uploadedFileRef = useRef<File | null>(null);
+  const [attributionSaving, setAttributionSaving] = useState(false);
+  const [attributionSaved, setAttributionSaved] = useState(false);
   const [showQueries, setShowQueries] = useState(false);
   const [hasOpenQuery, setHasOpenQuery] = useState(false);
   const [flashApprove, setFlashApprove] = useState(false);
