@@ -265,6 +265,10 @@ export function AuthorMetadataPanel({
   void notVisible;
 
   const onApprove = async () => {
+    if (!metadata?.cover_image && !showNoCoverConfirm) {
+      setShowNoCoverConfirm(true);
+      return;
+    }
     setApproving(true);
     setApproveError(null);
     setApproveSuccess(null);
@@ -272,6 +276,7 @@ export function AuthorMetadataPanel({
       await approveMetadata(ticket);
       setApproveSuccess("Metadata approved. Thank you!");
       toast.success("Metadata submitted successfully");
+      setShowNoCoverConfirm(false);
       await reload();
     } catch (e) {
       setApproveError((e as Error).message);
