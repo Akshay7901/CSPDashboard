@@ -629,11 +629,12 @@ export function AuthorMetadataPanel({
                       )}
                     </div>
 
-                    {/* Attribution */}
-                    <div className="space-y-3">
+                    {/* Attribution — shown only after a successful upload */}
+                    {metadata?.cover_image && (
+                    <div className="space-y-3 border-t border-stone-200 pt-4">
                       <h4 className="font-semibold text-stone-900">Image Permissions & Attribution</h4>
                       <p className="text-stone-700">
-                        All cover images must be correctly attributed. Please select the option that applies to you:
+                        Your cover was uploaded. Please tell us how it's attributed — select the option that applies and save.
                       </p>
                       <div className="space-y-3">
                         <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-stone-200 bg-white p-3 hover:bg-stone-50">
@@ -723,7 +724,37 @@ export function AuthorMetadataPanel({
                           </div>
                         </label>
                       </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={onSaveAttribution}
+                          disabled={
+                            attributionSaving ||
+                            !attributionType ||
+                            !attributionDetail.trim()
+                          }
+                          className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {attributionSaving ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : null}
+                          {attributionSaving
+                            ? "Saving…"
+                            : attributionSaved
+                              ? "Update attribution"
+                              : "Save attribution"}
+                        </button>
+                        {attributionSaved && (
+                          <span className="font-sans text-xs text-emerald-700">Attribution saved.</span>
+                        )}
+                      </div>
+                      {!uploadedFileRef.current && !attributionSaved && (
+                        <p className="font-sans text-xs text-stone-500">
+                          To change attribution after refreshing the page, use <span className="font-medium">Replace cover</span> above to re-upload the image.
+                        </p>
+                      )}
                     </div>
+                    )}
 
                     {coverError && (
                       <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm">
