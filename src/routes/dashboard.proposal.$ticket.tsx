@@ -2287,7 +2287,7 @@ function ProposalDetailPage() {
                     normalizedStatus === "awaiting_more_info"
                       ? "Request Revision"
                       : normalizedStatus === "new" || normalizedStatus === "submitted"
-                        ? "N"
+                        ? "New"
                         : data.status;
                   const sMeta = getStatusMeta(data.status, rawLabel);
                   return (

@@ -22,7 +22,7 @@ export interface StatusMeta {
 export const STATUS_META: Record<StatusKey, StatusMeta> = {
   submitted: {
     key: "submitted",
-    label: "N",
+    label: "New",
     filterLabel: "New",
     dot: "bg-amber-400",
     badgeClass: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",

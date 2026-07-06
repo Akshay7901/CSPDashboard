@@ -297,7 +297,7 @@ function statusFromTimeline(timeline?: TimelineStage[]): StatusKey | undefined {
 }
 
 const STATUS_LABEL: Record<StatusKey, string> = {
-  submitted: "N",
+  submitted: "Submitted",
   revisions: "Revisions Requested",
   in_review: "Under Review",
   review_returned: "Review Returned",
