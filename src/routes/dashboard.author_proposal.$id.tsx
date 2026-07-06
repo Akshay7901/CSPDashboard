@@ -853,15 +853,24 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
       <section id="section-hero" className="mt-6 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm scroll-mt-24">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
-            {cd.proposed_title && (
-              <p className="mb-1.5 font-sans text-[11px] font-semibold uppercase tracking-wider text-stone-500">
-                Proposed Title:{" "}
-                <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
-                  {cd.proposed_title}
-                  {cd.proposed_subtitle ? `: ${cd.proposed_subtitle}` : ""}
-                </span>
-              </p>
-            )}
+            {(() => {
+              const pt = (cd.proposed_title || "").trim();
+              const ps = (cd.proposed_subtitle || "").trim();
+              const ot = (cd.main_title || "").trim();
+              const os = (cd.sub_title || "").trim();
+              const showT = pt && pt !== ot ? pt : "";
+              const showS = ps && ps !== os ? ps : "";
+              if (!showT && !showS) return null;
+              return (
+                <p className="mb-1.5 font-sans text-[11px] font-semibold uppercase tracking-wider text-stone-500">
+                  Proposed Title:{" "}
+                  <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
+                    {showT}
+                    {showT && showS ? `: ${showS}` : showS}
+                  </span>
+                </p>
+              );
+            })()}
             <h1 className="font-serif text-2xl font-bold leading-tight md:text-3xl" style={{ color: "#2C1A0E" }}>
               {cd.main_title || proposal.ticket}
             </h1>

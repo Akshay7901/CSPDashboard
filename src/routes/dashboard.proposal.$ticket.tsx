@@ -832,6 +832,10 @@ function ProposalDetailPage() {
       const subtitleChanged = enteredSubtitle !== originalSubtitle;
       const payload: Record<string, unknown> = {
         contract_type: contractType,
+        // Backend requires a title. Always send one; use the original when
+        // the DR didn't change it so the frontend can tell "unchanged" apart
+        // from "proposed edit" by comparing to main_title on read.
+        title: (titleChanged ? enteredTitle : originalTitle),
         expiry_days: contractExpiryDays,
         language: contractFields.language,
         author_copies: contractFields.author_copies,
@@ -841,13 +845,10 @@ function ProposalDetailPage() {
         secondary_rights_revenue: Number(contractFields.secondary_rights_revenue) || 0,
         publishing_agreement: contractFields.publishing_agreement,
       };
+      // Only include subtitle when actually edited, so the backend doesn't
+      // record an unchanged value as a "proposed" subtitle.
       if (subtitleChanged && enteredSubtitle) {
         payload.subtitle = enteredSubtitle;
-      }
-      // Only send title when the DR actually changed it, so the backend
-      // doesn't record an unchanged value as a "proposed" title.
-      if (titleChanged) {
-        payload.title = enteredTitle;
       }
       if (contractAmendments.trim()) payload.addendum = contractAmendments.trim();
       if (contractNote.trim()) {
@@ -2208,12 +2209,13 @@ function ProposalDetailPage() {
                   )}
                   {(() => {
                     if (!latestContractForHeader) return null;
+                    const origTitle = (cd.main_title || title || "").trim();
+                    const origSubtitle = (cd.sub_title || "").trim();
                     const pTitle =
                       (
                         latestContractForHeader?.title ||
                         optimisticProposed?.title ||
                         cd.proposed_title ||
-                        cd.main_title ||
                         ""
                       ).trim();
                     const pSubtitle =
@@ -2221,18 +2223,24 @@ function ProposalDetailPage() {
                         latestContractForHeader?.subtitle ||
                         optimisticProposed?.subtitle ||
                         cd.proposed_subtitle ||
-                        cd.sub_title ||
                         ""
                       ).trim();
-                    if (!pTitle && !pSubtitle) return null;
+                    // Hide the "Proposed Title" row entirely when the DR did
+                    // not actually edit the title/subtitle (i.e. proposed
+                    // matches the original values).
+                    const titleDiffers = pTitle && pTitle !== origTitle;
+                    const subtitleDiffers = pSubtitle && pSubtitle !== origSubtitle;
+                    if (!titleDiffers && !subtitleDiffers) return null;
+                    const showTitle = titleDiffers ? pTitle : "";
+                    const showSubtitle = subtitleDiffers ? pSubtitle : "";
                     return (
                       <p className="mt-3 flex items-center gap-2 font-sans text-sm text-stone-500">
                         <FileText className="h-4 w-4 text-stone-400" />
                         <span className="font-medium text-stone-500">Proposed Title:</span>
                         <span className="font-semibold text-stone-800">
-                          {pTitle}
-                          {pTitle && pSubtitle ? ": " : ""}
-                          {pSubtitle}
+                          {showTitle}
+                          {showTitle && showSubtitle ? ": " : ""}
+                          {showSubtitle}
                         </span>
                       </p>
                     );

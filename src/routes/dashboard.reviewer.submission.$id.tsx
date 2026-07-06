@@ -433,17 +433,25 @@ function ReviewerSubmission() {
           <h1 className="mt-3 font-serif text-base font-bold leading-snug text-[#2C1A0E] line-clamp-2">
             {proposal.cd.main_title || proposal.ticket}
           </h1>
-          {((proposal.cd as Record<string, unknown>).proposed_title as string | undefined) && (
-            <p className="mt-1 font-sans text-[10px] font-semibold uppercase tracking-wider text-[#7A6A5A]">
-              Proposed Title:{" "}
-              <span className="font-serif text-xs font-normal normal-case tracking-normal text-[#2C1A0E]">
-                {(proposal.cd as Record<string, unknown>).proposed_title as string}
-                {((proposal.cd as Record<string, unknown>).proposed_subtitle as string | undefined)
-                  ? `: ${(proposal.cd as Record<string, unknown>).proposed_subtitle as string}`
-                  : ""}
-              </span>
-            </p>
-          )}
+          {(() => {
+            const rec = proposal.cd as Record<string, unknown>;
+            const pt = ((rec.proposed_title as string | undefined) || "").trim();
+            const ps = ((rec.proposed_subtitle as string | undefined) || "").trim();
+            const ot = ((proposal.cd.main_title as string | undefined) || "").trim();
+            const os = ((rec.sub_title as string | undefined) || "").trim();
+            const showT = pt && pt !== ot ? pt : "";
+            const showS = ps && ps !== os ? ps : "";
+            if (!showT && !showS) return null;
+            return (
+              <p className="mt-1 font-sans text-[10px] font-semibold uppercase tracking-wider text-[#7A6A5A]">
+                Proposed Title:{" "}
+                <span className="font-serif text-xs font-normal normal-case tracking-normal text-[#2C1A0E]">
+                  {showT}
+                  {showT && showS ? `: ${showS}` : showS}
+                </span>
+              </p>
+            );
+          })()}
           <p className="mt-1 font-sans text-xs text-[#7A6A5A]">
             {proposal.cd.corresponding_author_name || "—"} · {proposal.cd.institution || "—"}
           </p>
@@ -876,15 +884,24 @@ function ProposalDetails({
         {cd.sub_title && (
           <p className="mt-1 font-sans text-sm font-medium text-[#A6814A]">{cd.sub_title}</p>
         )}
-        {cd.proposed_title && (
-          <p className="mt-2 font-sans text-[11px] font-semibold uppercase tracking-wider text-stone-500">
-            Proposed Title:{" "}
-            <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
-              {cd.proposed_title}
-              {cd.proposed_subtitle ? `: ${cd.proposed_subtitle}` : ""}
-            </span>
-          </p>
-        )}
+        {(() => {
+          const pt = (cd.proposed_title || "").trim();
+          const ps = (cd.proposed_subtitle || "").trim();
+          const ot = (cd.main_title || "").trim();
+          const os = ((cd as Record<string, string | undefined>).sub_title || "").trim();
+          const showT = pt && pt !== ot ? pt : "";
+          const showS = ps && ps !== os ? ps : "";
+          if (!showT && !showS) return null;
+          return (
+            <p className="mt-2 font-sans text-[11px] font-semibold uppercase tracking-wider text-stone-500">
+              Proposed Title:{" "}
+              <span className="font-serif text-sm font-normal normal-case tracking-normal text-stone-700">
+                {showT}
+                {showT && showS ? `: ${showS}` : showS}
+              </span>
+            </p>
+          );
+        })()}
       </div>
 
       {/* Primary Author / Editor */}

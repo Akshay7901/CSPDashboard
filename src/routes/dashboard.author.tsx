@@ -197,18 +197,22 @@ function toProposal(p: ApiProposalItem): LocalProposal {
   const cd = p.current_data || {};
   const title = p.title || cd.main_title || p.ticket_number;
   const kind = cd.book_type || cd.proposal_type || "Proposal";
+  const origTitle = (cd.main_title || p.title || "").trim();
+  const origSubtitle = ((cd as Record<string, string | undefined>).sub_title || "").trim();
+  const rawPT = (cd.proposed_title || cd.proposed_book_title || "").trim();
+  const rawPS = (
+    cd.proposed_subtitle ||
+    cd.proposed_sub_title ||
+    cd.proposed_book_subtitle ||
+    ""
+  ).trim();
   return {
     id: p.ticket_number,
     ref: p.ticket_number,
     title,
     kind,
-    proposedTitle:
-      cd.proposed_title || cd.proposed_book_title || undefined,
-    proposedSubtitle:
-      cd.proposed_subtitle ||
-      cd.proposed_sub_title ||
-      cd.proposed_book_subtitle ||
-      undefined,
+    proposedTitle: rawPT && rawPT !== origTitle ? rawPT : undefined,
+    proposedSubtitle: rawPS && rawPS !== origSubtitle ? rawPS : undefined,
     status: normalizeStatus(p.status, p.display_status),
     rawStatus: p.status,
     rawDisplayStatus: p.display_status,

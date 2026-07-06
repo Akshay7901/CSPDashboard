@@ -176,16 +176,22 @@ const mapApiProposal = (p: ApiProposal): ProposalRow => {
     assignsList.find(
       (a) => !/complete|returned|done/i.test(a.peer_reviewer_status || a.display_status || ""),
     ) || assignsList[0];
+  const origTitle = (p.title || "").trim();
+  const origSubtitle = ((cd as Record<string, string | undefined>).sub_title || "").trim();
+  const rawProposedTitle = (cd.proposed_title || cd.proposed_book_title || "").trim();
+  const rawProposedSubtitle = (
+    cd.proposed_subtitle ||
+    cd.proposed_sub_title ||
+    cd.proposed_book_subtitle ||
+    ""
+  ).trim();
   return {
     id: p.ticket_number,
     title: p.title,
     proposedTitle:
-      cd.proposed_title || cd.proposed_book_title || undefined,
+      rawProposedTitle && rawProposedTitle !== origTitle ? rawProposedTitle : undefined,
     proposedSubtitle:
-      cd.proposed_subtitle ||
-      cd.proposed_sub_title ||
-      cd.proposed_book_subtitle ||
-      undefined,
+      rawProposedSubtitle && rawProposedSubtitle !== origSubtitle ? rawProposedSubtitle : undefined,
     kind: "Proposal",
     authorName: p.corresponding_author || displayNameFromEmail(p.email || ""),
     authorAffiliation: institution || p.email || "",
