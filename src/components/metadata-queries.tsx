@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { MessageSquare, Send, Tag } from "lucide-react";
 import {
   getMetadataQueries,
@@ -20,6 +20,12 @@ type Props = {
   onAfterRespond?: () => Promise<void> | void;
   /** Notified whenever the open-query state changes (author has an unanswered query). */
   onOpenQueryChange?: (hasOpen: boolean) => void;
+  /**
+   * Called when a new entry from the *other* party is detected since the
+   * viewer last saw the thread. Author: new publisher response. DR: new
+   * author query. Use to highlight the primary CTA in the parent panel.
+   */
+  onNewActivity?: () => void;
   /**
    * DR only: current value snapshot for each metadata field key. Used to seed
    * inline editors when responding to a query that targets specific fields.
@@ -48,10 +54,16 @@ export function MetadataQueries({
   fieldValues,
   fieldLabels,
   onSaveFields,
+  onNewActivity,
 }: Props) {
   const [thread, setThread] = useState<MetadataQueryEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const [flashCta, setFlashCta] = useState(false);
+  const seenKey = `metadata_queries_seen:${viewer}:${ticket}`;
+  const didInitialSeenRef = useRef(false);
 
   type DraftRow = { field: string; text: string };
   const [drafts, setDrafts] = useState<DraftRow[]>([{ field: "", text: "" }]);
@@ -79,6 +91,50 @@ export function MetadataQueries({
   useEffect(() => {
     void reload();
   }, [reload]);
+
+  // Detect new activity from the other party since last visit. Scroll into
+  // view and flash the primary CTA so the reviewer/author is guided to act.
+  useEffect(() => {
+    if (loading) return;
+    if (thread.length === 0) return;
+    let seen: Record<string, true> = {};
+    try {
+      const raw = typeof window !== "undefined" ? window.localStorage.getItem(seenKey) : null;
+      if (raw) seen = JSON.parse(raw) as Record<string, true>;
+    } catch {
+      seen = {};
+    }
+    // On the very first render for this ticket, treat everything as already
+    // seen — we only want to react to genuinely new activity.
+    const firstTime = Object.keys(seen).length === 0 && !didInitialSeenRef.current;
+    const relevantType = viewer === "author" ? "response" : "query";
+    const newRelevant = thread.filter(
+      (t) => t.type === relevantType && !seen[`${t.type}-${t.id}`],
+    );
+    // Update the seen map with every current entry.
+    const nextSeen: Record<string, true> = { ...seen };
+    for (const t of thread) nextSeen[`${t.type}-${t.id}`] = true;
+    try {
+      if (typeof window !== "undefined")
+        window.localStorage.setItem(seenKey, JSON.stringify(nextSeen));
+    } catch {
+      // ignore quota / disabled storage
+    }
+    didInitialSeenRef.current = true;
+    if (firstTime || newRelevant.length === 0) return;
+    // New activity — scroll to the queries panel and flash the CTA.
+    setFlashCta(true);
+    onNewActivity?.();
+    const el = rootRef.current;
+    if (el && typeof el.scrollIntoView === "function") {
+      window.setTimeout(() => {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 150);
+    }
+    const t = window.setTimeout(() => setFlashCta(false), 6000);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [thread, loading, viewer]);
 
   // Author view: keep the thread fresh so the publisher's response appears
   // automatically. Poll while an open query is awaiting a response, and
@@ -207,7 +263,14 @@ export function MetadataQueries({
   }
 
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white">
+    <div
+      ref={rootRef}
+      className={`rounded-2xl border bg-white transition ${
+        flashCta
+          ? "border-amber-400 shadow-[0_0_0_4px_rgba(251,191,36,0.25)]"
+          : "border-stone-200"
+      }`}
+    >
       <div className="flex items-center justify-between gap-3 border-b border-stone-200 px-5 py-3.5">
         <div className="min-w-0">
           <h3 className="flex items-center gap-2 font-serif text-base font-bold text-stone-900">
@@ -226,6 +289,16 @@ export function MetadataQueries({
           </span>
         )}
       </div>
+
+      {flashCta && (
+        <div className="border-b border-amber-200 bg-amber-50 px-5 py-3">
+          <p className="font-sans text-sm text-amber-900">
+            {viewer === "author"
+              ? "The publisher has responded to your query. Please review the updated metadata table above and press Submit metadata if you're happy with it."
+              : "The author has raised a new query. Review the tagged fields, apply any requested changes, then send your response below."}
+          </p>
+        </div>
+      )}
 
       <div className="space-y-3 px-5 py-4">
         {loading && thread.length === 0 && (
@@ -400,7 +473,9 @@ export function MetadataQueries({
                 type="button"
                 disabled={submitting || !responseText.trim()}
                 onClick={() => onRespond(openIds)}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-3 py-1.5 font-sans text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
+                className={`inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-3 py-1.5 font-sans text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-50 ${
+                  flashCta ? "ring-4 ring-amber-300 animate-pulse" : ""
+                }`}
               >
                 <Send className="h-3.5 w-3.5" />
                 {submitting
