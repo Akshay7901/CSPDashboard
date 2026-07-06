@@ -2073,7 +2073,7 @@ function ProposalDetailPage() {
         </div>
       </header>
 
-      {(() => {
+      {mounted ? (() => {
         const session = getPortalSession();
         const role = (session?.role || "").toLowerCase();
         if (role !== "admin" && role !== "decision_reviewer") return null;
