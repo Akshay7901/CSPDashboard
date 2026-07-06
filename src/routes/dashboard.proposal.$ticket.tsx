@@ -2209,12 +2209,13 @@ function ProposalDetailPage() {
                   )}
                   {(() => {
                     if (!latestContractForHeader) return null;
+                    const origTitle = (cd.main_title || title || "").trim();
+                    const origSubtitle = (cd.sub_title || "").trim();
                     const pTitle =
                       (
                         latestContractForHeader?.title ||
                         optimisticProposed?.title ||
                         cd.proposed_title ||
-                        cd.main_title ||
                         ""
                       ).trim();
                     const pSubtitle =
@@ -2222,18 +2223,24 @@ function ProposalDetailPage() {
                         latestContractForHeader?.subtitle ||
                         optimisticProposed?.subtitle ||
                         cd.proposed_subtitle ||
-                        cd.sub_title ||
                         ""
                       ).trim();
-                    if (!pTitle && !pSubtitle) return null;
+                    // Hide the "Proposed Title" row entirely when the DR did
+                    // not actually edit the title/subtitle (i.e. proposed
+                    // matches the original values).
+                    const titleDiffers = pTitle && pTitle !== origTitle;
+                    const subtitleDiffers = pSubtitle && pSubtitle !== origSubtitle;
+                    if (!titleDiffers && !subtitleDiffers) return null;
+                    const showTitle = titleDiffers ? pTitle : "";
+                    const showSubtitle = subtitleDiffers ? pSubtitle : "";
                     return (
                       <p className="mt-3 flex items-center gap-2 font-sans text-sm text-stone-500">
                         <FileText className="h-4 w-4 text-stone-400" />
                         <span className="font-medium text-stone-500">Proposed Title:</span>
                         <span className="font-semibold text-stone-800">
-                          {pTitle}
-                          {pTitle && pSubtitle ? ": " : ""}
-                          {pSubtitle}
+                          {showTitle}
+                          {showTitle && showSubtitle ? ": " : ""}
+                          {showSubtitle}
                         </span>
                       </p>
                     );
