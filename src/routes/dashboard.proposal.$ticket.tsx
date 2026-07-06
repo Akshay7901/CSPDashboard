@@ -2083,9 +2083,9 @@ function ProposalDetailPage() {
               <button
                 type="button"
                 aria-label="View audit trail"
-                className="fixed right-5 top-24 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-700 shadow-md hover:bg-stone-50 hover:text-stone-900"
+                className="fixed right-5 top-24 z-40 flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-700 shadow-md hover:bg-stone-50 hover:text-stone-900"
               >
-                <History className="h-5 w-5" />
+                <History className="h-4 w-4" />
               </button>
             </SheetTrigger>
             <SheetContent side="right" className="w-full overflow-y-auto bg-white sm:max-w-md">
