@@ -1669,7 +1669,18 @@ function ContractIssuedView({
         const body = await getQueries(ticket);
         if (!cancelled) {
           setProposalStatus(body.proposal_status || "");
-          setQueriesCount((body.queries || []).length);
+          const qs = body.queries || [];
+          setQueriesCount(qs.length);
+          const hasResponded = qs.some(
+            (q: { responded_at?: string | null }) => !!q.responded_at,
+          );
+          if (hasResponded) {
+            setShowQueries(true);
+            setTimeout(() => {
+              const el = document.getElementById("author-queries-section");
+              if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 150);
+          }
         }
       } catch {
         /* ignore */
@@ -2275,7 +2286,7 @@ function ContractIssuedView({
         )}
 
         {(showQueries || queriesCount > 0) && (
-          <div className="mt-5 rounded-2xl border border-stone-200 bg-white p-5">
+          <div id="author-queries-section" className="mt-5 rounded-2xl border border-stone-200 bg-white p-5 scroll-mt-24">
             <ContractQueries
               ticket={ticket}
               viewer="author"
