@@ -104,9 +104,7 @@ export function AuthorMetadataPanel({
   const [coverSuccess, setCoverSuccess] = useState<string | null>(null);
   const [uploadPct, setUploadPct] = useState(0);
   const [sourceText, setSourceText] = useState("");
-  const [attributionType, setAttributionType] = useState<
-    "own" | "public" | "permission" | ""
-  >("");
+  const [attributionType, setAttributionType] = useState<"own" | "public" | "permission" | "">("");
   const [attributionDetail, setAttributionDetail] = useState("");
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -130,7 +128,6 @@ export function AuthorMetadataPanel({
   useEffect(() => {
     metadataRef.current = metadata;
   }, [metadata]);
-
 
   const restorePostApprovalMetadata = () => {
     if (!isPostApproval) return null;
@@ -189,8 +186,7 @@ export function AuthorMetadataPanel({
       return;
     }
 
-    const dataChanged =
-      JSON.stringify(metadataRef.current) !== JSON.stringify(res.data);
+    const dataChanged = JSON.stringify(metadataRef.current) !== JSON.stringify(res.data);
     setMetadata(res.data);
     if (dataChanged) {
       setLastFetchedAt(new Date());
@@ -199,10 +195,7 @@ export function AuthorMetadataPanel({
     // proposal advances past `sent_to_author` and the API hides the record.
     try {
       if (res.data) {
-        localStorage.setItem(
-          `author_metadata_cache:${ticket}`,
-          JSON.stringify(res.data),
-        );
+        localStorage.setItem(`author_metadata_cache:${ticket}`, JSON.stringify(res.data));
       }
     } catch {
       /* ignore quota errors */
@@ -210,7 +203,6 @@ export function AuthorMetadataPanel({
     setNotVisible(false);
     setLoading(false);
   };
-
 
   useEffect(() => {
     void reload();
@@ -258,17 +250,13 @@ export function AuthorMetadataPanel({
 
     if (source.startsWith("I own the copyright to this image.")) {
       setAttributionType("own");
-      setAttributionDetail(
-        source.replace("I own the copyright to this image.", "").trim(),
-      );
+      setAttributionDetail(source.replace("I own the copyright to this image.", "").trim());
     } else if (source.startsWith("Public domain source:")) {
       setAttributionType("public");
       setAttributionDetail(source.replace("Public domain source:", "").trim());
     } else if (source.startsWith("Permission from copyright holder:")) {
       setAttributionType("permission");
-      setAttributionDetail(
-        source.replace("Permission from copyright holder:", "").trim(),
-      );
+      setAttributionDetail(source.replace("Permission from copyright holder:", "").trim());
     } else {
       setAttributionType("");
       setAttributionDetail("");
@@ -314,9 +302,7 @@ export function AuthorMetadataPanel({
             sourceStatement,
           );
           setSourceText(sourceStatement);
-          setMetadata((prev) =>
-            prev ? { ...prev, cover_image: newCover } : prev,
-          );
+          setMetadata((prev) => (prev ? { ...prev, cover_image: newCover } : prev));
           setAttributionSaved(true);
           setCoverSuccess("Attribution saved.");
         } catch (e) {
@@ -415,11 +401,8 @@ export function AuthorMetadataPanel({
     setCoverSuccess(null);
     setUploadPct(0);
     try {
-      const newCover = await uploadCoverImage(
-        ticket,
-        pendingFile,
-        sourceStatement,
-        (pct) => setUploadPct(pct),
+      const newCover = await uploadCoverImage(ticket, pendingFile, sourceStatement, (pct) =>
+        setUploadPct(pct),
       );
       setCoverSuccess("Cover image uploaded. Please add attribution below.");
       // Cache the uploaded file so the follow-up attribution submission can
@@ -440,7 +423,6 @@ export function AuthorMetadataPanel({
     }
   };
 
-
   const onDeleteCover = async () => {
     if (!metadata?.cover_image) return;
     if (!confirm("Remove the current cover image?")) return;
@@ -459,8 +441,10 @@ export function AuthorMetadataPanel({
   };
 
   const statusPill = (() => {
-    if (isApproved) return { text: "Approved", cls: "bg-emerald-50 text-emerald-700 ring-emerald-200" };
-    if (isSent) return { text: "Awaiting your approval", cls: "bg-amber-50 text-amber-700 ring-amber-200" };
+    if (isApproved)
+      return { text: "Approved", cls: "bg-emerald-50 text-emerald-700 ring-emerald-200" };
+    if (isSent)
+      return { text: "Awaiting your approval", cls: "bg-amber-50 text-amber-700 ring-amber-200" };
     return { text: status || "Draft", cls: "bg-stone-50 text-stone-700 ring-stone-200" };
   })();
 
@@ -473,9 +457,7 @@ export function AuthorMetadataPanel({
             <BookOpen className="h-4 w-4" strokeWidth={2.2} />
           </div>
           <div className="min-w-0">
-            <h2 className="font-serif text-base font-bold text-stone-900">
-              Metadata
-            </h2>
+            <h2 className="font-serif text-base font-bold text-stone-900">Metadata</h2>
             {lastFetchedAt && (
               <p className="mt-0.5 font-sans text-xs text-stone-500">
                 Last updated: {formatTimestamp(lastFetchedAt)}
@@ -553,25 +535,35 @@ export function AuthorMetadataPanel({
                 <div>
                   <h4 className="font-semibold text-stone-900">Upload Your Cover Image</h4>
                   <p className="mt-1 text-stone-700">
-                    You can upload an image to be used on the front cover of your book. Your image will be incorporated into our standard cover template as a background image, so please note the following:
+                    You can upload an image to be used on the front cover of your book. Your image
+                    will be incorporated into our standard cover template as a background image, so
+                    please note the following:
                   </p>
                   <ul className="mt-2 list-disc space-y-1 pl-5 text-stone-700">
                     <li>
-                      Do not include text in your image. Your title, name, and all other cover text will be added by our design team as part of the template.
+                      Do not include text in your image. Your title, name, and all other cover text
+                      will be added by our design team as part of the template.
                     </li>
                     <li>
-                      Choose an image that works well as a full background — high-quality photographs or artwork without busy focal points at the edges tend to work best.
+                      Choose an image that works well as a full background — high-quality
+                      photographs or artwork without busy focal points at the edges tend to work
+                      best.
                     </li>
                   </ul>
                   <p className="mt-2 text-stone-700">
-                    If you choose not to upload an image, your cover will be produced using an abstract or plain design in keeping with our standard template. Please note that once you complete this stage, you will no longer be able to upload a cover image, so make sure you're happy with your choice before proceeding.
+                    If you choose not to upload an image, your cover will be produced using an
+                    abstract or plain design in keeping with our standard template. Please note that
+                    once you complete this stage, you will no longer be able to upload a cover
+                    image, so make sure you're happy with your choice before proceeding.
                   </p>
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-[200px_1fr]">
                   <div
                     className={`flex h-48 items-center justify-center overflow-hidden rounded-lg bg-white ${
-                      coverDisplayUrl ? "border border-stone-200" : "border-2 border-dashed border-stone-300"
+                      coverDisplayUrl
+                        ? "border border-stone-200"
+                        : "border-2 border-dashed border-stone-300"
                     }`}
                   >
                     {coverDisplayUrl ? (
@@ -595,7 +587,8 @@ export function AuthorMetadataPanel({
                         </p>
                         <p className="text-stone-700">
                           <span className="text-stone-500">Dimensions:</span>{" "}
-                          {metadata?.cover_image.width_px || "?"}×{metadata?.cover_image.height_px || "?"} px
+                          {metadata?.cover_image.width_px || "?"}×
+                          {metadata?.cover_image.height_px || "?"} px
                           {metadata?.cover_image.dpi ? ` · ${metadata?.cover_image.dpi} dpi` : ""}
                         </p>
                         {typeof metadata?.cover_image.file_size_bytes === "number" && (
@@ -606,8 +599,8 @@ export function AuthorMetadataPanel({
                         )}
                         {typeof metadata?.cover_image.version === "number" && (
                           <p className="text-stone-700">
-                            <span className="text-stone-500">Version:</span>{" "}
-                            v{metadata.cover_image.version}
+                            <span className="text-stone-500">Version:</span> v
+                            {metadata.cover_image.version}
                           </p>
                         )}
                         {metadata?.cover_image.source && (
@@ -630,7 +623,8 @@ export function AuthorMetadataPanel({
                       </>
                     ) : (
                       <p className="text-stone-600">
-                        Upload a high-resolution cover image (JPEG/PNG/TIFF, minimum 2360×2360 px at 300 dpi, max 50 MB).
+                        Upload a high-resolution cover image (JPEG/PNG/TIFF, minimum 2360×2360 px at
+                        300 dpi, max 50 MB).
                       </p>
                     )}
 
@@ -639,7 +633,9 @@ export function AuthorMetadataPanel({
                       <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm">
                         <p className="font-semibold text-amber-800">Failed uploads</p>
                         <p className="mt-1 text-amber-700">
-                          Your image couldn't be uploaded. This means it doesn't meet our resolution (DPI) or dimension requirements. You can adjust your image using the free tools below and try again:
+                          Your image couldn't be uploaded. This means it doesn't meet our resolution
+                          (DPI) or dimension requirements. You can adjust your image using the free
+                          tools below and try again:
                         </p>
                         <ul className="mt-2 list-disc space-y-1 pl-5 text-amber-700">
                           <li>
@@ -685,130 +681,149 @@ export function AuthorMetadataPanel({
                       />
                       {pendingFile && (
                         <p className="mt-1 font-sans text-xs text-stone-500">
-                          Ready: {pendingFile.name} ({(pendingFile.size / 1024 / 1024).toFixed(1)} MB)
+                          Ready: {pendingFile.name} ({(pendingFile.size / 1024 / 1024).toFixed(1)}{" "}
+                          MB)
                         </p>
                       )}
                     </div>
 
                     {/* Attribution — shown only after a successful upload */}
                     {metadata?.cover_image && (
-                    <div className="space-y-3 border-t border-stone-200 pt-4">
-                      <h4 className="font-semibold text-stone-900">Image Permissions & Attribution</h4>
-                      <p className="text-stone-700">
-                        Your cover was uploaded. Please tell us how it's attributed — select the option that applies and save.
-                      </p>
-                      <div className="space-y-3">
-                        <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-stone-200 bg-white p-3 hover:bg-stone-50">
-                          <input
-                            type="radio"
-                            name="cover-attribution"
-                            className="mt-0.5 h-4 w-4 text-emerald-700"
-                            checked={attributionType === "own"}
-                            onChange={() => setAttributionType("own")}
-                          />
-                          <div className="space-y-1">
-                            <span className="block font-medium text-stone-900">I own the copyright to this image</span>
-                            <span className="block text-xs text-stone-600">
-                              Simply provide your name and the year the image was taken or created. Example: © Jane Smith, 2024
-                            </span>
-                            {attributionType === "own" && (
-                              <input
-                                type="text"
-                                value={attributionDetail}
-                                onChange={(e) => setAttributionDetail(e.target.value)}
-                                maxLength={500}
-                                placeholder="© Your name, year"
-                                className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
-                              />
-                            )}
-                          </div>
-                        </label>
-                        <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-stone-200 bg-white p-3 hover:bg-stone-50">
-                          <input
-                            type="radio"
-                            name="cover-attribution"
-                            className="mt-0.5 h-4 w-4 text-emerald-700"
-                            checked={attributionType === "public"}
-                            onChange={() => setAttributionType("public")}
-                          />
-                          <div className="space-y-1">
-                            <span className="block font-medium text-stone-900">The image is from a public domain source</span>
-                            <span className="block text-xs text-stone-600">
-                              Provide the name of the public domain source, the image title, and the year. Example: Unsplash — "Mountain Lake at Dawn", 2022
-                            </span>
-                            {attributionType === "public" && (
-                              <input
-                                type="text"
-                                value={attributionDetail}
-                                onChange={(e) => setAttributionDetail(e.target.value)}
-                                maxLength={500}
-                                placeholder="Source — title, year"
-                                className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
-                              />
-                            )}
-                          </div>
-                        </label>
-                        <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-stone-200 bg-white p-3 hover:bg-stone-50">
-                          <input
-                            type="radio"
-                            name="cover-attribution"
-                            className="mt-0.5 h-4 w-4 text-emerald-700"
-                            checked={attributionType === "permission"}
-                            onChange={() => setAttributionType("permission")}
-                          />
-                          <div className="space-y-1">
-                            <span className="block font-medium text-stone-900">I have permission from the copyright holder</span>
-                            <span className="block text-xs text-stone-600">
-                              We'll need a signed permission form from the copyright holder before we can use the image.
-                            </span>
-                            {attributionType === "permission" && (
-                              <>
+                      <div className="space-y-3 border-t border-stone-200 pt-4">
+                        <h4 className="font-semibold text-stone-900">
+                          Image Permissions & Attribution
+                        </h4>
+                        <p className="text-stone-700">
+                          Your cover was uploaded. Please tell us how it's attributed — select the
+                          option that applies and save.
+                        </p>
+                        <div className="space-y-3">
+                          <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-stone-200 bg-white p-3 hover:bg-stone-50">
+                            <input
+                              type="radio"
+                              name="cover-attribution"
+                              className="mt-0.5 h-4 w-4 text-emerald-700"
+                              checked={attributionType === "own"}
+                              onChange={() => setAttributionType("own")}
+                            />
+                            <div className="space-y-1">
+                              <span className="block font-medium text-stone-900">
+                                I own the copyright to this image
+                              </span>
+                              <span className="block text-xs text-stone-600">
+                                Simply provide your name and the year the image was taken or
+                                created. Example: © Jane Smith, 2024
+                              </span>
+                              {attributionType === "own" && (
                                 <input
                                   type="text"
                                   value={attributionDetail}
                                   onChange={(e) => setAttributionDetail(e.target.value)}
                                   maxLength={500}
-                                  placeholder="Copyright holder name and permission details"
+                                  placeholder="© Your name, year"
                                   className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
                                 />
-                                <a
-                                  href="https://www.cambridgescholars.com/cover-design"
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-emerald-700 hover:text-emerald-800"
-                                >
-                                  <ExternalLink className="h-3 w-3" />
-                                  Download the permissions form
-                                </a>
-                              </>
-                            )}
-                          </div>
-                        </label>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        {attributionSaving && (
-                          <span className="inline-flex items-center gap-1.5 font-sans text-xs text-stone-500">
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            Saving attribution…
-                          </span>
+                              )}
+                            </div>
+                          </label>
+                          <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-stone-200 bg-white p-3 hover:bg-stone-50">
+                            <input
+                              type="radio"
+                              name="cover-attribution"
+                              className="mt-0.5 h-4 w-4 text-emerald-700"
+                              checked={attributionType === "public"}
+                              onChange={() => setAttributionType("public")}
+                            />
+                            <div className="space-y-1">
+                              <span className="block font-medium text-stone-900">
+                                The image is from a public domain source
+                              </span>
+                              <span className="block text-xs text-stone-600">
+                                Provide the name of the public domain source, the image title, and
+                                the year. Example: Unsplash — "Mountain Lake at Dawn", 2022
+                              </span>
+                              {attributionType === "public" && (
+                                <input
+                                  type="text"
+                                  value={attributionDetail}
+                                  onChange={(e) => setAttributionDetail(e.target.value)}
+                                  maxLength={500}
+                                  placeholder="Source — title, year"
+                                  className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
+                                />
+                              )}
+                            </div>
+                          </label>
+                          <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-stone-200 bg-white p-3 hover:bg-stone-50">
+                            <input
+                              type="radio"
+                              name="cover-attribution"
+                              className="mt-0.5 h-4 w-4 text-emerald-700"
+                              checked={attributionType === "permission"}
+                              onChange={() => setAttributionType("permission")}
+                            />
+                            <div className="space-y-1">
+                              <span className="block font-medium text-stone-900">
+                                I have permission from the copyright holder
+                              </span>
+                              <span className="block text-xs text-stone-600">
+                                We'll need a signed permission form from the copyright holder before
+                                we can use the image.
+                              </span>
+                              {attributionType === "permission" && (
+                                <>
+                                  <input
+                                    type="text"
+                                    value={attributionDetail}
+                                    onChange={(e) => setAttributionDetail(e.target.value)}
+                                    maxLength={500}
+                                    placeholder="Copyright holder name and permission details"
+                                    className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
+                                  />
+                                  <a
+                                    href="https://www.cambridgescholars.com/cover-design"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-emerald-700 hover:text-emerald-800"
+                                  >
+                                    <ExternalLink className="h-3 w-3" />
+                                    Download the permissions form
+                                  </a>
+                                </>
+                              )}
+                            </div>
+                          </label>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          {attributionSaving && (
+                            <span className="inline-flex items-center gap-1.5 font-sans text-xs text-stone-500">
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              Saving attribution…
+                            </span>
+                          )}
+                          {!attributionSaving && attributionSaved && (
+                            <span className="font-sans text-xs text-emerald-700">
+                              Attribution saved.
+                            </span>
+                          )}
+                        </div>
+                        {!uploadedFileRef.current && !attributionSaved && (
+                          <p className="font-sans text-xs text-stone-500">
+                            To change attribution after refreshing the page, use{" "}
+                            <span className="font-medium">Replace cover</span> above to re-upload
+                            the image.
+                          </p>
                         )}
-                        {!attributionSaving && attributionSaved && (
-                          <span className="font-sans text-xs text-emerald-700">Attribution saved.</span>
-                        )}
                       </div>
-                      {!uploadedFileRef.current && !attributionSaved && (
-                        <p className="font-sans text-xs text-stone-500">
-                          To change attribution after refreshing the page, use <span className="font-medium">Replace cover</span> above to re-upload the image.
-                        </p>
-                      )}
-                    </div>
                     )}
 
                     {coverError && (
                       <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm">
                         <p className="font-semibold text-rose-800">Failed uploads</p>
                         <p className="mt-1 text-rose-700">
-                          Your image couldn't be uploaded. This means it doesn't meet our resolution (DPI) or dimension requirements. You can adjust your image using the free tools below and try again:
+                          Your image couldn't be uploaded. This means it doesn't meet our resolution
+                          (DPI) or dimension requirements. You can adjust your image using the free
+                          tools below and try again:
                         </p>
                         <ul className="mt-2 list-disc space-y-1 pl-5 text-rose-700">
                           <li>
@@ -860,7 +875,11 @@ export function AuthorMetadataPanel({
                         ) : (
                           <Upload className="h-4 w-4" />
                         )}
-                        {uploading ? "Uploading…" : metadata?.cover_image ? "Replace cover" : "Upload cover"}
+                        {uploading
+                          ? "Uploading…"
+                          : metadata?.cover_image
+                            ? "Replace cover"
+                            : "Upload cover"}
                       </button>
                       {!coverError && coverSuccess && (
                         <span className="font-sans text-xs text-emerald-700">{coverSuccess}</span>
@@ -880,7 +899,8 @@ export function AuthorMetadataPanel({
                       Are you sure you want to proceed without a cover image?
                     </p>
                     <p className="mt-1 font-sans text-xs text-amber-800/80">
-                      Your cover will be created using an abstract or plain design, and you won't be able to upload an image after this point.
+                      Your cover will be created using an abstract or plain design, and you won't be
+                      able to upload an image after this point.
                     </p>
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       <button
@@ -896,7 +916,11 @@ export function AuthorMetadataPanel({
                         disabled={approving || hasOpenQuery}
                         className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
                       >
-                        {approving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                        {approving ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Check className="h-4 w-4" />
+                        )}
                         {approving ? "Submitting…" : "Proceed without an image"}
                       </button>
                     </div>
@@ -951,7 +975,11 @@ export function AuthorMetadataPanel({
                           flashApprove ? "ring-4 ring-amber-300 animate-pulse" : ""
                         }`}
                       >
-                        {approving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                        {approving ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Check className="h-4 w-4" />
+                        )}
                         {approving ? "Submitting…" : "Submit metadata"}
                       </button>
                     </div>
@@ -971,11 +999,7 @@ export function AuthorMetadataPanel({
                 from `sent_to_author`. Hidden visually until the author
                 opens the panel or there's an active thread. */}
             <div
-              className={
-                showQueries || hasOpenQuery || !(isSent && !isApproved)
-                  ? ""
-                  : "hidden"
-              }
+              className={showQueries || hasOpenQuery || !(isSent && !isApproved) ? "" : "hidden"}
             >
               <MetadataQueries
                 ticket={ticket}
