@@ -497,6 +497,8 @@ function ProposalDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [locking, setLocking] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const handleLockProposal = async () => {
     if (!confirm(`Lock proposal ${ticket} and generate production files? This cannot be undone.`)) return;
