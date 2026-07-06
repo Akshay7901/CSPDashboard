@@ -1561,6 +1561,15 @@ function ProposalDetailPage() {
     const cs = (latestContract?.status || "").toLowerCase();
     return cs === "sent" || cs === "draft";
   }, [latestContract]);
+  const isContractExpired = useMemo(() => {
+    if (!latestContract) return false;
+    const cs = (latestContract.status || "").toLowerCase();
+    if (cs === "signed" || cs === "declined" || cs === "voided") return false;
+    const exp = latestContract.docusign_expires_at;
+    if (!exp) return false;
+    const t = Date.parse(exp);
+    return Number.isFinite(t) && t <= Date.now();
+  }, [latestContract]);
   const isContractSigned = useMemo(() => {
     const cs = (latestContract?.status || "").toLowerCase();
     if (cs !== "signed") return false;
