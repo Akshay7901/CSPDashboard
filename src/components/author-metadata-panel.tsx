@@ -541,37 +541,39 @@ export function AuthorMetadataPanel({
                       </p>
                     )}
 
-                    {/* Failed uploads guidance */}
-                    <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm">
-                      <p className="font-semibold text-amber-800">Failed uploads</p>
-                      <p className="mt-1 text-amber-700">
-                        Your image couldn't be uploaded. This means it doesn't meet our resolution (DPI) or dimension requirements. You can adjust your image using the free tools below and try again:
-                      </p>
-                      <ul className="mt-2 list-disc space-y-1 pl-5 text-amber-700">
-                        <li>
-                          <a
-                            href="https://clideo.com/dpi-converter"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 font-medium hover:underline"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                            Adjust image DPI
-                          </a>
-                        </li>
-                        <li>
-                          <a
-                            href="https://www.simpleimageresizer.com/"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 font-medium hover:underline"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                            Resize image dimensions
-                          </a>
-                        </li>
-                      </ul>
-                    </div>
+                    {/* Failed uploads guidance — only relevant before a cover is uploaded */}
+                    {!metadata?.cover_image && (
+                      <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm">
+                        <p className="font-semibold text-amber-800">Failed uploads</p>
+                        <p className="mt-1 text-amber-700">
+                          Your image couldn't be uploaded. This means it doesn't meet our resolution (DPI) or dimension requirements. You can adjust your image using the free tools below and try again:
+                        </p>
+                        <ul className="mt-2 list-disc space-y-1 pl-5 text-amber-700">
+                          <li>
+                            <a
+                              href="https://clideo.com/dpi-converter"
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 font-medium hover:underline"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                              Adjust image DPI
+                            </a>
+                          </li>
+                          <li>
+                            <a
+                              href="https://www.simpleimageresizer.com/"
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 font-medium hover:underline"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                              Resize image dimensions
+                            </a>
+                          </li>
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 </div>
 
