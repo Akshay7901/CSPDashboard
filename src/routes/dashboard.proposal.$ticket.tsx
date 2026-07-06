@@ -2690,14 +2690,18 @@ function ProposalDetailPage() {
                         </div>
                         <span
                           className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-sans text-xs font-semibold ring-1 ${
-                            (latestContract?.status || "").toLowerCase() === "signed"
+                            isContractExpired
+                              ? "bg-amber-50 text-amber-700 ring-amber-200"
+                              : (latestContract?.status || "").toLowerCase() === "signed"
                               ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
                               : (latestContract?.status || "").toLowerCase() === "declined"
                                 ? "bg-rose-50 text-rose-700 ring-rose-200"
                                 : "bg-violet-50 text-violet-700 ring-violet-200"
                           }`}
                         >
-                          {(latestContract?.status || "").toLowerCase() === "signed"
+                          {isContractExpired
+                            ? "Expired"
+                            : (latestContract?.status || "").toLowerCase() === "signed"
                             ? "Signed"
                             : (latestContract?.status || "").toLowerCase() === "declined"
                               ? "Declined"
