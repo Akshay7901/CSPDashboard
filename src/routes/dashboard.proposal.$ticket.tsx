@@ -3587,20 +3587,53 @@ function ProposalDetailPage() {
                         </p>
                       </div>
                     ) : isContractIssued ? (
-                      <button
-                        type="button"
-                        onClick={handleDecline}
-                        disabled={declineLoading}
-                        className="flex w-full items-start gap-3 rounded-xl border border-stone-200 px-4 py-3 text-left transition-colors hover:border-red-300 hover:bg-red-50/50 disabled:opacity-50"
-                      >
-                        <XIcon className="mt-0.5 h-4 w-4 text-stone-500" />
-                        <div>
-                          <p className="font-sans text-sm font-semibold text-stone-900">
-                            {declineLoading ? "Declining…" : "Decline"}
-                          </p>
-                          <p className="font-sans text-xs text-stone-500">Not moving forward</p>
-                        </div>
-                      </button>
+                      <>
+                        {isContractExpired && (
+                          <>
+                            <div className="rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3">
+                              <p className="font-sans text-sm font-semibold text-amber-900">
+                                Contract expired
+                              </p>
+                              <p className="mt-0.5 font-sans text-xs text-amber-800/80">
+                                The author did not sign within 15 days
+                                {latestContract?.docusign_expires_at
+                                  ? ` (expired ${formatDate(latestContract.docusign_expires_at)})`
+                                  : ""}
+                                . You can send the contract again.
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={openIssueContract}
+                              className="flex w-full items-start gap-3 rounded-xl bg-[#5B2EBA] px-4 py-3 text-left text-white transition-colors hover:bg-[#4a2599]"
+                            >
+                              <FileText className="mt-0.5 h-4 w-4 text-white" />
+                              <div>
+                                <p className="font-sans text-sm font-medium text-white">
+                                  Send Contract Again
+                                </p>
+                                <p className="font-sans text-xs font-normal text-white">
+                                  Reissue contract to author (previous one expired)
+                                </p>
+                              </div>
+                            </button>
+                          </>
+                        )}
+                        <button
+                          type="button"
+                          onClick={handleDecline}
+                          disabled={declineLoading}
+                          className="flex w-full items-start gap-3 rounded-xl border border-stone-200 px-4 py-3 text-left transition-colors hover:border-red-300 hover:bg-red-50/50 disabled:opacity-50"
+                        >
+                          <XIcon className="mt-0.5 h-4 w-4 text-stone-500" />
+                          <div>
+                            <p className="font-sans text-sm font-semibold text-stone-900">
+                              {declineLoading ? "Declining…" : "Decline"}
+                            </p>
+                            <p className="font-sans text-xs text-stone-500">Not moving forward</p>
+                          </div>
+                        </button>
+                      </>
                     ) : (
                       <>
                     {isReviewReturned && (
