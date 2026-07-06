@@ -421,38 +421,6 @@ export function AuthorMetadataPanel({
     }
   };
 
-  const onSaveAttribution = async () => {
-    if (!attributionType || !attributionDetail.trim()) {
-      setCoverError("Please select an attribution option and provide the required details.");
-      return;
-    }
-    const file = uploadedFileRef.current;
-    if (!file) {
-      setCoverError(
-        "Please use Replace cover to re-upload the image so the new attribution can be saved.",
-      );
-      return;
-    }
-    const sourceStatement =
-      attributionType === "own"
-        ? `I own the copyright to this image. ${attributionDetail.trim()}`
-        : attributionType === "public"
-          ? `Public domain source: ${attributionDetail.trim()}`
-          : `Permission from copyright holder: ${attributionDetail.trim()}`;
-    setAttributionSaving(true);
-    setCoverError(null);
-    try {
-      const newCover = await uploadCoverImage(ticket, file, sourceStatement);
-      setSourceText(sourceStatement);
-      setMetadata((prev) => (prev ? { ...prev, cover_image: newCover } : prev));
-      setAttributionSaved(true);
-      setCoverSuccess("Attribution saved.");
-    } catch (e) {
-      setCoverError((e as Error).message);
-    } finally {
-      setAttributionSaving(false);
-    }
-  };
 
   const onDeleteCover = async () => {
     if (!metadata?.cover_image) return;
