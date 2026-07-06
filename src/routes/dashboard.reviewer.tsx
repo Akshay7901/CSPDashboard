@@ -403,10 +403,6 @@ function ReviewerDashboard() {
           <h1 className="font-serif text-3xl font-bold tracking-tight text-[#2C1A0E]">
             Your Reviews
           </h1>
-          <p className="mt-1.5 font-sans text-sm text-[#7A6A5A]">
-            {REVIEWER_PROFILE.affiliation} ·{" "}
-            {REVIEWER_PROFILE.expertise.join(", ")}
-          </p>
         </div>
 
         {loadError && (
