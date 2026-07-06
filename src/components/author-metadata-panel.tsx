@@ -237,6 +237,80 @@ export function AuthorMetadataPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ticket, isPostApproval]);
 
+  // Sync attribution form state from the saved cover source whenever the
+  // server-side cover record changes (e.g. after a successful save or on load).
+  useEffect(() => {
+    const source = metadata?.cover_image?.source;
+    if (!source || source === "Pending attribution") {
+      setAttributionType("");
+      setAttributionDetail("");
+      setAttributionSaved(false);
+      return;
+    }
+    if (source.startsWith("I own the copyright to this image.")) {
+      setAttributionType("own");
+      setAttributionDetail(
+        source.replace("I own the copyright to this image.", "").trim(),
+      );
+    } else if (source.startsWith("Public domain source:")) {
+      setAttributionType("public");
+      setAttributionDetail(source.replace("Public domain source:", "").trim());
+    } else if (source.startsWith("Permission from copyright holder:")) {
+      setAttributionType("permission");
+      setAttributionDetail(
+        source.replace("Permission from copyright holder:", "").trim(),
+      );
+    } else {
+      setAttributionType("");
+      setAttributionDetail("");
+    }
+    setAttributionSaved(true);
+  }, [metadata?.cover_image?.source]);
+
+  // Auto-save attribution whenever the author changes the option or details.
+  // The backend requires the source string at upload time, so this re-uploads
+  // the cached file with the real attribution statement.
+  useEffect(() => {
+    if (!metadata?.cover_image || !uploadedFileRef.current) return;
+    if (!attributionType || !attributionDetail.trim()) return;
+
+    const sourceStatement =
+      attributionType === "own"
+        ? `I own the copyright to this image. ${attributionDetail.trim()}`
+        : attributionType === "public"
+          ? `Public domain source: ${attributionDetail.trim()}`
+          : `Permission from copyright holder: ${attributionDetail.trim()}`;
+
+    // Avoid re-uploading when the current values already match the saved source.
+    if (sourceStatement === metadata.cover_image.source) return;
+
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        setAttributionSaving(true);
+        setCoverError(null);
+        try {
+          const newCover = await uploadCoverImage(
+            ticket,
+            uploadedFileRef.current!,
+            sourceStatement,
+          );
+          setSourceText(sourceStatement);
+          setMetadata((prev) =>
+            prev ? { ...prev, cover_image: newCover } : prev,
+          );
+          setAttributionSaved(true);
+          setCoverSuccess("Attribution saved.");
+        } catch (e) {
+          setCoverError((e as Error).message);
+        } finally {
+          setAttributionSaving(false);
+        }
+      })();
+    }, 1200);
+
+    return () => window.clearTimeout(timer);
+  }, [attributionType, attributionDetail, metadata?.cover_image, ticket]);
+
   const status = metadata?.metadata_status || "";
   const isSent = status === "sent_to_author";
   const isApproved = status === "approved" || !!metadata?.approved_at;
