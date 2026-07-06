@@ -248,7 +248,10 @@ export function AuthorMetadataPanel({
     () => [
       ...FIELD_DEFS.map((f) => ({ key: f.key, label: f.label })),
       { key: "cover_image", label: "Cover image" },
-      { key: "authors", label: "Authors" },
+      ...AUTHOR_FIELDS.map((f) => ({
+        key: `authors.${String(f.key)}`,
+        label: f.label,
+      })),
     ],
     [],
   );
