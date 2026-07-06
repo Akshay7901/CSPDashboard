@@ -2090,13 +2090,13 @@ function ProposalDetailPage() {
             </SheetTrigger>
             <SheetContent side="right" className="w-full overflow-y-auto bg-white sm:max-w-md">
               <SheetHeader>
-                <SheetTitle className="font-serif">Audit Trail</SheetTitle>
-                <SheetDescription>
+                <SheetTitle className="font-serif text-black">Audit Trail</SheetTitle>
+                <SheetDescription className="text-black">
                   All events for {ticket}
                 </SheetDescription>
               </SheetHeader>
               <div className="mt-4 flex items-center justify-between">
-                <p className="font-sans text-xs text-stone-500">
+                <p className="font-sans text-xs text-black">
                   {events.length} event{events.length === 1 ? "" : "s"}
                 </p>
                 <button
@@ -2110,7 +2110,7 @@ function ProposalDetailPage() {
               </div>
               <div className="mt-4 space-y-3">
                 {eventsLoading && events.length === 0 && (
-                  <p className="font-sans text-xs text-stone-500">Loading events…</p>
+                  <p className="font-sans text-xs text-black">Loading events…</p>
                 )}
                 {eventsError && (
                   <p className="rounded-lg bg-rose-50 px-3 py-2 font-sans text-xs text-rose-700 ring-1 ring-rose-200">
@@ -2118,26 +2118,26 @@ function ProposalDetailPage() {
                   </p>
                 )}
                 {!eventsLoading && !eventsError && events.length === 0 && (
-                  <p className="font-sans text-xs text-stone-500">No events yet.</p>
+                  <p className="font-sans text-xs text-black">No events yet.</p>
                 )}
                 <ol className="relative space-y-3 border-l border-stone-200 pl-4">
                   {events.map((ev) => (
                     <li key={ev.id} className="relative">
-                      <span className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full bg-stone-400 ring-2 ring-white" />
-                      <div className="rounded-xl border border-stone-200 bg-stone-50/60 p-3">
+                      <span className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full bg-stone-500 ring-2 ring-white" />
+                      <div className="rounded-xl border border-stone-200 bg-stone-100 p-3">
                         <div className="mb-1 flex items-center justify-between gap-2">
-                          <span className="inline-flex items-center rounded-full bg-white px-2 py-0.5 font-sans text-[10px] font-semibold uppercase tracking-wide text-stone-600 ring-1 ring-stone-200">
+                          <span className="inline-flex items-center rounded-full bg-white px-2 py-0.5 font-sans text-[10px] font-semibold uppercase tracking-wide text-black ring-1 ring-stone-200">
                             {ev.event_type.replace(/_/g, " ")}
                           </span>
-                          <p className="font-sans text-[11px] text-stone-500">
+                          <p className="font-sans text-[11px] text-black">
                             {formatDate(ev.created_at)}
                           </p>
                         </div>
-                        <p className="whitespace-pre-wrap font-sans text-sm text-stone-800">
+                        <p className="whitespace-pre-wrap font-sans text-sm text-black">
                           {ev.description}
                         </p>
                         {(ev.old_status || ev.new_status) && (
-                          <p className="mt-1.5 font-sans text-[11px] text-stone-600">
+                          <p className="mt-1.5 font-sans text-[11px] text-black">
                             {ev.old_status && (
                               <span className="rounded bg-white px-1.5 py-0.5 ring-1 ring-stone-200">
                                 {ev.old_status}
@@ -2154,10 +2154,10 @@ function ProposalDetailPage() {
                           </p>
                         )}
                         {ev.changed_by && (
-                          <p className="mt-1.5 font-sans text-[11px] text-stone-500">
+                          <p className="mt-1.5 font-sans text-[11px] text-black">
                             by {ev.changed_by}
                             {ev.changed_by_role && (
-                              <span className="text-stone-400"> · {ev.changed_by_role.replace(/_/g, " ")}</span>
+                              <span className="text-stone-600"> · {ev.changed_by_role.replace(/_/g, " ")}</span>
                             )}
                           </p>
                         )}
