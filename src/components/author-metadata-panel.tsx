@@ -313,7 +313,6 @@ export function AuthorMetadataPanel({
           setSourceText(sourceStatement);
           setMetadata((prev) => (prev ? { ...prev, cover_image: newCover } : prev));
           setAttributionSaved(true);
-          setCoverSuccess("Attribution saved.");
         } catch (e) {
           setCoverError((e as Error).message);
         } finally {
@@ -872,19 +871,14 @@ export function AuthorMetadataPanel({
                             </div>
                           </label>
                         </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          {attributionSaving && (
+                        {attributionSaving && (
+                          <div className="flex flex-wrap items-center gap-2">
                             <span className="inline-flex items-center gap-1.5 font-sans text-xs text-stone-500">
                               <Loader2 className="h-3.5 w-3.5 animate-spin" />
                               Saving attribution…
                             </span>
-                          )}
-                          {!attributionSaving && attributionSaved && (
-                            <span className="font-sans text-xs text-emerald-700">
-                              Attribution saved.
-                            </span>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
