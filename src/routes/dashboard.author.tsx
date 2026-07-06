@@ -452,7 +452,7 @@ function configFor(p: LocalProposal): CardConfig {
       };
     case "submitted":
       return {
-        bannerLabel: "Submitted",
+        bannerLabel: "New",
         bannerDot: "bg-amber-400",
         bannerTint: "bg-amber-50",
         bannerText: "text-amber-700",
