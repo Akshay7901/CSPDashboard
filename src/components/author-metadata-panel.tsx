@@ -4,6 +4,7 @@ import {
   BookOpen,
   Check,
   CheckCircle2,
+  ExternalLink,
   Image as ImageIcon,
   MessageSquarePlus,
   Trash2,
@@ -103,11 +104,16 @@ export function AuthorMetadataPanel({
   const [coverSuccess, setCoverSuccess] = useState<string | null>(null);
   const [uploadPct, setUploadPct] = useState(0);
   const [sourceText, setSourceText] = useState("");
+  const [attributionType, setAttributionType] = useState<
+    "own" | "public" | "permission" | ""
+  >("");
+  const [attributionDetail, setAttributionDetail] = useState("");
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [showQueries, setShowQueries] = useState(false);
   const [hasOpenQuery, setHasOpenQuery] = useState(false);
   const [flashApprove, setFlashApprove] = useState(false);
+  const [showNoCoverConfirm, setShowNoCoverConfirm] = useState(false);
   const approveBtnRef = useRef<HTMLButtonElement | null>(null);
   const cacheKey = `author_metadata_cache:${ticket}`;
 
@@ -259,6 +265,10 @@ export function AuthorMetadataPanel({
   void notVisible;
 
   const onApprove = async () => {
+    if (!metadata?.cover_image && !showNoCoverConfirm) {
+      setShowNoCoverConfirm(true);
+      return;
+    }
     setApproving(true);
     setApproveError(null);
     setApproveSuccess(null);
@@ -266,6 +276,7 @@ export function AuthorMetadataPanel({
       await approveMetadata(ticket);
       setApproveSuccess("Metadata approved. Thank you!");
       toast.success("Metadata submitted successfully");
+      setShowNoCoverConfirm(false);
       await reload();
     } catch (e) {
       setApproveError((e as Error).message);
@@ -293,10 +304,23 @@ export function AuthorMetadataPanel({
 
   const onUpload = async () => {
     if (!pendingFile) return;
-    if (!sourceText.trim()) {
-      setCoverError("Please provide an attribution / source statement.");
+    if (!attributionType || !attributionDetail.trim()) {
+      setCoverError("Please select an attribution option and provide the required details.");
       return;
     }
+    const sourceStatement = (() => {
+      switch (attributionType) {
+        case "own":
+          return `I own the copyright to this image. ${attributionDetail.trim()}`;
+        case "public":
+          return `Public domain source: ${attributionDetail.trim()}`;
+        case "permission":
+          return `Permission from copyright holder: ${attributionDetail.trim()}`;
+        default:
+          return attributionDetail.trim();
+      }
+    })();
+    setSourceText(sourceStatement);
     setUploading(true);
     setCoverError(null);
     setCoverSuccess(null);
@@ -305,11 +329,13 @@ export function AuthorMetadataPanel({
       const newCover = await uploadCoverImage(
         ticket,
         pendingFile,
-        sourceText.trim(),
+        sourceStatement,
         (pct) => setUploadPct(pct),
       );
       setCoverSuccess("Cover image uploaded.");
       setPendingFile(null);
+      setAttributionType("");
+      setAttributionDetail("");
       setSourceText("");
       if (fileInputRef.current) fileInputRef.current.value = "";
       // Update directly from response — no re-fetch needed.
@@ -429,77 +455,96 @@ export function AuthorMetadataPanel({
                 <ImageIcon className="h-4 w-4 text-stone-500" />
                 <h3 className="font-serif text-sm font-bold text-stone-900">Cover image</h3>
               </div>
-              <div className="grid gap-4 md:grid-cols-[200px_1fr]">
-                <div
-                  className={`flex h-48 items-center justify-center overflow-hidden rounded-lg bg-white ${
-                    coverDisplayUrl ? "border border-stone-200" : "border-2 border-dashed border-stone-300"
-                  }`}
-                >
-                  {coverDisplayUrl ? (
-                    <img
-                      src={coverDisplayUrl}
-                      alt="Cover"
-                      className="h-full w-full object-contain"
-                    />
-                  ) : (
-                    <p className="px-3 text-center font-sans text-xs text-stone-400">
-                      No cover image uploaded
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-2 font-sans text-sm">
-                  {metadata?.cover_image ? (
-                    <>
-                      <p className="text-stone-700">
-                        <span className="text-stone-500">File:</span>{" "}
-                        {metadata?.cover_image.filename || "—"}
-                      </p>
-                      <p className="text-stone-700">
-                        <span className="text-stone-500">Dimensions:</span>{" "}
-                        {metadata?.cover_image.width_px || "?"}×{metadata?.cover_image.height_px || "?"} px
-                        {metadata?.cover_image.dpi ? ` · ${metadata?.cover_image.dpi} dpi` : ""}
-                      </p>
-                      {typeof metadata?.cover_image.file_size_bytes === "number" && (
-                        <p className="text-stone-700">
-                          <span className="text-stone-500">Size:</span>{" "}
-                          {(metadata.cover_image.file_size_bytes / 1024 / 1024).toFixed(2)} MB
-                        </p>
-                      )}
-                      {typeof metadata?.cover_image.version === "number" && (
-                        <p className="text-stone-700">
-                          <span className="text-stone-500">Version:</span>{" "}
-                          v{metadata.cover_image.version}
-                        </p>
-                      )}
-                      {metadata?.cover_image.source && (
-                        <p className="text-stone-700">
-                          <span className="text-stone-500">Source:</span>{" "}
-                          {metadata?.cover_image.source}
-                        </p>
-                      )}
-                      {canDeleteCover && (
-                        <button
-                          type="button"
-                          onClick={onDeleteCover}
-                          disabled={uploading}
-                          className="mt-1 inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-white px-3 py-1.5 font-sans text-xs font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-50"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                          Remove cover
-                        </button>
-                      )}
-                    </>
-                  ) : (
-                    <p className="text-stone-600">
-                      Upload a high-resolution cover image (JPEG/PNG/TIFF, minimum 2360×2360 px at 300 dpi, max 50 MB).
-                    </p>
-                  )}
-                </div>
-              </div>
 
-              {canEditCover && (
-                <div className="mt-4 space-y-3 border-t border-stone-200 pt-4">
-                  <div className="grid gap-3 md:grid-cols-2">
+              <div className="space-y-4 font-sans text-sm">
+                <div>
+                  <h4 className="font-semibold text-stone-900">Upload Your Cover Image</h4>
+                  <p className="mt-1 text-stone-700">
+                    You can upload an image to be used on the front cover of your book. Your image will be incorporated into our standard cover template as a background image, so please note the following:
+                  </p>
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-stone-700">
+                    <li>
+                      Do not include text in your image. Your title, name, and all other cover text will be added by our design team as part of the template.
+                    </li>
+                    <li>
+                      Choose an image that works well as a full background — high-quality photographs or artwork without busy focal points at the edges tend to work best.
+                    </li>
+                  </ul>
+                  <p className="mt-2 text-stone-700">
+                    If you choose not to upload an image, your cover will be produced using an abstract or plain design in keeping with our standard template. Please note that once you complete this stage, you will no longer be able to upload a cover image, so make sure you're happy with your choice before proceeding.
+                  </p>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-[200px_1fr]">
+                  <div
+                    className={`flex h-48 items-center justify-center overflow-hidden rounded-lg bg-white ${
+                      coverDisplayUrl ? "border border-stone-200" : "border-2 border-dashed border-stone-300"
+                    }`}
+                  >
+                    {coverDisplayUrl ? (
+                      <img
+                        src={coverDisplayUrl}
+                        alt="Cover"
+                        className="h-full w-full object-contain"
+                      />
+                    ) : (
+                      <p className="px-3 text-center font-sans text-xs text-stone-400">
+                        No cover image uploaded
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2 font-sans text-sm">
+                    {metadata?.cover_image ? (
+                      <>
+                        <p className="text-stone-700">
+                          <span className="text-stone-500">File:</span>{" "}
+                          {metadata?.cover_image.filename || "—"}
+                        </p>
+                        <p className="text-stone-700">
+                          <span className="text-stone-500">Dimensions:</span>{" "}
+                          {metadata?.cover_image.width_px || "?"}×{metadata?.cover_image.height_px || "?"} px
+                          {metadata?.cover_image.dpi ? ` · ${metadata?.cover_image.dpi} dpi` : ""}
+                        </p>
+                        {typeof metadata?.cover_image.file_size_bytes === "number" && (
+                          <p className="text-stone-700">
+                            <span className="text-stone-500">Size:</span>{" "}
+                            {(metadata.cover_image.file_size_bytes / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        )}
+                        {typeof metadata?.cover_image.version === "number" && (
+                          <p className="text-stone-700">
+                            <span className="text-stone-500">Version:</span>{" "}
+                            v{metadata.cover_image.version}
+                          </p>
+                        )}
+                        {metadata?.cover_image.source && (
+                          <p className="text-stone-700">
+                            <span className="text-stone-500">Source:</span>{" "}
+                            {metadata?.cover_image.source}
+                          </p>
+                        )}
+                        {canDeleteCover && (
+                          <button
+                            type="button"
+                            onClick={onDeleteCover}
+                            disabled={uploading}
+                            className="mt-1 inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-white px-3 py-1.5 font-sans text-xs font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-50"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Remove cover
+                          </button>
+                        )}
+                      </>
+                    ) : (
+                      <p className="text-stone-600">
+                        Upload a high-resolution cover image (JPEG/PNG/TIFF, minimum 2360×2360 px at 300 dpi, max 50 MB).
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {canEditCover && (
+                  <div className="space-y-4 border-t border-stone-200 pt-4">
                     <div>
                       <label className="block font-sans text-xs font-semibold uppercase tracking-[0.1em] text-stone-500">
                         Choose file
@@ -517,112 +562,262 @@ export function AuthorMetadataPanel({
                         </p>
                       )}
                     </div>
-                    <div>
-                      <label className="block font-sans text-xs font-semibold uppercase tracking-[0.1em] text-stone-500">
-                        Source / attribution <span className="text-rose-600">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={sourceText}
-                        onChange={(e) => setSourceText(e.target.value)}
-                        maxLength={500}
-                        placeholder="e.g. Photo by Jane Doe, used with permission"
-                        className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
-                      />
-                    </div>
-                  </div>
-                  {uploading && (
-                    <div className="space-y-1">
-                      <div className="h-2 w-full overflow-hidden rounded-full bg-stone-200">
-                        <div
-                          className="h-full bg-emerald-600 transition-all"
-                          style={{ width: `${uploadPct}%` }}
-                        />
+
+                    {/* Attribution */}
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-stone-900">Image Permissions & Attribution</h4>
+                      <p className="text-stone-700">
+                        All cover images must be correctly attributed. Please select the option that applies to you:
+                      </p>
+                      <div className="space-y-3">
+                        <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-stone-200 bg-white p-3 hover:bg-stone-50">
+                          <input
+                            type="radio"
+                            name="cover-attribution"
+                            className="mt-0.5 h-4 w-4 text-emerald-700"
+                            checked={attributionType === "own"}
+                            onChange={() => setAttributionType("own")}
+                          />
+                          <div className="space-y-1">
+                            <span className="block font-medium text-stone-900">I own the copyright to this image</span>
+                            <span className="block text-xs text-stone-600">
+                              Simply provide your name and the year the image was taken or created. Example: © Jane Smith, 2024
+                            </span>
+                            {attributionType === "own" && (
+                              <input
+                                type="text"
+                                value={attributionDetail}
+                                onChange={(e) => setAttributionDetail(e.target.value)}
+                                maxLength={500}
+                                placeholder="© Your name, year"
+                                className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
+                              />
+                            )}
+                          </div>
+                        </label>
+                        <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-stone-200 bg-white p-3 hover:bg-stone-50">
+                          <input
+                            type="radio"
+                            name="cover-attribution"
+                            className="mt-0.5 h-4 w-4 text-emerald-700"
+                            checked={attributionType === "public"}
+                            onChange={() => setAttributionType("public")}
+                          />
+                          <div className="space-y-1">
+                            <span className="block font-medium text-stone-900">The image is from a public domain source</span>
+                            <span className="block text-xs text-stone-600">
+                              Provide the name of the public domain source, the image title, and the year. Example: Unsplash — "Mountain Lake at Dawn", 2022
+                            </span>
+                            {attributionType === "public" && (
+                              <input
+                                type="text"
+                                value={attributionDetail}
+                                onChange={(e) => setAttributionDetail(e.target.value)}
+                                maxLength={500}
+                                placeholder="Source — title, year"
+                                className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
+                              />
+                            )}
+                          </div>
+                        </label>
+                        <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-stone-200 bg-white p-3 hover:bg-stone-50">
+                          <input
+                            type="radio"
+                            name="cover-attribution"
+                            className="mt-0.5 h-4 w-4 text-emerald-700"
+                            checked={attributionType === "permission"}
+                            onChange={() => setAttributionType("permission")}
+                          />
+                          <div className="space-y-1">
+                            <span className="block font-medium text-stone-900">I have permission from the copyright holder</span>
+                            <span className="block text-xs text-stone-600">
+                              We'll need a signed permission form from the copyright holder before we can use the image.
+                            </span>
+                            {attributionType === "permission" && (
+                              <>
+                                <input
+                                  type="text"
+                                  value={attributionDetail}
+                                  onChange={(e) => setAttributionDetail(e.target.value)}
+                                  maxLength={500}
+                                  placeholder="Copyright holder name and permission details"
+                                  className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
+                                />
+                                <a
+                                  href="https://www.cambridgescholars.com/cover-design"
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-emerald-700 hover:text-emerald-800"
+                                >
+                                  <ExternalLink className="h-3 w-3" />
+                                  Download the permissions form
+                                </a>
+                              </>
+                            )}
+                          </div>
+                        </label>
                       </div>
-                      <p className="font-sans text-xs text-stone-500">Uploading… {uploadPct}%</p>
                     </div>
-                  )}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={onUpload}
-                      disabled={uploading || !pendingFile || !sourceText.trim()}
-                      className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {uploading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Upload className="h-4 w-4" />
-                      )}
-                      {uploading ? "Uploading…" : metadata?.cover_image ? "Replace cover" : "Upload cover"}
-                    </button>
+
                     {coverError && (
-                      <span className="font-sans text-xs text-rose-700">{coverError}</span>
+                      <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm">
+                        <p className="font-semibold text-rose-800">Failed uploads</p>
+                        <p className="mt-1 text-rose-700">
+                          Your image couldn't be uploaded. This means it doesn't meet our resolution (DPI) or dimension requirements. You can adjust your image using the free tools below and try again:
+                        </p>
+                        <ul className="mt-2 list-disc space-y-1 pl-5 text-rose-700">
+                          <li>
+                            <a
+                              href="https://clideo.com/dpi-converter"
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 font-medium hover:underline"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                              Adjust image DPI
+                            </a>
+                          </li>
+                          <li>
+                            <a
+                              href="https://www.simpleimageresizer.com/"
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 font-medium hover:underline"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                              Resize image dimensions
+                            </a>
+                          </li>
+                        </ul>
+                      </div>
                     )}
-                    {!coverError && coverSuccess && (
-                      <span className="font-sans text-xs text-emerald-700">{coverSuccess}</span>
+
+                    {uploading && (
+                      <div className="space-y-1">
+                        <div className="h-2 w-full overflow-hidden rounded-full bg-stone-200">
+                          <div
+                            className="h-full bg-emerald-600 transition-all"
+                            style={{ width: `${uploadPct}%` }}
+                          />
+                        </div>
+                        <p className="font-sans text-xs text-stone-500">Uploading… {uploadPct}%</p>
+                      </div>
                     )}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={onUpload}
+                        disabled={uploading || !pendingFile || !attributionType || !attributionDetail.trim()}
+                        className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {uploading ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Upload className="h-4 w-4" />
+                        )}
+                        {uploading ? "Uploading…" : metadata?.cover_image ? "Replace cover" : "Upload cover"}
+                      </button>
+                      {!coverError && coverSuccess && (
+                        <span className="font-sans text-xs text-emerald-700">{coverSuccess}</span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             {/* Actions */}
             {isSent && !isApproved && (
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50/60 px-5 py-4">
-                {canApprove && (
-                  <div className="min-w-0">
-                    <p className="font-sans text-sm font-semibold text-emerald-900">
-                      {flashApprove
-                        ? "The publisher has responded — please review the table above."
-                        : "Happy with the metadata?"}
+              <>
+                {showNoCoverConfirm ? (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50/60 px-5 py-4">
+                    <p className="font-sans text-sm font-semibold text-amber-900">
+                      Are you sure you want to proceed without a cover image?
                     </p>
-                    <p className="font-sans text-xs text-emerald-800/80">
-                      {flashApprove
-                        ? "If you're happy with the updated details, press Submit metadata to finalise your record."
-                        : "Approve to finalise your record, or raise a query if anything needs changing."}
+                    <p className="mt-1 font-sans text-xs text-amber-800/80">
+                      Your cover will be created using an abstract or plain design, and you won't be able to upload an image after this point.
                     </p>
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowNoCoverConfirm(false)}
+                        className="inline-flex items-center gap-2 rounded-lg border border-stone-300 bg-white px-4 py-2 font-sans text-sm font-semibold text-stone-700 shadow-sm hover:bg-stone-50"
+                      >
+                        Go back and upload an image
+                      </button>
+                      <button
+                        type="button"
+                        onClick={onApprove}
+                        disabled={approving || hasOpenQuery}
+                        className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {approving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                        {approving ? "Submitting…" : "Proceed without an image"}
+                      </button>
+                    </div>
+                    {hasOpenQuery && (
+                      <p className="mt-2 w-full font-sans text-xs text-amber-800">
+                        Submit is disabled until the publisher responds to your open query.
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50/60 px-5 py-4">
+                    {canApprove && (
+                      <div className="min-w-0">
+                        <p className="font-sans text-sm font-semibold text-emerald-900">
+                          {flashApprove
+                            ? "The publisher has responded — please review the table above."
+                            : "Happy with the metadata?"}
+                        </p>
+                        <p className="font-sans text-xs text-emerald-800/80">
+                          {flashApprove
+                            ? "If you're happy with the updated details, press Submit metadata to finalise your record."
+                            : "Approve to finalise your record, or raise a query if anything needs changing."}
+                        </p>
+                      </div>
+                    )}
+                    <div className="ml-auto flex flex-wrap items-center gap-2">
+                      {approveError && (
+                        <span className="font-sans text-xs text-rose-700">{approveError}</span>
+                      )}
+                      {!approveError && approveSuccess && (
+                        <span className="font-sans text-xs text-emerald-700">{approveSuccess}</span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setShowQueries((v) => !v)}
+                        className="inline-flex items-center gap-2 rounded-lg border border-amber-300 bg-white px-4 py-2 font-sans text-sm font-semibold text-amber-800 shadow-sm hover:bg-amber-50"
+                      >
+                        <MessageSquarePlus className="h-4 w-4" />
+                        {showQueries ? "Hide queries" : "Raise query"}
+                      </button>
+                      <button
+                        type="button"
+                        ref={approveBtnRef}
+                        onClick={onApprove}
+                        disabled={approving || hasOpenQuery}
+                        title={
+                          hasOpenQuery
+                            ? "Resolve the open metadata query before submitting."
+                            : undefined
+                        }
+                        className={`inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60 ${
+                          flashApprove ? "ring-4 ring-amber-300 animate-pulse" : ""
+                        }`}
+                      >
+                        {approving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                        {approving ? "Submitting…" : "Submit metadata"}
+                      </button>
+                    </div>
+                    {hasOpenQuery && (
+                      <p className="w-full font-sans text-xs text-amber-800">
+                        Submit is disabled until the publisher responds to your open query.
+                      </p>
+                    )}
                   </div>
                 )}
-                <div className="ml-auto flex flex-wrap items-center gap-2">
-                  {approveError && (
-                    <span className="font-sans text-xs text-rose-700">{approveError}</span>
-                  )}
-                  {!approveError && approveSuccess && (
-                    <span className="font-sans text-xs text-emerald-700">{approveSuccess}</span>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setShowQueries((v) => !v)}
-                    className="inline-flex items-center gap-2 rounded-lg border border-amber-300 bg-white px-4 py-2 font-sans text-sm font-semibold text-amber-800 shadow-sm hover:bg-amber-50"
-                  >
-                    <MessageSquarePlus className="h-4 w-4" />
-                    {showQueries ? "Hide queries" : "Raise query"}
-                  </button>
-                  <button
-                    type="button"
-                    ref={approveBtnRef}
-                    onClick={onApprove}
-                    disabled={approving || hasOpenQuery}
-                    title={
-                      hasOpenQuery
-                        ? "Resolve the open metadata query before submitting."
-                        : undefined
-                    }
-                    className={`inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60 ${
-                      flashApprove ? "ring-4 ring-amber-300 animate-pulse" : ""
-                    }`}
-                  >
-                    {approving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                    {approving ? "Submitting…" : "Submit metadata"}
-                  </button>
-                </div>
-                {hasOpenQuery && (
-                  <p className="w-full font-sans text-xs text-amber-800">
-                    Submit is disabled until the publisher responds to your open query.
-                  </p>
-                )}
-              </div>
+              </>
             )}
 
             {/* Queries — always mounted while metadata is loaded so the
