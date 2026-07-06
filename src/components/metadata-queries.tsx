@@ -62,6 +62,8 @@ export function MetadataQueries({
 
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [flashCta, setFlashCta] = useState(false);
+  const entryRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [highlightKey, setHighlightKey] = useState<string | null>(null);
   const seenKey = `metadata_queries_seen:${viewer}:${ticket}`;
   const didInitialSeenRef = useRef(false);
 
@@ -152,11 +154,21 @@ export function MetadataQueries({
     // New activity — scroll to the queries panel and flash the CTA.
     setFlashCta(true);
     onNewActivity?.();
-    const el = rootRef.current;
-    if (el && typeof el.scrollIntoView === "function") {
-      window.setTimeout(() => {
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 150);
+    // Prefer scrolling directly to the newest relevant entry (e.g. the
+    // publisher's response on the author dashboard) so the viewer is taken
+    // straight to what changed, and briefly highlight it.
+    const latest = newRelevant[newRelevant.length - 1];
+    const latestKey = latest ? `${latest.type}-${latest.id}` : null;
+    window.setTimeout(() => {
+      const target =
+        (latestKey && entryRefs.current[latestKey]) || rootRef.current;
+      if (target && typeof target.scrollIntoView === "function") {
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 150);
+    if (latestKey) {
+      setHighlightKey(latestKey);
+      window.setTimeout(() => setHighlightKey((k) => (k === latestKey ? null : k)), 6000);
     }
     const t = window.setTimeout(() => setFlashCta(false), 6000);
     return () => window.clearTimeout(t);
@@ -336,13 +348,22 @@ export function MetadataQueries({
         )}
         {thread.map((entry) => {
           const isQuery = entry.type === "query";
+          const entryKey = `${entry.type}-${entry.id}`;
+          const isHighlighted = highlightKey === entryKey;
           return (
             <div
-              key={`${entry.type}-${entry.id}`}
-              className={`rounded-xl border px-4 py-3 ${
+              key={entryKey}
+              ref={(el) => {
+                entryRefs.current[entryKey] = el;
+              }}
+              className={`rounded-xl border px-4 py-3 transition ${
                 isQuery
                   ? "border-amber-200 bg-amber-50/60"
                   : "border-emerald-200 bg-emerald-50/60"
+              } ${
+                isHighlighted
+                  ? "ring-4 ring-amber-300 shadow-[0_0_0_4px_rgba(251,191,36,0.25)]"
+                  : ""
               }`}
             >
               <div className="flex items-center justify-between gap-2">
