@@ -832,6 +832,10 @@ function ProposalDetailPage() {
       const subtitleChanged = enteredSubtitle !== originalSubtitle;
       const payload: Record<string, unknown> = {
         contract_type: contractType,
+        // Backend requires a title. Always send one; use the original when
+        // the DR didn't change it so the frontend can tell "unchanged" apart
+        // from "proposed edit" by comparing to main_title on read.
+        title: (titleChanged ? enteredTitle : originalTitle),
         expiry_days: contractExpiryDays,
         language: contractFields.language,
         author_copies: contractFields.author_copies,
@@ -841,13 +845,10 @@ function ProposalDetailPage() {
         secondary_rights_revenue: Number(contractFields.secondary_rights_revenue) || 0,
         publishing_agreement: contractFields.publishing_agreement,
       };
+      // Only include subtitle when actually edited, so the backend doesn't
+      // record an unchanged value as a "proposed" subtitle.
       if (subtitleChanged && enteredSubtitle) {
         payload.subtitle = enteredSubtitle;
-      }
-      // Only send title when the DR actually changed it, so the backend
-      // doesn't record an unchanged value as a "proposed" title.
-      if (titleChanged) {
-        payload.title = enteredTitle;
       }
       if (contractAmendments.trim()) payload.addendum = contractAmendments.trim();
       if (contractNote.trim()) {
