@@ -480,7 +480,7 @@ export function MetadataQueries({
                 <Send className="h-3.5 w-3.5" />
                 {submitting
                   ? "Sending…"
-                    : `Send Response & Metadata${openIds.length > 1 ? ` to ${openIds.length}` : ""}`}
+                  : "Send Response & Metadata"}
               </button>
             </div>
           );
