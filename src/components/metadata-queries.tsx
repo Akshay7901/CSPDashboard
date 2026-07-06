@@ -206,7 +206,7 @@ export function MetadataQueries({
     if (!hasUnansweredAuthorQuery) return;
     const id = window.setInterval(() => {
       if (document.visibilityState !== "hidden") void reload();
-    }, 15000);
+    }, 4000);
     return () => window.clearInterval(id);
   }, [hasUnansweredAuthorQuery, reload]);
 
