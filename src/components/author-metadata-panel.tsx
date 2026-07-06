@@ -767,26 +767,13 @@ export function AuthorMetadataPanel({
                         </label>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={onSaveAttribution}
-                          disabled={
-                            attributionSaving ||
-                            !attributionType ||
-                            !attributionDetail.trim()
-                          }
-                          className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          {attributionSaving ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : null}
-                          {attributionSaving
-                            ? "Saving…"
-                            : attributionSaved
-                              ? "Update attribution"
-                              : "Save attribution"}
-                        </button>
-                        {attributionSaved && (
+                        {attributionSaving && (
+                          <span className="inline-flex items-center gap-1.5 font-sans text-xs text-stone-500">
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            Saving attribution…
+                          </span>
+                        )}
+                        {!attributionSaving && attributionSaved && (
                           <span className="font-sans text-xs text-emerald-700">Attribution saved.</span>
                         )}
                       </div>
