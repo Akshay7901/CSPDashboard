@@ -511,7 +511,7 @@ export function MetadataQueries({
                 <select
                   value={d.field}
                   onChange={(e) => updateDraft(idx, { field: e.target.value })}
-                  className="rounded-lg border border-stone-300 bg-white px-2 py-2 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100 sm:w-48"
+                  className="w-full rounded-lg border border-stone-300 bg-white px-2 py-2 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100 sm:w-64"
                 >
                   <option value="">Select field…</option>
                   {(raisableFields || []).map((f) => (
