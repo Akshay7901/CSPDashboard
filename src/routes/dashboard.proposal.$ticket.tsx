@@ -674,6 +674,7 @@ function ProposalDetailPage() {
     authors: [],
   };
   const [metaForm, setMetaForm] = useState<MetaForm>(emptyMetaForm);
+  const metaFormRef = useRef<MetaForm>(emptyMetaForm);
   const [metaSaving, setMetaSaving] = useState(false);
   const [metaSaveError, setMetaSaveError] = useState<string | null>(null);
   const [metaSaveSuccess, setMetaSaveSuccess] = useState<string | null>(null);
@@ -1617,10 +1618,11 @@ function ProposalDetailPage() {
   useEffect(() => {
     if (!metadata) {
       setMetaForm(emptyMetaForm);
+      metaFormRef.current = emptyMetaForm;
       return;
     }
     const md = metadata.metadata || {};
-    setMetaForm({
+    const nextMetaForm: MetaForm = {
       full_title: md.full_title || "",
       title: md.title || "",
       subtitle: md.subtitle || "",
@@ -1632,20 +1634,28 @@ function ProposalDetailPage() {
       website_classification: md.website_classification || "",
       bic: md.bic || "",
       authors: (md.authors || []).map((a) => ({ ...a })),
-    });
+    };
+    setMetaForm(nextMetaForm);
+    metaFormRef.current = nextMetaForm;
     setMetaSaveError(null);
     setMetaSaveSuccess(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [metadata]);
 
   const updateMetaField = <K extends keyof MetaForm>(key: K, value: MetaForm[K]) => {
-    setMetaForm((prev) => ({ ...prev, [key]: value }));
+    setMetaForm((prev) => {
+      const next = { ...prev, [key]: value };
+      metaFormRef.current = next;
+      return next;
+    });
     setMetaSaveSuccess(null);
   };
   const updateMetaAuthor = (index: number, key: keyof MetadataAuthor, value: string) => {
     setMetaForm((prev) => {
       const next = prev.authors.map((a, i) => (i === index ? { ...a, [key]: value } : a));
-      return { ...prev, authors: next };
+      const nextMetaForm = { ...prev, authors: next };
+      metaFormRef.current = nextMetaForm;
+      return nextMetaForm;
     });
     setMetaSaveSuccess(null);
   };
@@ -2561,8 +2571,9 @@ function ProposalDetailPage() {
                                 "authors.country": metaForm.authors[0]?.country || "",
                               }}
                               onSaveFields={async (updates) => {
+                                const baseMetaForm = metaFormRef.current;
                                 const topLevelUpdates: Partial<MetaForm> = {};
-                                let nextAuthors = metaForm.authors.map((author) => ({ ...author }));
+                                let nextAuthors = baseMetaForm.authors.map((author) => ({ ...author }));
                                 let hasAuthorUpdate = false;
 
                                 for (const [key, value] of Object.entries(updates)) {
@@ -2580,10 +2591,11 @@ function ProposalDetailPage() {
                                 }
 
                                 const merged: MetaForm = {
-                                  ...metaForm,
+                                  ...baseMetaForm,
                                   ...topLevelUpdates,
                                   ...(hasAuthorUpdate ? { authors: nextAuthors } : {}),
                                 };
+                                metaFormRef.current = merged;
                                 const token = getPortalToken();
                                 const session = getPortalSession();
                                 const payload: Record<string, unknown> = {
