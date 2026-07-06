@@ -497,6 +497,8 @@ function ProposalDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [locking, setLocking] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const handleLockProposal = async () => {
     if (!confirm(`Lock proposal ${ticket} and generate production files? This cannot be undone.`)) return;
@@ -2071,7 +2073,7 @@ function ProposalDetailPage() {
         </div>
       </header>
 
-      {(() => {
+      {mounted ? (() => {
         const session = getPortalSession();
         const role = (session?.role || "").toLowerCase();
         if (role !== "admin" && role !== "decision_reviewer") return null;
@@ -2086,7 +2088,7 @@ function ProposalDetailPage() {
                 <History className="h-5 w-5" />
               </button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-md">
+            <SheetContent side="right" className="w-full overflow-y-auto bg-white sm:max-w-md">
               <SheetHeader>
                 <SheetTitle className="font-serif">Audit Trail</SheetTitle>
                 <SheetDescription>
@@ -2167,7 +2169,7 @@ function ProposalDetailPage() {
             </SheetContent>
           </Sheet>
         );
-      })()}
+      })() : null}
 
       <main className="mx-auto w-full max-w-5xl px-6 py-8">
         <Link
