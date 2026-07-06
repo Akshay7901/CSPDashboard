@@ -1879,11 +1879,25 @@ function ProposalDetailPage() {
     }
   };
 
+  const refreshEvents = async () => {
+    setEventsLoading(true);
+    setEventsError(null);
+    try {
+      const list = await listProposalEvents(ticket);
+      setEvents(list);
+    } catch (e) {
+      setEventsError((e as Error).message);
+    } finally {
+      setEventsLoading(false);
+    }
+  };
+
   useEffect(() => {
     const session = getPortalSession();
     const role = (session?.role || "").toLowerCase();
     if (role !== "admin" && role !== "decision_reviewer") return;
     refreshInternalNotes();
+    refreshEvents();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ticket]);
 
