@@ -2409,6 +2409,9 @@ function ProposalDetailPage() {
                                         {typeof coverImg?.version === "number" && (
                                           <p><span className="text-stone-400">Version:</span> v{coverImg.version}</p>
                                         )}
+                                        {coverImg?.source && (
+                                          <p><span className="text-stone-400">Source:</span> {coverImg.source}</p>
+                                        )}
                                         {canDeleteCover && (
                                           <button
                                             type="button"
