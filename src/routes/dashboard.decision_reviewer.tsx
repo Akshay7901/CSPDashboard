@@ -226,6 +226,9 @@ function deriveProposalStatus(p: ApiProposal): StatusKey {
 }
 
 function deriveDisplayStatus(p: ApiProposal): string | undefined {
+  const raw = (p.status || "").trim().toLowerCase().replace(/\s+/g, "_");
+  // Keep the submitted/new badge short and consistent across the dashboard.
+  if (raw === "new" || raw === "submitted") return undefined;
   // Prefer the API's own status text so the badge mirrors the backend
   // verbatim (e.g. "Contract Received", "Awaiting More Info", "In Review").
   if (p.display_status && p.display_status.trim()) return p.display_status;
