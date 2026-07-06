@@ -2529,6 +2529,13 @@ function ProposalDetailPage() {
                                 bic: "BIC codes",
                                 cover_image: "Cover image",
                                 authors: "Authors",
+                                "authors.title": "Salutation",
+                                "authors.first_name": "First name",
+                                "authors.last_name": "Last name",
+                                "authors.email": "Email",
+                                "authors.email_2": "Email 2",
+                                "authors.institution": "Institution",
+                                "authors.country": "Country",
                               }}
                               fieldValues={{
                                 full_title: metaForm.full_title,
@@ -2542,9 +2549,41 @@ function ProposalDetailPage() {
                                 website_classification:
                                   metaForm.website_classification,
                                 bic: metaForm.bic,
+                                "authors.title": metaForm.authors[0]?.title || "",
+                                "authors.first_name":
+                                  metaForm.authors[0]?.first_name || "",
+                                "authors.last_name":
+                                  metaForm.authors[0]?.last_name || "",
+                                "authors.email": metaForm.authors[0]?.email || "",
+                                "authors.email_2": metaForm.authors[0]?.email_2 || "",
+                                "authors.institution":
+                                  metaForm.authors[0]?.institution || "",
+                                "authors.country": metaForm.authors[0]?.country || "",
                               }}
                               onSaveFields={async (updates) => {
-                                const merged = { ...metaForm, ...updates };
+                                const topLevelUpdates: Partial<MetaForm> = {};
+                                let nextAuthors = metaForm.authors.map((author) => ({ ...author }));
+                                let hasAuthorUpdate = false;
+
+                                for (const [key, value] of Object.entries(updates)) {
+                                  if (key.startsWith("authors.")) {
+                                    const authorKey = key.slice("authors.".length) as keyof MetadataAuthor;
+                                    if (nextAuthors.length === 0) nextAuthors = [{}];
+                                    nextAuthors[0] = {
+                                      ...nextAuthors[0],
+                                      [authorKey]: value,
+                                    };
+                                    hasAuthorUpdate = true;
+                                  } else {
+                                    topLevelUpdates[key as keyof MetaForm] = value as never;
+                                  }
+                                }
+
+                                const merged: MetaForm = {
+                                  ...metaForm,
+                                  ...topLevelUpdates,
+                                  ...(hasAuthorUpdate ? { authors: nextAuthors } : {}),
+                                };
                                 const token = getPortalToken();
                                 const session = getPortalSession();
                                 const payload: Record<string, unknown> = {
@@ -2596,7 +2635,10 @@ function ProposalDetailPage() {
                                         updated_at: new Date().toISOString(),
                                         metadata: {
                                           ...(prev.metadata || {}),
-                                          ...updates,
+                                          ...topLevelUpdates,
+                                          ...(hasAuthorUpdate
+                                            ? { authors: nextAuthors }
+                                            : {}),
                                         },
                                       }
                                     : prev,

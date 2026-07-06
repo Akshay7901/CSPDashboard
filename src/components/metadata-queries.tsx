@@ -72,8 +72,35 @@ export function MetadataQueries({
   const [responseText, setResponseText] = useState("");
   const [fieldEdits, setFieldEdits] = useState<Record<string, string>>({});
   const [rowEdits, setRowEdits] = useState<Record<string, string>>({});
-  const [applying, setApplying] = useState<string | null>(null);
+  const appliedStorageKey = `metadata_queries_applied:${viewer}:${ticket}`;
+  const [applyingKeys, setApplyingKeys] = useState<Record<string, boolean>>({});
   const [appliedKeys, setAppliedKeys] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    try {
+      const raw = typeof window !== "undefined" ? window.sessionStorage.getItem(appliedStorageKey) : null;
+      setAppliedKeys(raw ? (JSON.parse(raw) as Record<string, boolean>) : {});
+    } catch {
+      setAppliedKeys({});
+    }
+  }, [appliedStorageKey]);
+
+  const markApplied = useCallback(
+    (key: string) => {
+      setAppliedKeys((prev) => {
+        const next = { ...prev, [key]: true };
+        try {
+          if (typeof window !== "undefined") {
+            window.sessionStorage.setItem(appliedStorageKey, JSON.stringify(next));
+          }
+        } catch {
+          // ignore disabled storage
+        }
+        return next;
+      });
+    },
+    [appliedStorageKey],
+  );
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -387,12 +414,14 @@ export function MetadataQueries({
                         );
                       }
                       const current = rowEdits[key] ?? queryText;
+                      const isApplying = !!applyingKeys[key];
+                      const isApplied = !!appliedKeys[key];
                       const multiline =
                         fkey === "display_bios" || fkey === "book_description";
                       return (
                         <div
                           key={key}
-                          className={`flex flex-col gap-2 sm:flex-row sm:items-start ${appliedKeys[key] ? "opacity-70" : ""}`}
+                          className={`flex flex-col gap-2 sm:flex-row sm:items-start ${isApplied ? "opacity-70" : ""}`}
                         >
                           <label className="font-sans text-xs font-medium text-stone-700 sm:w-32 sm:pt-2">
                             {fieldLabels?.[fkey] || fkey}
@@ -401,7 +430,7 @@ export function MetadataQueries({
                             <textarea
                               rows={2}
                               value={current}
-                              disabled={appliedKeys[key]}
+                              disabled={isApplied}
                               onChange={(e) =>
                                 setRowEdits((prev) => ({ ...prev, [key]: e.target.value }))
                               }
@@ -411,7 +440,7 @@ export function MetadataQueries({
                             <input
                               type="text"
                               value={current}
-                              disabled={appliedKeys[key]}
+                              disabled={isApplied}
                               onChange={(e) =>
                                 setRowEdits((prev) => ({ ...prev, [key]: e.target.value }))
                               }
@@ -420,29 +449,33 @@ export function MetadataQueries({
                           )}
                           <button
                             type="button"
-                            disabled={applying === key || !current.trim() || appliedKeys[key]}
+                            disabled={isApplying || !current.trim() || isApplied}
                             onClick={async () => {
                               if (!onSaveFields) return;
-                              setApplying(key);
+                              setApplyingKeys((prev) => ({ ...prev, [key]: true }));
                               setError(null);
                               try {
                                 await onSaveFields({ [fkey]: current });
-                                setAppliedKeys((p) => ({ ...p, [key]: true }));
+                                markApplied(key);
                               } catch (e) {
                                 setError((e as Error).message);
                               } finally {
-                                setApplying(null);
+                                setApplyingKeys((prev) => {
+                                  const next = { ...prev };
+                                  delete next[key];
+                                  return next;
+                                });
                               }
                             }}
                             className={`rounded-md px-3 py-1.5 font-sans text-xs font-semibold transition ${
-                              appliedKeys[key]
+                              isApplied
                                 ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-300"
                                 : "bg-[#5B2EBA] text-white hover:bg-[#4a2599] disabled:opacity-50"
                             }`}
                           >
-                            {applying === key
+                            {isApplying
                               ? "Applying…"
-                              : appliedKeys[key]
+                              : isApplied
                                 ? "Applied ✓"
                                 : "Apply"}
                           </button>
