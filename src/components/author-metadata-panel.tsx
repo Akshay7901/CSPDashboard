@@ -304,10 +304,23 @@ export function AuthorMetadataPanel({
 
   const onUpload = async () => {
     if (!pendingFile) return;
-    if (!sourceText.trim()) {
-      setCoverError("Please provide an attribution / source statement.");
+    if (!attributionType || !attributionDetail.trim()) {
+      setCoverError("Please select an attribution option and provide the required details.");
       return;
     }
+    const sourceStatement = (() => {
+      switch (attributionType) {
+        case "own":
+          return `I own the copyright to this image. ${attributionDetail.trim()}`;
+        case "public":
+          return `Public domain source: ${attributionDetail.trim()}`;
+        case "permission":
+          return `Permission from copyright holder: ${attributionDetail.trim()}`;
+        default:
+          return attributionDetail.trim();
+      }
+    })();
+    setSourceText(sourceStatement);
     setUploading(true);
     setCoverError(null);
     setCoverSuccess(null);
@@ -316,11 +329,13 @@ export function AuthorMetadataPanel({
       const newCover = await uploadCoverImage(
         ticket,
         pendingFile,
-        sourceText.trim(),
+        sourceStatement,
         (pct) => setUploadPct(pct),
       );
       setCoverSuccess("Cover image uploaded.");
       setPendingFile(null);
+      setAttributionType("");
+      setAttributionDetail("");
       setSourceText("");
       if (fileInputRef.current) fileInputRef.current.value = "";
       // Update directly from response — no re-fetch needed.
