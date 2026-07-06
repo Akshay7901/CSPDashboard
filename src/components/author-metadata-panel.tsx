@@ -677,34 +677,103 @@ export function AuthorMetadataPanel({
 
                 {canEditCover && (
                   <div className="space-y-4 border-t border-stone-200 pt-4">
-                    <div>
-                      <label className="block font-sans text-xs font-semibold uppercase tracking-[0.1em] text-stone-500">
-                        Choose file
-                      </label>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept=".jpg,.jpeg,.png,.tif,.tiff,image/jpeg,image/png,image/tiff"
-                        onChange={(e) => void handlePickFile(e.target.files?.[0] || null)}
-                        className="mt-1 block w-full text-sm text-stone-700 file:mr-3 file:rounded-md file:border-0 file:bg-stone-800 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-stone-900"
-                      />
-                      {pendingFile && (
-                        <p className="mt-1 font-sans text-xs text-stone-500">
-                          Ready: {pendingFile.name} ({(pendingFile.size / 1024 / 1024).toFixed(1)}{" "}
-                          MB)
-                        </p>
-                      )}
-                    </div>
+                    {!metadata?.cover_image && (
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block font-sans text-xs font-semibold uppercase tracking-[0.1em] text-stone-500">
+                            Choose file
+                          </label>
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".jpg,.jpeg,.png,.tif,.tiff,image/jpeg,image/png,image/tiff"
+                            onChange={(e) => void handlePickFile(e.target.files?.[0] || null)}
+                            className="mt-1 block w-full text-sm text-stone-700 file:mr-3 file:rounded-md file:border-0 file:bg-stone-800 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-stone-900"
+                          />
+                          {pendingFile && (
+                            <p className="mt-1 font-sans text-xs text-stone-500">
+                              Ready: {pendingFile.name} ({(pendingFile.size / 1024 / 1024).toFixed(1)}{" "}
+                              MB)
+                            </p>
+                          )}
+                        </div>
+
+                        {coverError && (
+                          <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm">
+                            <p className="font-semibold text-rose-800">Failed uploads</p>
+                            <p className="mt-1 text-rose-700">
+                              Your image couldn't be uploaded. This means it doesn't meet our resolution
+                              (DPI) or dimension requirements. You can adjust your image using the free
+                              tools below and try again:
+                            </p>
+                            <ul className="mt-2 list-disc space-y-1 pl-5 text-rose-700">
+                              <li>
+                                <a
+                                  href="https://clideo.com/dpi-converter"
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-1 font-medium hover:underline"
+                                >
+                                  <ExternalLink className="h-3 w-3" />
+                                  Adjust image DPI
+                                </a>
+                              </li>
+                              <li>
+                                <a
+                                  href="https://www.simpleimageresizer.com/"
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-1 font-medium hover:underline"
+                                >
+                                  <ExternalLink className="h-3 w-3" />
+                                  Resize image dimensions
+                                </a>
+                              </li>
+                            </ul>
+                          </div>
+                        )}
+
+                        {uploading && (
+                          <div className="space-y-1">
+                            <div className="h-2 w-full overflow-hidden rounded-full bg-stone-200">
+                              <div
+                                className="h-full bg-emerald-600 transition-all"
+                                style={{ width: `${uploadPct}%` }}
+                              />
+                            </div>
+                            <p className="font-sans text-xs text-stone-500">Uploading… {uploadPct}%</p>
+                          </div>
+                        )}
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={onUpload}
+                            disabled={uploading || !pendingFile}
+                            className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {uploading ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Upload className="h-4 w-4" />
+                            )}
+                            {uploading ? "Uploading…" : "Upload cover"}
+                          </button>
+                          {!coverError && coverSuccess && (
+                            <span className="font-sans text-xs text-emerald-700">{coverSuccess}</span>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Attribution — shown only after a successful upload */}
                     {metadata?.cover_image && (
-                      <div className="space-y-3 border-t border-stone-200 pt-4">
+                      <div className="space-y-3">
                         <h4 className="font-semibold text-stone-900">
                           Image Permissions & Attribution
                         </h4>
                         <p className="text-stone-700">
                           Your cover was uploaded. Please tell us how it's attributed — select the
-                          option that applies and save.
+                          option that applies.
                         </p>
                         <div className="space-y-3">
                           <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-stone-200 bg-white p-3 hover:bg-stone-50">
@@ -816,80 +885,6 @@ export function AuthorMetadataPanel({
                             </span>
                           )}
                         </div>
-                        {!uploadedFileRef.current && !attributionSaved && (
-                          <p className="font-sans text-xs text-stone-500">
-                            To change attribution after refreshing the page, use{" "}
-                            <span className="font-medium">Replace cover</span> above to re-upload
-                            the image.
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {coverError && (
-                      <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm">
-                        <p className="font-semibold text-rose-800">Failed uploads</p>
-                        <p className="mt-1 text-rose-700">
-                          Your image couldn't be uploaded. This means it doesn't meet our resolution
-                          (DPI) or dimension requirements. You can adjust your image using the free
-                          tools below and try again:
-                        </p>
-                        <ul className="mt-2 list-disc space-y-1 pl-5 text-rose-700">
-                          <li>
-                            <a
-                              href="https://clideo.com/dpi-converter"
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1 font-medium hover:underline"
-                            >
-                              <ExternalLink className="h-3 w-3" />
-                              Adjust image DPI
-                            </a>
-                          </li>
-                          <li>
-                            <a
-                              href="https://www.simpleimageresizer.com/"
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1 font-medium hover:underline"
-                            >
-                              <ExternalLink className="h-3 w-3" />
-                              Resize image dimensions
-                            </a>
-                          </li>
-                        </ul>
-                      </div>
-                    )}
-
-                    {uploading && (
-                      <div className="space-y-1">
-                        <div className="h-2 w-full overflow-hidden rounded-full bg-stone-200">
-                          <div
-                            className="h-full bg-emerald-600 transition-all"
-                            style={{ width: `${uploadPct}%` }}
-                          />
-                        </div>
-                        <p className="font-sans text-xs text-stone-500">Uploading… {uploadPct}%</p>
-                      </div>
-                    )}
-                    {!metadata?.cover_image && (
-                      <div className="flex flex-wrap items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={onUpload}
-                          disabled={uploading || !pendingFile}
-                          className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          {uploading ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Upload className="h-4 w-4" />
-                          )}
-                          {uploading ? "Uploading…" : "Upload cover"}
-                        </button>
-                        {!coverError && coverSuccess && (
-                          <span className="font-sans text-xs text-emerald-700">{coverSuccess}</span>
-                        )}
                       </div>
                     )}
                   </div>
