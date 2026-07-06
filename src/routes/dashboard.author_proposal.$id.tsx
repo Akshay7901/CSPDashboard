@@ -297,7 +297,7 @@ function statusFromTimeline(timeline?: TimelineStage[]): StatusKey | undefined {
 }
 
 const STATUS_LABEL: Record<StatusKey, string> = {
-  submitted: "Submitted",
+  submitted: "New",
   revisions: "Revisions Requested",
   in_review: "Under Review",
   review_returned: "Review Returned",
@@ -2556,7 +2556,7 @@ function ProgressStepper({
           };
         })
       : [
-          { label: "Submitted", done: true, current: false, failed: false, anchor: "section-hero" },
+          { label: "New", done: true, current: false, failed: false, anchor: "section-hero" },
           {
             label: "Peer Review",
             done: ["review_returned", "contract", "signed", "approved", "declined", "major_revisions"].includes(status),

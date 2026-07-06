@@ -247,7 +247,7 @@ function toProposal(p: ApiProposalItem): LocalProposal {
 const PILLS: { key: PillKey; label: string; dot: string; match: (p: LocalProposal) => boolean }[] = [
   {
     key: "submitted",
-    label: "Submitted",
+    label: "New",
     dot: "bg-amber-400",
     match: (p) => p.status === "submitted",
   },
@@ -452,7 +452,7 @@ function configFor(p: LocalProposal): CardConfig {
       };
     case "submitted":
       return {
-        bannerLabel: "Submitted",
+        bannerLabel: "New",
         bannerDot: "bg-amber-400",
         bannerTint: "bg-amber-50",
         bannerText: "text-amber-700",
