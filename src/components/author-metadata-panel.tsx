@@ -676,8 +676,13 @@ export function AuthorMetadataPanel({
 
                 {canEditCover && (
                   <div className="space-y-4 border-t border-stone-200 pt-4">
-                    {!metadata?.cover_image && (
+                    {(
                       <div className="space-y-4">
+                        {metadata?.cover_image && (
+                          <p className="font-sans text-xs text-stone-500">
+                            Change cover image — pick a new file to replace the current cover.
+                          </p>
+                        )}
                         <div>
                           <label className="block font-sans text-xs font-semibold uppercase tracking-[0.1em] text-stone-500">
                             Choose file
@@ -755,7 +760,7 @@ export function AuthorMetadataPanel({
                             ) : (
                               <Upload className="h-4 w-4" />
                             )}
-                            {uploading ? "Uploading…" : "Upload cover"}
+                            {uploading ? "Uploading…" : metadata?.cover_image ? "Change cover" : "Upload cover"}
                           </button>
                           {!coverError && coverSuccess && (
                             <span className="font-sans text-xs text-emerald-700">{coverSuccess}</span>
