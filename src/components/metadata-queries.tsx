@@ -418,7 +418,7 @@ export function MetadataQueries({
                           )}
                           <button
                             type="button"
-                            disabled={applying === key || !current.trim()}
+                            disabled={applying === key || !current.trim() || appliedKeys[key]}
                             onClick={async () => {
                               if (!onSaveFields) return;
                               setApplying(key);
@@ -426,15 +426,6 @@ export function MetadataQueries({
                               try {
                                 await onSaveFields({ [fkey]: current });
                                 setAppliedKeys((p) => ({ ...p, [key]: true }));
-                                window.setTimeout(
-                                  () =>
-                                    setAppliedKeys((p) => {
-                                      const n = { ...p };
-                                      delete n[key];
-                                      return n;
-                                    }),
-                                  1800,
-                                );
                               } catch (e) {
                                 setError((e as Error).message);
                               } finally {
