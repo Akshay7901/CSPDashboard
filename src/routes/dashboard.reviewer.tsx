@@ -243,15 +243,25 @@ function ReviewerDashboard() {
             kind: cd.book_type || cd.proposal_type || "Proposal",
             title: cd.main_title || d.ticket_number,
             subtitle: cd.subtitle,
-            proposedTitle:
-              (cd as Record<string, string | undefined>).proposed_title ||
-              (cd as Record<string, string | undefined>).proposed_book_title ||
-              undefined,
-            proposedSubtitle:
-              (cd as Record<string, string | undefined>).proposed_subtitle ||
-              (cd as Record<string, string | undefined>).proposed_sub_title ||
-              (cd as Record<string, string | undefined>).proposed_book_subtitle ||
-              undefined,
+            proposedTitle: (() => {
+              const raw = (
+                (cd as Record<string, string | undefined>).proposed_title ||
+                (cd as Record<string, string | undefined>).proposed_book_title ||
+                ""
+              ).trim();
+              const orig = (cd.main_title || "").trim();
+              return raw && raw !== orig ? raw : undefined;
+            })(),
+            proposedSubtitle: (() => {
+              const raw = (
+                (cd as Record<string, string | undefined>).proposed_subtitle ||
+                (cd as Record<string, string | undefined>).proposed_sub_title ||
+                (cd as Record<string, string | undefined>).proposed_book_subtitle ||
+                ""
+              ).trim();
+              const orig = ((cd as Record<string, string | undefined>).sub_title || cd.subtitle || "").trim();
+              return raw && raw !== orig ? raw : undefined;
+            })(),
             authorName: authorNameResolved,
             authorAffiliation: cd.affiliation || cd.institution || "—",
             wordCount: wc ? `${wc} words` : "—",
