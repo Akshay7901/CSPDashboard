@@ -832,9 +832,6 @@ function ProposalDetailPage() {
       const subtitleChanged = enteredSubtitle !== originalSubtitle;
       const payload: Record<string, unknown> = {
         contract_type: contractType,
-        // Always send a title so the backend has one; only mark it as a
-        // "proposed" change when the DR actually edited it.
-        title: (titleChanged ? enteredTitle : originalTitle),
         expiry_days: contractExpiryDays,
         language: contractFields.language,
         author_copies: contractFields.author_copies,
@@ -846,6 +843,11 @@ function ProposalDetailPage() {
       };
       if (subtitleChanged && enteredSubtitle) {
         payload.subtitle = enteredSubtitle;
+      }
+      // Only send title when the DR actually changed it, so the backend
+      // doesn't record an unchanged value as a "proposed" title.
+      if (titleChanged) {
+        payload.title = enteredTitle;
       }
       if (contractAmendments.trim()) payload.addendum = contractAmendments.trim();
       if (contractNote.trim()) {
