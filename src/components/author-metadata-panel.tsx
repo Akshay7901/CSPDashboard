@@ -23,6 +23,15 @@ import {
 } from "@/lib/metadataApi";
 import { MetadataQueries } from "@/components/metadata-queries";
 import { isAdmin } from "@/lib/auth";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const FIELD_DEFS: { key: string; label: string; multiline?: boolean }[] = [
   { key: "full_title", label: "Title (full)" },
@@ -131,6 +140,7 @@ export function AuthorMetadataPanel({
   const [hasOpenQuery, setHasOpenQuery] = useState(false);
   const [flashApprove, setFlashApprove] = useState(false);
   const [showNoCoverConfirm, setShowNoCoverConfirm] = useState(false);
+  const [showFinalizeConfirm, setShowFinalizeConfirm] = useState(false);
   const approveBtnRef = useRef<HTMLButtonElement | null>(null);
   const cacheKey = `author_metadata_cache:${ticket}`;
 
@@ -361,10 +371,22 @@ export function AuthorMetadataPanel({
   void notVisible;
 
   const onApprove = async () => {
-    if (!metadata?.cover_image && !showNoCoverConfirm) {
-      setShowNoCoverConfirm(true);
+    // Show the finalisation confirmation first. If the user already confirmed
+    // (dialog still open) or is already on the no-cover path, skip.
+    if (!showNoCoverConfirm && !showFinalizeConfirm) {
+      setShowFinalizeConfirm(true);
       return;
     }
+
+    // If no cover image and we haven't warned about it yet, show the no-cover
+    // panel. This is reached after the author confirms finalisation in the
+    // dialog.
+    if (!metadata?.cover_image && !showNoCoverConfirm) {
+      setShowNoCoverConfirm(true);
+      setShowFinalizeConfirm(false);
+      return;
+    }
+
     setApproving(true);
     setApproveError(null);
     setApproveSuccess(null);
@@ -373,6 +395,7 @@ export function AuthorMetadataPanel({
       setApproveSuccess("Metadata approved. Thank you!");
       toast.success("Metadata submitted successfully");
       setShowNoCoverConfirm(false);
+      setShowFinalizeConfirm(false);
       await reload();
     } catch (e) {
       setApproveError((e as Error).message);
@@ -932,7 +955,10 @@ export function AuthorMetadataPanel({
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => setShowNoCoverConfirm(false)}
+                        onClick={() => {
+                          setShowNoCoverConfirm(false);
+                          setShowFinalizeConfirm(false);
+                        }}
                         className="inline-flex items-center gap-2 rounded-lg border border-stone-300 bg-white px-4 py-2 font-sans text-sm font-semibold text-stone-700 shadow-sm hover:bg-stone-50"
                       >
                         Go back and upload an image
@@ -1019,6 +1045,40 @@ export function AuthorMetadataPanel({
                 )}
               </>
             )}
+
+            <AlertDialog open={showFinalizeConfirm} onOpenChange={setShowFinalizeConfirm}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Finalise metadata?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    After pressing <strong>Finalise metadata</strong>, no more changes can be made to this record. Please confirm everything is correct.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => setShowFinalizeConfirm(false)} disabled={approving}>
+                    Go back
+                  </AlertDialogCancel>
+                  <button
+                    type="button"
+                    onClick={onApprove}
+                    disabled={approving || hasOpenQuery}
+                    className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {approving ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Check className="h-4 w-4" />
+                    )}
+                    {approving ? "Finalising…" : "Finalise metadata"}
+                  </button>
+                </AlertDialogFooter>
+                {hasOpenQuery && (
+                  <p className="mt-2 font-sans text-xs text-amber-800">
+                    Finalise is disabled until the publisher responds to your open query.
+                  </p>
+                )}
+              </AlertDialogContent>
+            </AlertDialog>
 
             {/* Queries — always mounted while metadata is loaded so the
                 author can see the publisher's responses to any raised
