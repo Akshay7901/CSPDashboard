@@ -25,7 +25,6 @@ import { MetadataQueries } from "@/components/metadata-queries";
 import { isAdmin } from "@/lib/auth";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
