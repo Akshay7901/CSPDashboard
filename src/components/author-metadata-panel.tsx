@@ -23,6 +23,16 @@ import {
 } from "@/lib/metadataApi";
 import { MetadataQueries } from "@/components/metadata-queries";
 import { isAdmin } from "@/lib/auth";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const FIELD_DEFS: { key: string; label: string; multiline?: boolean }[] = [
   { key: "full_title", label: "Title (full)" },
