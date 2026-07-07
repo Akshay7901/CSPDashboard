@@ -1086,6 +1086,16 @@ function DecisionReviewerDashboard() {
                           <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
                         </span>
                       )}
+                      {pendingMetaApprovalTickets.has(p.id) && (
+                        <span
+                          className="absolute -right-1 -bottom-1 flex h-2.5 w-2.5"
+                          title="Metadata sent to author — awaiting approval"
+                          aria-label="Metadata sent to author — awaiting approval"
+                        >
+                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
+                          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-amber-500 ring-2 ring-white" />
+                        </span>
+                      )}
                     </span>
                   </div>
                   <div className="flex items-center gap-4 justify-self-end">
