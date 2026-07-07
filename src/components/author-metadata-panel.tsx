@@ -141,6 +141,7 @@ export function AuthorMetadataPanel({
   const [hasOpenQuery, setHasOpenQuery] = useState(false);
   const [flashApprove, setFlashApprove] = useState(false);
   const [showNoCoverConfirm, setShowNoCoverConfirm] = useState(false);
+  const [showFinalizeConfirm, setShowFinalizeConfirm] = useState(false);
   const approveBtnRef = useRef<HTMLButtonElement | null>(null);
   const cacheKey = `author_metadata_cache:${ticket}`;
 
