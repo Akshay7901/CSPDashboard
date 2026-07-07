@@ -956,7 +956,10 @@ export function AuthorMetadataPanel({
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => setShowNoCoverConfirm(false)}
+                        onClick={() => {
+                          setShowNoCoverConfirm(false);
+                          setShowFinalizeConfirm(false);
+                        }}
                         className="inline-flex items-center gap-2 rounded-lg border border-stone-300 bg-white px-4 py-2 font-sans text-sm font-semibold text-stone-700 shadow-sm hover:bg-stone-50"
                       >
                         Go back and upload an image
