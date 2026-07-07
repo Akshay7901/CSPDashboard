@@ -582,7 +582,10 @@ function ProposalDetailPage() {
   const [comments, setComments] = useState<ReviewComment[]>([]);
   const [commentsSeeded, setCommentsSeeded] = useState(false);
   
-  const [originalOpen, setOriginalOpen] = useState(false);
+  // Default to expanded so the original proposal details and supporting
+  // documents are visible in every state (review-returned, contract-issued,
+  // etc.), matching the author-facing view.
+  const [originalOpen, setOriginalOpen] = useState(true);
 
   useEffect(() => {
     setComments([]);
@@ -3399,7 +3402,7 @@ function ProposalDetailPage() {
                 )}
 
                 {/* Supporting Documents */}
-                {!isReviewReturned && !isContractIssued && (
+                {((!isReviewReturned && !isContractIssued) || originalOpen) && (
                   <Card>
                     <CardHeader
                       title="Supporting Documents"
