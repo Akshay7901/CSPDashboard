@@ -371,19 +371,19 @@ export function AuthorMetadataPanel({
   void notVisible;
 
   const onApprove = async () => {
+    // Show the finalisation confirmation first. If the user already confirmed
+    // (dialog still open) or is already on the no-cover path, skip.
+    if (!showNoCoverConfirm && !showFinalizeConfirm) {
+      setShowFinalizeConfirm(true);
+      return;
+    }
+
     // If no cover image and we haven't warned about it yet, show the no-cover
     // panel. This is reached after the author confirms finalisation in the
     // dialog.
     if (!metadata?.cover_image && !showNoCoverConfirm) {
       setShowNoCoverConfirm(true);
       setShowFinalizeConfirm(false);
-      return;
-    }
-
-    // Show the finalisation confirmation dialog first. If the user already
-    // confirmed (dialog still open) or is already on the no-cover path, skip.
-    if (!showNoCoverConfirm && !showFinalizeConfirm) {
-      setShowFinalizeConfirm(true);
       return;
     }
 
