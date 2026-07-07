@@ -2159,16 +2159,6 @@ function ContractIssuedView({
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setPdfOpen(true)}
-          className={`mx-auto mt-4 block font-sans text-sm font-medium hover:underline ${
-            isSigned ? "text-emerald-700" : "text-violet-700"
-          }`}
-        >
-          Download full contract for complete terms and conditions
-        </button>
-
         {/* Signed confirmation callout */}
         {isSigned && (
           <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50/80 px-5 py-4 md:px-6 md:py-5">
@@ -2258,15 +2248,6 @@ function ContractIssuedView({
               >
                 <HelpCircle className="h-4 w-4" />
                 I have a question
-              </button>
-              <button
-                type="button"
-                onClick={handleDownload}
-                disabled={downloading}
-                className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-stone-300 bg-white px-5 py-3 font-sans text-sm font-bold text-stone-700 transition hover:bg-stone-50 disabled:opacity-60 sm:flex-none"
-              >
-                <Download className="h-4 w-4" />
-                {downloading ? "Preparing…" : "Download contract"}
               </button>
             </div>
           </div>
