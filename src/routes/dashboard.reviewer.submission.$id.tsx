@@ -271,6 +271,14 @@ function ReviewerSubmission() {
     navigate({ to: "/login" });
   };
 
+  const noteToReviewer = useMemo(() => {
+    if (!proposal) return "";
+    const match = proposal.assignments?.find(
+      (a) => a.reviewer_email?.toLowerCase() === userEmail.toLowerCase(),
+    );
+    return (match?.note || proposal.assignments?.[0]?.note || "").trim();
+  }, [proposal, userEmail]);
+
   if (loading || !proposal) {
     return (
       <div className="min-h-screen bg-[#FAF6EE] p-10 font-sans text-stone-700">
@@ -291,13 +299,6 @@ function ReviewerSubmission() {
   const displayedReviewerName =
     reviewerName || (userEmail ? displayNameFromEmail(userEmail) : "Reviewer");
   const canSubmit = recommendation !== null;
-  const noteToReviewer = useMemo(() => {
-    if (!proposal) return "";
-    const match = proposal.assignments?.find(
-      (a) => a.reviewer_email?.toLowerCase() === userEmail.toLowerCase(),
-    );
-    return (match?.note || proposal.assignments?.[0]?.note || "").trim();
-  }, [proposal, userEmail]);
 
   const buildHeaders = () => {
     const token = getPortalToken();
