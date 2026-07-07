@@ -1047,10 +1047,10 @@ export function AuthorMetadataPanel({
             )}
 
             <AlertDialog open={showFinalizeConfirm} onOpenChange={setShowFinalizeConfirm}>
-              <AlertDialogContent>
+              <AlertDialogContent className="bg-white text-stone-900">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Finalise metadata?</AlertDialogTitle>
-                  <AlertDialogDescription>
+                  <AlertDialogDescription className="text-stone-600">
                     After pressing <strong>Finalise metadata</strong>, no more changes can be made to this record. Please confirm everything is correct.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
