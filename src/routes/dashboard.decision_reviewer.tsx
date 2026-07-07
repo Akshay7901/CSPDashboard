@@ -1056,12 +1056,22 @@ function DecisionReviewerDashboard() {
                   </div>
                   <div>
                     <span
-                      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-sans text-xs font-medium ${meta.badgeClass}`}
+                      className={`relative inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-sans text-xs font-medium ${meta.badgeClass}`}
                     >
                       <span
                         className={`h-1.5 w-1.5 rounded-full ${meta.dot}`}
                       />
                       {p.displayStatus || meta.label}
+                      {openMetaQueryTickets.has(p.id) && (
+                        <span
+                          className="absolute -right-1 -top-1 flex h-2.5 w-2.5"
+                          title="Author raised a metadata query"
+                          aria-label="Author raised a metadata query"
+                        >
+                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+                          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
+                        </span>
+                      )}
                     </span>
                   </div>
                   <div className="flex items-center gap-4 justify-self-end">
