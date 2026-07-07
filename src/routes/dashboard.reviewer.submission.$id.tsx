@@ -291,6 +291,13 @@ function ReviewerSubmission() {
   const displayedReviewerName =
     reviewerName || (userEmail ? displayNameFromEmail(userEmail) : "Reviewer");
   const canSubmit = recommendation !== null;
+  const noteToReviewer = useMemo(() => {
+    if (!proposal) return "";
+    const match = proposal.assignments?.find(
+      (a) => a.reviewer_email?.toLowerCase() === userEmail.toLowerCase(),
+    );
+    return (match?.note || proposal.assignments?.[0]?.note || "").trim();
+  }, [proposal, userEmail]);
 
   const buildHeaders = () => {
     const token = getPortalToken();
