@@ -2249,15 +2249,6 @@ function ContractIssuedView({
                 <HelpCircle className="h-4 w-4" />
                 I have a question
               </button>
-              <button
-                type="button"
-                onClick={handleDownload}
-                disabled={downloading}
-                className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-stone-300 bg-white px-5 py-3 font-sans text-sm font-bold text-stone-700 transition hover:bg-stone-50 disabled:opacity-60 sm:flex-none"
-              >
-                <Download className="h-4 w-4" />
-                {downloading ? "Preparing…" : "Download contract"}
-              </button>
             </div>
           </div>
         )}
