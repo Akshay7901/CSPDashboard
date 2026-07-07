@@ -670,9 +670,12 @@ export function AuthorMetadataPanel({
 
                         {coverError && (() => {
                           const err = coverError;
-                          const lower = err.toLowerCase();
-                          const isDpi = /\b(dpi|dots per inch)\b/i.test(err);
-                          const isDim = /\b(dimension|pixel|px|width|height|resize|too small|minimum|2360)\b/i.test(err);
+                          // Strip informational phrases that mention DPI/dimensions but aren't the actual failure
+                          const cleaned = err
+                            .replace(/dpi is also verified[^.]*\.?/gi, "")
+                            .replace(/dimensions? (are|is) also verified[^.]*\.?/gi, "");
+                          const isDpi = /\b(dpi|dots per inch)\b/i.test(cleaned);
+                          const isDim = /\b(dimension|resize|too small|minimum|2360|\d+\s*[x×]\s*\d+)\b/i.test(cleaned);
                           if (isDpi && isDim) {
                             return (
                               <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm">
