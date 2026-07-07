@@ -636,41 +636,7 @@ export function AuthorMetadataPanel({
                       </p>
                     )}
 
-                    {/* Failed uploads guidance — only relevant before a cover is uploaded */}
-                    {!metadata?.cover_image && (
-                      <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm">
-                        <p className="font-semibold text-amber-800">Failed uploads</p>
-                        <p className="mt-1 text-amber-700">
-                          Your image couldn't be uploaded. This means it doesn't meet our resolution
-                          (DPI) or dimension requirements. You can adjust your image using the free
-                          tools below and try again:
-                        </p>
-                        <ul className="mt-2 list-disc space-y-1 pl-5 text-amber-700">
-                          <li>
-                            <a
-                              href="https://clideo.com/dpi-converter"
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1 font-medium hover:underline"
-                            >
-                              <ExternalLink className="h-3 w-3" />
-                              Adjust image DPI
-                            </a>
-                          </li>
-                          <li>
-                            <a
-                              href="https://www.simpleimageresizer.com/"
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1 font-medium hover:underline"
-                            >
-                              <ExternalLink className="h-3 w-3" />
-                              Resize image dimensions
-                            </a>
-                          </li>
-                        </ul>
-                      </div>
-                    )}
+                    {/* Pre-upload guidance intentionally hidden — errors are shown contextually below. */}
                   </div>
                 </div>
 
@@ -702,40 +668,60 @@ export function AuthorMetadataPanel({
                           )}
                         </div>
 
-                        {coverError && (
-                          <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm">
-                            <p className="font-semibold text-rose-800">Failed uploads</p>
-                            <p className="mt-1 text-rose-700">
-                              Your image couldn't be uploaded. This means it doesn't meet our resolution
-                              (DPI) or dimension requirements. You can adjust your image using the free
-                              tools below and try again:
-                            </p>
-                            <ul className="mt-2 list-disc space-y-1 pl-5 text-rose-700">
-                              <li>
-                                <a
-                                  href="https://clideo.com/dpi-converter"
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="inline-flex items-center gap-1 font-medium hover:underline"
-                                >
-                                  <ExternalLink className="h-3 w-3" />
-                                  Adjust image DPI
-                                </a>
-                              </li>
-                              <li>
-                                <a
-                                  href="https://www.simpleimageresizer.com/"
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="inline-flex items-center gap-1 font-medium hover:underline"
-                                >
-                                  <ExternalLink className="h-3 w-3" />
-                                  Resize image dimensions
-                                </a>
-                              </li>
-                            </ul>
-                          </div>
-                        )}
+                        {coverError && (() => {
+                          const err = coverError;
+                          const isDpi = /\bdpi\b|resolution/i.test(err);
+                          const isDim = /dimension|pixel|\bpx\b|width|height|resize|too small|minimum|2360/i.test(err);
+                          // If neither keyword matches, fall back to showing both.
+                          const showDpi = isDpi || (!isDpi && !isDim);
+                          const showDim = isDim || (!isDpi && !isDim);
+                          const bothShown = showDpi && showDim;
+                          const heading = bothShown
+                            ? "Image DPI and dimensions issue"
+                            : showDpi
+                              ? "Image DPI issue"
+                              : "Image dimensions issue";
+                          const description = bothShown
+                            ? "Your image couldn't be uploaded because it doesn't meet our DPI or dimension requirements. Adjust it with the free tool(s) below and try again:"
+                            : showDpi
+                              ? "Your image couldn't be uploaded because its DPI is too low. Adjust it with the free tool below and try again:"
+                              : "Your image couldn't be uploaded because its dimensions are too small. Adjust it with the free tool below and try again:";
+                          return (
+                            <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm">
+                              <p className="font-semibold text-rose-800">{heading}</p>
+                              <p className="mt-1 text-rose-700">{err}</p>
+                              <p className="mt-2 text-rose-700">{description}</p>
+                              <ul className="mt-2 list-disc space-y-1 pl-5 text-rose-700">
+                                {showDpi && (
+                                  <li>
+                                    <a
+                                      href="https://clideo.com/dpi-converter"
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="inline-flex items-center gap-1 font-medium hover:underline"
+                                    >
+                                      <ExternalLink className="h-3 w-3" />
+                                      Adjust image DPI
+                                    </a>
+                                  </li>
+                                )}
+                                {showDim && (
+                                  <li>
+                                    <a
+                                      href="https://www.simpleimageresizer.com/"
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="inline-flex items-center gap-1 font-medium hover:underline"
+                                    >
+                                      <ExternalLink className="h-3 w-3" />
+                                      Resize image dimensions
+                                    </a>
+                                  </li>
+                                )}
+                              </ul>
+                            </div>
+                          );
+                        })()}
 
                         {uploading && (
                           <div className="space-y-1">
