@@ -670,55 +670,70 @@ export function AuthorMetadataPanel({
 
                         {coverError && (() => {
                           const err = coverError;
-                          const isDpi = /\bdpi\b|resolution/i.test(err);
-                          const isDim = /dimension|pixel|\bpx\b|width|height|resize|too small|minimum|2360/i.test(err);
-                          // If neither keyword matches, fall back to showing both.
-                          const showDpi = isDpi || (!isDpi && !isDim);
-                          const showDim = isDim || (!isDpi && !isDim);
-                          const bothShown = showDpi && showDim;
-                          const heading = bothShown
-                            ? "Image DPI and dimensions issue"
-                            : showDpi
-                              ? "Image DPI issue"
-                              : "Image dimensions issue";
-                          const description = bothShown
-                            ? "Your image couldn't be uploaded because it doesn't meet our DPI or dimension requirements. Adjust it with the free tool(s) below and try again:"
-                            : showDpi
-                              ? "Your image couldn't be uploaded because its DPI is too low. Adjust it with the free tool below and try again:"
-                              : "Your image couldn't be uploaded because its dimensions are too small. Adjust it with the free tool below and try again:";
-                          return (
-                            <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm">
-                              <p className="font-semibold text-rose-800">{heading}</p>
-                              <p className="mt-1 text-rose-700">{err}</p>
-                              <p className="mt-2 text-rose-700">{description}</p>
-                              <ul className="mt-2 list-disc space-y-1 pl-5 text-rose-700">
-                                {showDpi && (
+                          const lower = err.toLowerCase();
+                          const isDpi = /\b(dpi|dots per inch)\b/i.test(err);
+                          const isDim = /\b(dimension|pixel|px|width|height|resize|too small|minimum|2360)\b/i.test(err);
+                          if (isDpi && isDim) {
+                            return (
+                              <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm">
+                                <p className="font-semibold text-rose-800">Image DPI and dimensions issue</p>
+                                <p className="mt-1 text-rose-700">{err}</p>
+                                <p className="mt-2 text-rose-700">Your image couldn't be uploaded because it doesn't meet our DPI and dimension requirements. Adjust it with the free tools below and try again:</p>
+                                <ul className="mt-2 list-disc space-y-1 pl-5 text-rose-700">
                                   <li>
-                                    <a
-                                      href="https://clideo.com/dpi-converter"
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      className="inline-flex items-center gap-1 font-medium hover:underline"
-                                    >
+                                    <a href="https://clideo.com/dpi-converter" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-medium hover:underline">
                                       <ExternalLink className="h-3 w-3" />
                                       Adjust image DPI
                                     </a>
                                   </li>
-                                )}
-                                {showDim && (
                                   <li>
-                                    <a
-                                      href="https://www.simpleimageresizer.com/"
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      className="inline-flex items-center gap-1 font-medium hover:underline"
-                                    >
+                                    <a href="https://www.simpleimageresizer.com/" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-medium hover:underline">
                                       <ExternalLink className="h-3 w-3" />
                                       Resize image dimensions
                                     </a>
                                   </li>
-                                )}
-                              </ul>
+                                </ul>
+                              </div>
+                            );
+                          }
+                          if (isDpi) {
+                            return (
+                              <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm">
+                                <p className="font-semibold text-rose-800">Image DPI issue</p>
+                                <p className="mt-1 text-rose-700">{err}</p>
+                                <p className="mt-2 text-rose-700">Your image couldn't be uploaded because its DPI is too low. Adjust it with the free tool below and try again:</p>
+                                <ul className="mt-2 list-disc space-y-1 pl-5 text-rose-700">
+                                  <li>
+                                    <a href="https://clideo.com/dpi-converter" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-medium hover:underline">
+                                      <ExternalLink className="h-3 w-3" />
+                                      Adjust image DPI
+                                    </a>
+                                  </li>
+                                </ul>
+                              </div>
+                            );
+                          }
+                          if (isDim) {
+                            return (
+                              <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm">
+                                <p className="font-semibold text-rose-800">Image dimensions issue</p>
+                                <p className="mt-1 text-rose-700">{err}</p>
+                                <p className="mt-2 text-rose-700">Your image couldn't be uploaded because its dimensions are too small. Adjust it with the free tool below and try again:</p>
+                                <ul className="mt-2 list-disc space-y-1 pl-5 text-rose-700">
+                                  <li>
+                                    <a href="https://www.simpleimageresizer.com/" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-medium hover:underline">
+                                      <ExternalLink className="h-3 w-3" />
+                                      Resize image dimensions
+                                    </a>
+                                  </li>
+                                </ul>
+                              </div>
+                            );
+                          }
+                          return (
+                            <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm">
+                              <p className="font-semibold text-rose-800">Upload failed</p>
+                              <p className="mt-1 text-rose-700">{err}</p>
                             </div>
                           );
                         })()}
