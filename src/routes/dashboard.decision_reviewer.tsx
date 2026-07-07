@@ -27,6 +27,7 @@ import {
   getStatusMeta,
 } from "@/lib/proposals";
 import { proposalApiFetch } from "@/lib/proposalApi";
+import { getMetadataQueries } from "@/lib/metadataApi";
 import { ChangePasswordButton } from "@/components/change-password-dialog";
 
 type PeerReviewer = {
@@ -313,6 +314,7 @@ function DecisionReviewerDashboard() {
   const [deletingTicket, setDeletingTicket] = useState<string | null>(null);
   const [deletedTickets, setDeletedTickets] = useState<Set<string>>(new Set());
   const [lockingTicket, setLockingTicket] = useState<string | null>(null);
+  const [openMetaQueryTickets, setOpenMetaQueryTickets] = useState<Set<string>>(new Set());
 
   const handleLock = async (ticket: string) => {
     if (!confirm(`Lock proposal ${ticket} and generate production files? This cannot be undone.`)) return;
@@ -712,6 +714,49 @@ function DecisionReviewerDashboard() {
     [apiProposals, assignedProposalIds, statusOverrides, deletedTickets],
   );
 
+  // Detect proposals with an unresolved author metadata query so we can badge
+  // their status pill with a red dot on the DR dashboard list.
+  useEffect(() => {
+    // Only relevant after the contract is signed / metadata is in play.
+    const relevant = apiProposals.filter((p) =>
+      ["signed", "contract", "author_approved"].includes(p.status as string),
+    );
+    if (relevant.length === 0) {
+      setOpenMetaQueryTickets((prev) => (prev.size === 0 ? prev : new Set()));
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const results = await Promise.all(
+        relevant.map(async (p) => {
+          try {
+            const body = await getMetadataQueries(p.id);
+            const queries = body.queries || [];
+            const respondedIds = new Set(
+              queries
+                .filter((q) => q.type === "response" && q.parent_query_id != null)
+                .map((q) => q.parent_query_id as number),
+            );
+            const hasOpen = queries.some(
+              (q) =>
+                q.type === "query" &&
+                (q.raised_by_role || "").toLowerCase() === "author" &&
+                !respondedIds.has(q.id),
+            );
+            return hasOpen ? p.id : null;
+          } catch {
+            return null;
+          }
+        }),
+      );
+      if (cancelled) return;
+      setOpenMetaQueryTickets(new Set(results.filter((x): x is string => !!x)));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [apiProposals]);
+
   const counts = useMemo(() => {
     // Counts come from the API's authoritative status_summary (keyed by
     // raw DB status); fall back to local row counts for any bucket the
@@ -1011,12 +1056,22 @@ function DecisionReviewerDashboard() {
                   </div>
                   <div>
                     <span
-                      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-sans text-xs font-medium ${meta.badgeClass}`}
+                      className={`relative inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-sans text-xs font-medium ${meta.badgeClass}`}
                     >
                       <span
                         className={`h-1.5 w-1.5 rounded-full ${meta.dot}`}
                       />
                       {p.displayStatus || meta.label}
+                      {openMetaQueryTickets.has(p.id) && (
+                        <span
+                          className="absolute -right-1 -top-1 flex h-2.5 w-2.5"
+                          title="Author raised a metadata query"
+                          aria-label="Author raised a metadata query"
+                        >
+                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+                          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
+                        </span>
+                      )}
                     </span>
                   </div>
                   <div className="flex items-center gap-4 justify-self-end">
