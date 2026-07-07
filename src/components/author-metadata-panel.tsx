@@ -1081,7 +1081,7 @@ export function AuthorMetadataPanel({
               </AlertDialogContent>
             </AlertDialog>
 
-            {isSent && !isApproved && (
+            {/* Queries — always mounted while metadata is loaded so the
                 author can see the publisher's responses to any raised
                 queries even after the metadata status transitions away
                 from `sent_to_author`. Hidden visually until the author
