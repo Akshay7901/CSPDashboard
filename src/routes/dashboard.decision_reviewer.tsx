@@ -1076,24 +1076,30 @@ function DecisionReviewerDashboard() {
                         className={`h-1.5 w-1.5 rounded-full ${meta.dot}`}
                       />
                       {p.displayStatus || meta.label}
-                      {openMetaQueryTickets.has(p.id) && (
+                      {(openMetaQueryTickets.has(p.id) || pendingMetaApprovalTickets.has(p.id)) && (
                         <span
                           className="absolute -right-1 -top-1 flex h-2.5 w-2.5"
-                          title="Author raised a metadata query"
-                          aria-label="Author raised a metadata query"
+                          title={
+                            openMetaQueryTickets.has(p.id)
+                              ? "Author raised a metadata query"
+                              : "Metadata sent to author — awaiting approval"
+                          }
+                          aria-label={
+                            openMetaQueryTickets.has(p.id)
+                              ? "Author raised a metadata query"
+                              : "Metadata sent to author — awaiting approval"
+                          }
                         >
-                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-                          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
-                        </span>
-                      )}
-                      {pendingMetaApprovalTickets.has(p.id) && (
-                        <span
-                          className="absolute -right-1 -bottom-1 flex h-2.5 w-2.5"
-                          title="Metadata sent to author — awaiting approval"
-                          aria-label="Metadata sent to author — awaiting approval"
-                        >
-                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
-                          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-amber-500 ring-2 ring-white" />
+                          <span
+                            className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${
+                              openMetaQueryTickets.has(p.id) ? "bg-red-400" : "bg-amber-400"
+                            }`}
+                          />
+                          <span
+                            className={`relative inline-flex h-2.5 w-2.5 rounded-full ring-2 ring-white ${
+                              openMetaQueryTickets.has(p.id) ? "bg-red-500" : "bg-amber-500"
+                            }`}
+                          />
                         </span>
                       )}
                     </span>
