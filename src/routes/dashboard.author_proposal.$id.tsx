@@ -766,7 +766,10 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
   const tint = STATUS_TINT[status];
   const isContractView =
     status === "contract" || status === "signed" || status === "approved";
-  const [showOriginal, setShowOriginal] = useState(false);
+  // Default to showing the full proposal details even in later states
+  // (contract / signed / approved) so authors can always see the underlying
+  // proposal information without having to expand it manually.
+  const [showOriginal, setShowOriginal] = useState(true);
   const [previewFile, setPreviewFile] = useState<ManuscriptFile | null>(null);
   const title = contractTitleOverride || cd.main_title || proposal.ticket;
   const subtitle = contractSubtitleOverride || cd.sub_title;
@@ -996,7 +999,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
             className="flex w-full items-center justify-between gap-3 bg-white px-5 py-3.5 font-sans text-sm font-semibold text-[#7A6A5A] transition-colors hover:bg-stone-50 cursor-pointer"
             aria-expanded={showOriginal}
           >
-            View original proposal details
+            {showOriginal ? "Hide original proposal details" : "View original proposal details"}
             <ChevronDown className={`h-4 w-4 text-[#7A6A5A] transition-transform ${showOriginal ? "rotate-180" : ""}`} />
           </button>
         </div>
