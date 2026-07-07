@@ -27,7 +27,7 @@ import {
   getStatusMeta,
 } from "@/lib/proposals";
 import { proposalApiFetch } from "@/lib/proposalApi";
-import { getMetadataQueries } from "@/lib/metadataApi";
+import { getMetadata, getMetadataQueries } from "@/lib/metadataApi";
 import { ChangePasswordButton } from "@/components/change-password-dialog";
 
 type PeerReviewer = {
@@ -315,6 +315,7 @@ function DecisionReviewerDashboard() {
   const [deletedTickets, setDeletedTickets] = useState<Set<string>>(new Set());
   const [lockingTicket, setLockingTicket] = useState<string | null>(null);
   const [openMetaQueryTickets, setOpenMetaQueryTickets] = useState<Set<string>>(new Set());
+  const [pendingMetaApprovalTickets, setPendingMetaApprovalTickets] = useState<Set<string>>(new Set());
 
   const handleLock = async (ticket: string) => {
     if (!confirm(`Lock proposal ${ticket} and generate production files? This cannot be undone.`)) return;
@@ -714,8 +715,9 @@ function DecisionReviewerDashboard() {
     [apiProposals, assignedProposalIds, statusOverrides, deletedTickets],
   );
 
-  // Detect proposals with an unresolved author metadata query so we can badge
-  // their status pill with a red dot on the DR dashboard list.
+  // Detect proposals with an unresolved author metadata query OR metadata
+  // that has been sent to the author and is awaiting approval, so we can
+  // badge their status pill on the DR dashboard list.
   useEffect(() => {
     // Only relevant after the contract is signed / metadata is in play.
     const relevant = apiProposals.filter((p) =>
@@ -723,6 +725,7 @@ function DecisionReviewerDashboard() {
     );
     if (relevant.length === 0) {
       setOpenMetaQueryTickets((prev) => (prev.size === 0 ? prev : new Set()));
+      setPendingMetaApprovalTickets((prev) => (prev.size === 0 ? prev : new Set()));
       return;
     }
     let cancelled = false;
@@ -730,8 +733,11 @@ function DecisionReviewerDashboard() {
       const results = await Promise.all(
         relevant.map(async (p) => {
           try {
-            const body = await getMetadataQueries(p.id);
-            const queries = body.queries || [];
+            const [queriesBody, metaRes] = await Promise.all([
+              getMetadataQueries(p.id),
+              getMetadata(p.id),
+            ]);
+            const queries = queriesBody.queries || [];
             const respondedIds = new Set(
               queries
                 .filter((q) => q.type === "response" && q.parent_query_id != null)
@@ -743,14 +749,22 @@ function DecisionReviewerDashboard() {
                 (q.raised_by_role || "").toLowerCase() === "author" &&
                 !respondedIds.has(q.id),
             );
-            return hasOpen ? p.id : null;
+            const meta = metaRes.data;
+            const isPendingApproval =
+              meta?.metadata_status === "sent_to_author" && !meta.approved_at;
+            return { id: p.id, hasOpen, isPendingApproval };
           } catch {
-            return null;
+            return { id: p.id, hasOpen: false, isPendingApproval: false };
           }
         }),
       );
       if (cancelled) return;
-      setOpenMetaQueryTickets(new Set(results.filter((x): x is string => !!x)));
+      setOpenMetaQueryTickets(
+        new Set(results.filter((r) => r.hasOpen).map((r) => r.id)),
+      );
+      setPendingMetaApprovalTickets(
+        new Set(results.filter((r) => r.isPendingApproval).map((r) => r.id)),
+      );
     })();
     return () => {
       cancelled = true;
@@ -1070,6 +1084,16 @@ function DecisionReviewerDashboard() {
                         >
                           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
                           <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
+                        </span>
+                      )}
+                      {pendingMetaApprovalTickets.has(p.id) && (
+                        <span
+                          className="absolute -right-1 -bottom-1 flex h-2.5 w-2.5"
+                          title="Metadata sent to author — awaiting approval"
+                          aria-label="Metadata sent to author — awaiting approval"
+                        >
+                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
+                          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-amber-500 ring-2 ring-white" />
                         </span>
                       )}
                     </span>
