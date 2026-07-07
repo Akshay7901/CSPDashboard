@@ -4523,7 +4523,7 @@ function ProposalDetailPage() {
                 href={previewDoc.url}
                 download={previewDoc.filename}
                 title="Download file"
-                className="ml-4 flex items-center gap-1.5 rounded-md bg-stone-900 px-3 py-1.5 font-sans text-xs font-semibold text-white hover:bg-stone-800"
+                className="ml-4 mr-4 flex items-center gap-1.5 rounded-md bg-stone-900 px-3 py-1.5 font-sans text-xs font-semibold text-white hover:bg-stone-800"
               >
                 <Download className="h-3.5 w-3.5" />
                 Download
