@@ -1055,7 +1055,11 @@ export function AuthorMetadataPanel({
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel onClick={() => setShowFinalizeConfirm(false)} disabled={approving}>
+                  <AlertDialogCancel
+                    onClick={() => setShowFinalizeConfirm(false)}
+                    disabled={approving}
+                    className="bg-white text-stone-900 hover:bg-stone-50 hover:text-stone-900 border-stone-300"
+                  >
                     Go back
                   </AlertDialogCancel>
                   <button
