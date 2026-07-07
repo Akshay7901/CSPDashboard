@@ -541,6 +541,16 @@ function ReviewerSubmission() {
               <p className="mb-4 font-sans text-xs font-semibold uppercase tracking-wide text-[#7A6A5A]">
                 Review Assessment
               </p>
+              {noteToReviewer && (
+                <div className="mb-5">
+                  <label className="block mb-1.5 font-sans text-xs font-semibold uppercase tracking-wide text-[#7A6A5A]">
+                    Note to Reviewer
+                  </label>
+                  <div className="w-full whitespace-pre-wrap rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-sans text-xs text-slate-700">
+                    {noteToReviewer}
+                  </div>
+                </div>
+              )}
               <div className="space-y-5">
                 {(
                   [
