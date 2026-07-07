@@ -27,7 +27,7 @@ import {
   getStatusMeta,
 } from "@/lib/proposals";
 import { proposalApiFetch } from "@/lib/proposalApi";
-import { getMetadataQueries } from "@/lib/metadataApi";
+import { getMetadata, getMetadataQueries } from "@/lib/metadataApi";
 import { ChangePasswordButton } from "@/components/change-password-dialog";
 
 type PeerReviewer = {
