@@ -670,12 +670,22 @@ export function AuthorMetadataPanel({
 
                         {coverError && (() => {
                           const err = coverError;
-                          // Strip informational phrases that mention DPI/dimensions but aren't the actual failure
-                          const cleaned = err
-                            .replace(/dpi is also verified[^.]*\.?/gi, "")
-                            .replace(/dimensions? (are|is) also verified[^.]*\.?/gi, "");
-                          const isDpi = /\b(dpi|dots per inch)\b/i.test(cleaned);
-                          const isDim = /\b(dimension|resize|too small|minimum|2360|\d+\s*[x×]\s*\d+)\b/i.test(cleaned);
+                          // Split into sentences and classify each as a real failure clause or informational noise.
+                          // A sentence only counts as a DPI/dim failure when it actually asserts one — not when it
+                          // merely mentions the concept (e.g. "DPI is also verified server-side").
+                          const sentences = err.split(/(?<=[.!?])\s+|\n+/).map((s) => s.trim()).filter(Boolean);
+                          const dimFail = (s: string) =>
+                            /(at least|minimum|must be|required to be)[^.]*\d+\s*[x×]\s*\d+/i.test(s) ||
+                            /\d+\s*[x×]\s*\d+[^.]*(too small|below|less than|smaller)/i.test(s) ||
+                            /\bdimensions?\b[^.]*(too small|below|insufficient|do(es)? not meet|invalid|smaller)/i.test(s) ||
+                            /\b(width|height)\b[^.]*(too small|below|less than|insufficient)/i.test(s) ||
+                            /(resize|upscale)[^.]*(image|cover)/i.test(s);
+                          const dpiFail = (s: string) =>
+                            /\b(dpi|dots per inch)\b[^.]*(too low|below|less than|insufficient|do(es)? not meet|required|must be|at least|invalid|only)/i.test(s) ||
+                            /(too low|below|less than|only|insufficient)[^.]*\b(dpi|dots per inch)\b/i.test(s) ||
+                            /\b(low|insufficient)\s+(dpi|resolution)\b/i.test(s);
+                          const isDpi = sentences.some(dpiFail);
+                          const isDim = sentences.some(dimFail);
                           if (isDpi && isDim) {
                             return (
                               <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm">
