@@ -499,16 +499,39 @@ function ReviewerSubmission() {
                   </div>
                 </div>
               )}
-              {recommendation && (
-                <div className="mb-5 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3">
-                  <p className="font-sans text-[10px] font-semibold uppercase tracking-wider text-sky-700">
-                    Recommendation
-                  </p>
-                  <p className="mt-1 font-serif text-sm font-semibold text-sky-900">
-                    {recommendation}
-                  </p>
+              {/* Review Returned hero — matches Decision Reviewer UX */}
+              <div className="mb-5 overflow-hidden rounded-2xl border border-stone-200 bg-white">
+                <div className="flex flex-wrap items-center justify-between gap-4 border-b border-indigo-200 bg-indigo-50 px-5 py-3.5">
+                  <div className="min-w-0">
+                    <h2 className="font-serif text-base font-bold text-indigo-900">
+                      Review Returned
+                    </h2>
+                    <p className="mt-0.5 font-sans text-xs text-indigo-600">
+                      <span>{displayedReviewerName}</span>
+                      {proposal.cd.institution && (
+                        <span> · {proposal.cd.institution}</span>
+                      )}
+                    </p>
+                  </div>
+                  {recommendation && (
+                    <span className="inline-flex items-center rounded-full border border-amber-300 bg-amber-100 px-3 py-1 font-sans text-xs font-semibold text-amber-800">
+                      Recommended:{" "}
+                      {RECOMMENDATIONS.find((r) => r.key === recommendation)?.label ||
+                        recommendation}
+                    </span>
+                  )}
                 </div>
-              )}
+                {form.note_to_dr?.trim() && (
+                  <div className="px-7 py-6">
+                    <p className="font-sans text-[10px] font-semibold uppercase tracking-wider text-[#7A6A5A]">
+                      Reviewer Summary
+                    </p>
+                    <p className="mt-3 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
+                      {form.note_to_dr}
+                    </p>
+                  </div>
+                )}
+              </div>
               <div className="space-y-4">
                 {(
                   [
@@ -521,7 +544,6 @@ function ReviewerSubmission() {
                     { key: "clarity_quality", label: "Clarity & Quality" },
                     { key: "other_comments", label: "Other Comments" },
                     { key: "red_flags", label: "Red Flags" },
-                    { key: "note_to_dr", label: "Note to Decision Reviewer" },
                   ] as Array<{ key: keyof ReviewForm; label: string }>
                 ).map((f) => (
                   <div key={f.key}>
