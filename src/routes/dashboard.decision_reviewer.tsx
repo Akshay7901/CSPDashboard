@@ -714,6 +714,49 @@ function DecisionReviewerDashboard() {
     [apiProposals, assignedProposalIds, statusOverrides, deletedTickets],
   );
 
+  // Detect proposals with an unresolved author metadata query so we can badge
+  // their status pill with a red dot on the DR dashboard list.
+  useEffect(() => {
+    // Only relevant after the contract is signed / metadata is in play.
+    const relevant = apiProposals.filter((p) =>
+      ["signed", "contract", "author_approved"].includes(p.status as string),
+    );
+    if (relevant.length === 0) {
+      setOpenMetaQueryTickets((prev) => (prev.size === 0 ? prev : new Set()));
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const results = await Promise.all(
+        relevant.map(async (p) => {
+          try {
+            const body = await getMetadataQueries(p.id);
+            const queries = body.queries || [];
+            const respondedIds = new Set(
+              queries
+                .filter((q) => q.type === "response" && q.parent_query_id != null)
+                .map((q) => q.parent_query_id as number),
+            );
+            const hasOpen = queries.some(
+              (q) =>
+                q.type === "query" &&
+                (q.raised_by_role || "").toLowerCase() === "author" &&
+                !respondedIds.has(q.id),
+            );
+            return hasOpen ? p.id : null;
+          } catch {
+            return null;
+          }
+        }),
+      );
+      if (cancelled) return;
+      setOpenMetaQueryTickets(new Set(results.filter((x): x is string => !!x)));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [apiProposals]);
+
   const counts = useMemo(() => {
     // Counts come from the API's authoritative status_summary (keyed by
     // raw DB status); fall back to local row counts for any bucket the
