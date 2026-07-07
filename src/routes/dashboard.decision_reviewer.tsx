@@ -27,6 +27,7 @@ import {
   getStatusMeta,
 } from "@/lib/proposals";
 import { proposalApiFetch } from "@/lib/proposalApi";
+import { getMetadataQueries } from "@/lib/metadataApi";
 import { ChangePasswordButton } from "@/components/change-password-dialog";
 
 type PeerReviewer = {
@@ -313,6 +314,7 @@ function DecisionReviewerDashboard() {
   const [deletingTicket, setDeletingTicket] = useState<string | null>(null);
   const [deletedTickets, setDeletedTickets] = useState<Set<string>>(new Set());
   const [lockingTicket, setLockingTicket] = useState<string | null>(null);
+  const [openMetaQueryTickets, setOpenMetaQueryTickets] = useState<Set<string>>(new Set());
 
   const handleLock = async (ticket: string) => {
     if (!confirm(`Lock proposal ${ticket} and generate production files? This cannot be undone.`)) return;
