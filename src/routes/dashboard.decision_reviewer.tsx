@@ -315,6 +315,7 @@ function DecisionReviewerDashboard() {
   const [deletedTickets, setDeletedTickets] = useState<Set<string>>(new Set());
   const [lockingTicket, setLockingTicket] = useState<string | null>(null);
   const [openMetaQueryTickets, setOpenMetaQueryTickets] = useState<Set<string>>(new Set());
+  const [pendingMetaApprovalTickets, setPendingMetaApprovalTickets] = useState<Set<string>>(new Set());
 
   const handleLock = async (ticket: string) => {
     if (!confirm(`Lock proposal ${ticket} and generate production files? This cannot be undone.`)) return;
