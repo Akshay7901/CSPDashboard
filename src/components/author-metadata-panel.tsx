@@ -372,10 +372,22 @@ export function AuthorMetadataPanel({
   void notVisible;
 
   const onApprove = async () => {
+    // If no cover image and we haven't warned about it yet, show the no-cover
+    // panel. This is reached after the author confirms finalisation in the
+    // dialog.
     if (!metadata?.cover_image && !showNoCoverConfirm) {
       setShowNoCoverConfirm(true);
+      setShowFinalizeConfirm(false);
       return;
     }
+
+    // Show the finalisation confirmation dialog first. If the user already
+    // confirmed (dialog still open) or is already on the no-cover path, skip.
+    if (!showNoCoverConfirm && !showFinalizeConfirm) {
+      setShowFinalizeConfirm(true);
+      return;
+    }
+
     setApproving(true);
     setApproveError(null);
     setApproveSuccess(null);
@@ -384,6 +396,7 @@ export function AuthorMetadataPanel({
       setApproveSuccess("Metadata approved. Thank you!");
       toast.success("Metadata submitted successfully");
       setShowNoCoverConfirm(false);
+      setShowFinalizeConfirm(false);
       await reload();
     } catch (e) {
       setApproveError((e as Error).message);
