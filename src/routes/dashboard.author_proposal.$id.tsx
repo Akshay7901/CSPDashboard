@@ -315,7 +315,7 @@ const STATUS_TINT: Record<StatusKey, { bg: string; text: string; dot: string }> 
   in_review: { bg: "bg-sky-50", text: "text-sky-700", dot: "bg-sky-500" },
   review_returned: { bg: "bg-indigo-50", text: "text-indigo-700", dot: "bg-indigo-500" },
   major_revisions: { bg: "bg-rose-50", text: "text-rose-700", dot: "bg-rose-500" },
-  question: { bg: "bg-teal-50", text: "text-teal-700", dot: "bg-teal-500" },
+  question: { bg: "bg-teal-50", text: "text-teal-700", dot: "bg-red-500" },
   contract: { bg: "bg-violet-50", text: "text-violet-700", dot: "bg-violet-500" },
   signed: { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },
   approved: { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },

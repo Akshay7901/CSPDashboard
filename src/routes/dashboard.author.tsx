@@ -408,7 +408,7 @@ function configFor(p: LocalProposal): CardConfig {
     case "question":
       return {
         bannerLabel: "Question Raised",
-        bannerDot: "bg-teal-500",
+        bannerDot: "bg-red-500",
         bannerTint: "bg-teal-50",
         bannerText: "text-teal-700",
         tag: "ACTION REQUIRED",
