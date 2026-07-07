@@ -686,11 +686,23 @@ export function AuthorMetadataPanel({
                             /\b(low|insufficient)\s+(dpi|resolution)\b/i.test(s);
                           const isDpi = sentences.some(dpiFail);
                           const isDim = sentences.some(dimFail);
+                          const displayErr = (() => {
+                            if (isDpi && isDim) {
+                              return sentences.filter((s) => dpiFail(s) || dimFail(s)).join(" ") || err;
+                            }
+                            if (isDpi) {
+                              return sentences.filter(dpiFail).join(" ") || err;
+                            }
+                            if (isDim) {
+                              return sentences.filter(dimFail).join(" ") || err;
+                            }
+                            return err;
+                          })();
                           if (isDpi && isDim) {
                             return (
                               <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm">
                                 <p className="font-semibold text-rose-800">Image DPI and dimensions issue</p>
-                                <p className="mt-1 text-rose-700">{err}</p>
+                                <p className="mt-1 text-rose-700">{displayErr}</p>
                                 <p className="mt-2 text-rose-700">Your image couldn't be uploaded because it doesn't meet our DPI and dimension requirements. Adjust it with the free tools below and try again:</p>
                                 <ul className="mt-2 list-disc space-y-1 pl-5 text-rose-700">
                                   <li>
@@ -713,7 +725,7 @@ export function AuthorMetadataPanel({
                             return (
                               <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm">
                                 <p className="font-semibold text-rose-800">Image DPI issue</p>
-                                <p className="mt-1 text-rose-700">{err}</p>
+                                <p className="mt-1 text-rose-700">{displayErr}</p>
                                 <p className="mt-2 text-rose-700">Your image couldn't be uploaded because its DPI is too low. Adjust it with the free tool below and try again:</p>
                                 <ul className="mt-2 list-disc space-y-1 pl-5 text-rose-700">
                                   <li>
@@ -730,7 +742,7 @@ export function AuthorMetadataPanel({
                             return (
                               <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm">
                                 <p className="font-semibold text-rose-800">Image dimensions issue</p>
-                                <p className="mt-1 text-rose-700">{err}</p>
+                                <p className="mt-1 text-rose-700">{displayErr}</p>
                                 <p className="mt-2 text-rose-700">Your image couldn't be uploaded because its dimensions are too small. Adjust it with the free tool below and try again:</p>
                                 <ul className="mt-2 list-disc space-y-1 pl-5 text-rose-700">
                                   <li>
