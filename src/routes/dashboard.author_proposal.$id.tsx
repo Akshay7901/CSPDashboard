@@ -2183,7 +2183,7 @@ function ContractIssuedView({
                 type="button"
                 onClick={handleDownload}
                 disabled={downloading}
-                className="ml-auto hidden shrink-0 items-center gap-1.5 rounded-lg border border-emerald-300 bg-white px-3 py-1.5 font-sans text-xs font-semibold text-emerald-700 hover:bg-emerald-50 disabled:opacity-60 sm:inline-flex"
+                className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-emerald-300 bg-white px-3 py-1.5 font-sans text-xs font-semibold text-emerald-700 hover:bg-emerald-50 disabled:opacity-60"
               >
                 <Download className="h-3.5 w-3.5" />
                 {downloading ? "Preparing…" : "Download"}
