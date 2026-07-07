@@ -2159,16 +2159,6 @@ function ContractIssuedView({
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setPdfOpen(true)}
-          className={`mx-auto mt-4 block font-sans text-sm font-medium hover:underline ${
-            isSigned ? "text-emerald-700" : "text-violet-700"
-          }`}
-        >
-          Download full contract for complete terms and conditions
-        </button>
-
         {/* Signed confirmation callout */}
         {isSigned && (
           <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50/80 px-5 py-4 md:px-6 md:py-5">
