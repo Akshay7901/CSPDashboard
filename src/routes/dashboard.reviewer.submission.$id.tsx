@@ -942,11 +942,6 @@ function ProposalDetails({
               {proposal.status}
             </span>
           )}
-          {proposal.internalStatus && (
-            <span className="inline-flex items-center rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-medium text-sky-800">
-              {proposal.internalStatus}
-            </span>
-          )}
         </div>
         <h2 className="mt-2 font-serif text-xl font-bold leading-tight text-[#2C1A0E]">
           {cd.main_title || proposal.ticket}
