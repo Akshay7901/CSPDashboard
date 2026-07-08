@@ -552,10 +552,10 @@ function StatCard({
 }: {
   label: string;
   value: number;
-  tone: "sky" | "amber" | "green";
+  tone: "sky" | "amber" | "green" | "indigo";
 }) {
   const tones: Record<
-    "sky" | "amber" | "green",
+    "sky" | "amber" | "green" | "indigo",
     { wrap: string; value: string; label: string }
   > = {
     sky: {
@@ -572,6 +572,11 @@ function StatCard({
       wrap: "bg-emerald-50 border border-emerald-200",
       value: "text-emerald-700",
       label: "text-emerald-700",
+    },
+    indigo: {
+      wrap: "bg-indigo-50 border border-indigo-200",
+      value: "text-indigo-700",
+      label: "text-indigo-700",
     },
   };
   const t = tones[tone];
@@ -593,7 +598,7 @@ function ReviewCard({
 }: {
   item: ReviewItem;
   ctaLabel: string;
-  ctaTone: "sky" | "muted";
+  ctaTone: "sky" | "muted" | "indigo";
   onCta?: () => void;
 }) {
   const subjectClass =
@@ -603,7 +608,9 @@ function ReviewCard({
   const ctaClass =
     ctaTone === "sky"
       ? "bg-sky-600 text-white hover:bg-sky-700"
-      : "bg-white text-stone-700 ring-1 ring-stone-300 hover:bg-stone-50";
+      : ctaTone === "indigo"
+        ? "bg-indigo-600 text-white hover:bg-indigo-700"
+        : "bg-white text-stone-700 ring-1 ring-stone-300 hover:bg-stone-50";
 
   return (
     <li className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
