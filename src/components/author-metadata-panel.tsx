@@ -138,6 +138,7 @@ export function AuthorMetadataPanel({
   const [attributionSaved, setAttributionSaved] = useState(false);
   const [attributionError, setAttributionError] = useState<string | null>(null);
   const [showQueries, setShowQueries] = useState(false);
+  const [hasOpenQuery, setHasOpenQuery] = useState(false);
   const [flashApprove, setFlashApprove] = useState(false);
   const [showFinalizeConfirm, setShowFinalizeConfirm] = useState(false);
   const approveBtnRef = useRef<HTMLButtonElement | null>(null);
