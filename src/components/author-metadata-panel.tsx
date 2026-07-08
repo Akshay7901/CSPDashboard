@@ -1046,15 +1046,9 @@ export function AuthorMetadataPanel({
                       <p>
                         The details shown will be used exactly as they appear below. If any information is incorrect or requires updating, please make your amendments directly in the relevant fields before clicking <strong>Finalise metadata</strong>. Do not add notes or comments within the fields themselves.
                       </p>
-                      {coverImg ? (
-                        <p>
-                          As you have provided a cover image, we will prepare your cover using this content. Images must be cleared of all copyrights and permissions and you must provide full information on source and ownership.
-                        </p>
-                      ) : (
-                        <p>
-                          As you have not provided a cover image, we will prepare a cover in line with our house style. The cover will be a neutral/abstract design, with the title and author/editor name clearly displayed. Once complete, it will not be able to be amended.
-                        </p>
-                      )}
+                      <p>
+                        As you have provided a cover image, we will prepare your cover using this content. Images must be cleared of all copyrights and permissions and you must provide full information on source and ownership.
+                      </p>
                     </div>
                   </AlertDialogDescription>
                 </AlertDialogHeader>
