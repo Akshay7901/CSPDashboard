@@ -136,6 +136,7 @@ export function AuthorMetadataPanel({
   const attributionInitialisedRef = useRef(false);
   const [attributionSaving, setAttributionSaving] = useState(false);
   const [attributionSaved, setAttributionSaved] = useState(false);
+  const [attributionError, setAttributionError] = useState<string | null>(null);
   const [showQueries, setShowQueries] = useState(false);
   const [hasOpenQuery, setHasOpenQuery] = useState(false);
   const [flashApprove, setFlashApprove] = useState(false);
