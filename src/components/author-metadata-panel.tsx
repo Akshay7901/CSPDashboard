@@ -1115,7 +1115,7 @@ export function AuthorMetadataPanel({
                   <button
                     type="button"
                     onClick={onApprove}
-                    disabled={approving || hasOpenQuery || !coverImg || !isAttributionComplete}
+                    disabled={approving || hasOpenQuery || (!!coverImg && !isAttributionComplete)}
                     className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {approving ? (
