@@ -872,7 +872,8 @@ export function AuthorMetadataPanel({
                                   value={attributionDetail}
                                   onChange={(e) => setAttributionDetail(e.target.value)}
                                   maxLength={500}
-                                  placeholder="© Your name, year"
+                                  required
+                                  placeholder="© Your name, year *"
                                   className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
                                 />
                               )}
