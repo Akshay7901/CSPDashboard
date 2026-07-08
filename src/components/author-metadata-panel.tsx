@@ -382,8 +382,15 @@ export function AuthorMetadataPanel({
 
   const onApprove = async () => {
     setAttributionError(null);
+    // Cover image is mandatory; block finalisation if none is uploaded.
+    if (!coverImg) {
+      setCoverError("Please upload a cover image before finalising.");
+      const coverEl = document.getElementById("cover-image-section");
+      coverEl?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     // If a cover image exists, attribution details must be completed first.
-    if (coverImg && !isAttributionComplete) {
+    if (!isAttributionComplete) {
       setShowFinalizeConfirm(false);
       setAttributionError("Please complete the Image Permissions & Attribution section before finalising.");
       // Scroll the attribution section into view so the author can see the missing field.
@@ -393,18 +400,9 @@ export function AuthorMetadataPanel({
     }
 
     // Show the finalisation confirmation first. If the user already confirmed
-    // (dialog still open) or is already on the no-cover path, skip.
-    if (!showNoCoverConfirm && !showFinalizeConfirm) {
+    // (dialog still open), skip.
+    if (!showFinalizeConfirm) {
       setShowFinalizeConfirm(true);
-      return;
-    }
-
-    // If no cover image and we haven't warned about it yet, show the no-cover
-    // panel. This is reached after the author confirms finalisation in the
-    // dialog.
-    if (!metadata?.cover_image && !showNoCoverConfirm) {
-      setShowNoCoverConfirm(true);
-      setShowFinalizeConfirm(false);
       return;
     }
 
