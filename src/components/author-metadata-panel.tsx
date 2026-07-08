@@ -1042,11 +1042,11 @@ export function AuthorMetadataPanel({
                         type="button"
                         ref={approveBtnRef}
                         onClick={onApprove}
-                        disabled={approving || hasOpenQuery || (coverImg && !isAttributionComplete)}
+                        disabled={approving || hasOpenQuery || (!!coverImg && !isAttributionComplete)}
                         title={
                           hasOpenQuery
                             ? "Resolve the open metadata query before submitting."
-                            : coverImg && !isAttributionComplete
+                            : !!coverImg && !isAttributionComplete
                               ? "Complete the Image Permissions & Attribution section before submitting."
                               : undefined
                         }
