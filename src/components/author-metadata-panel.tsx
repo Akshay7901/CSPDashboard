@@ -374,6 +374,16 @@ export function AuthorMetadataPanel({
   void notVisible;
 
   const onApprove = async () => {
+    setAttributionError(null);
+    // If a cover image exists, attribution details must be completed first.
+    if (coverImg && !isAttributionComplete) {
+      setAttributionError("Please complete the Image Permissions & Attribution section before finalising.");
+      // Scroll the attribution section into view so the author can see the missing field.
+      const attributionEl = document.getElementById("cover-attribution-section");
+      attributionEl?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+
     // Show the finalisation confirmation first. If the user already confirmed
     // (dialog still open) or is already on the no-cover path, skip.
     if (!showNoCoverConfirm && !showFinalizeConfirm) {
