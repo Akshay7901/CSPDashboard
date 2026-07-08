@@ -19,7 +19,7 @@ export const Route = createFileRoute("/dashboard/reviewer")({
   component: ReviewerDashboard,
 });
 
-type ReviewStatus = "pending" | "completed";
+type ReviewStatus = "pending" | "in_progress" | "completed";
 
 interface ReviewItem {
   id: string;
@@ -182,8 +182,9 @@ function ReviewerDashboard() {
           }),
         );
 
-        // Check per-reviewer review submission status
+        // Check per-reviewer review status: submitted, draft (in progress), or none.
         const submittedMap = new Map<string, boolean>();
+        const draftMap = new Map<string, boolean>();
         await Promise.all(
           details.map(async (d) => {
             try {
@@ -192,11 +193,25 @@ function ReviewerDashboard() {
                 { headers },
               );
               if (!r.ok) return;
-              const body = (await r.json()) as { reviews?: Array<{ reviewer_email?: string; is_submitted?: boolean }> };
-              const mineReview = (body.reviews || []).find(
-                (rv) => rv.reviewer_email?.toLowerCase() === email.toLowerCase(),
-              );
-              if (mineReview?.is_submitted) submittedMap.set(d.ticket_number, true);
+              const body = (await r.json()) as {
+                reviews?: Array<{
+                  reviewer_email?: string;
+                  reviewer_role?: string;
+                  is_submitted?: boolean;
+                }>;
+              };
+              const reviews = body.reviews || [];
+              const mineReview =
+                reviews.find(
+                  (rv) => rv.reviewer_email?.toLowerCase() === email.toLowerCase(),
+                ) ||
+                reviews.find((rv) => rv.reviewer_role === "peer_reviewer");
+              if (!mineReview) return;
+              if (mineReview.is_submitted) {
+                submittedMap.set(d.ticket_number, true);
+              } else {
+                draftMap.set(d.ticket_number, true);
+              }
             } catch {
               // ignore
             }
@@ -210,11 +225,15 @@ function ReviewerDashboard() {
             assigns.find(
               (a) => a.reviewer_email?.toLowerCase() === email.toLowerCase(),
             ) || assigns[0];
-          const status: ReviewStatus = submittedMap.get(d.ticket_number) || isCompletedStatus(
-            myAssign?.peer_reviewer_status || myAssign?.display_status,
-          ) || isCompletedStatus(d.status || d.internal_status)
+          const isCompleted =
+            submittedMap.get(d.ticket_number) ||
+            isCompletedStatus(myAssign?.peer_reviewer_status || myAssign?.display_status) ||
+            isCompletedStatus(d.status || d.internal_status);
+          const status: ReviewStatus = isCompleted
             ? "completed"
-            : "pending";
+            : draftMap.get(d.ticket_number)
+              ? "in_progress"
+              : "pending";
           const wc = cd.word_count || cd.estimated_word_count || "";
           const cdAny = cd as Record<string, string | undefined>;
           const firstLast = [cdAny.author_first_name, cdAny.author_last_name]
@@ -359,9 +378,11 @@ function ReviewerDashboard() {
   const allReviews = [...assigned, ...REVIEWS];
   const assignedCount = allReviews.length;
   const pending = allReviews.filter((r) => r.status === "pending").length;
+  const inProgress = allReviews.filter((r) => r.status === "in_progress").length;
   const completed = allReviews.filter((r) => r.status === "completed").length;
 
   const pendingItems = allReviews.filter((r) => r.status === "pending");
+  const inProgressItems = allReviews.filter((r) => r.status === "in_progress");
   const completedItems = allReviews.filter((r) => r.status === "completed");
 
   if (isSubmissionDetail) {
@@ -422,9 +443,10 @@ function ReviewerDashboard() {
         )}
 
         {/* Stat cards */}
-        <div className="mb-10 grid grid-cols-1 gap-5 sm:grid-cols-3">
+        <div className="mb-10 grid grid-cols-2 gap-5 sm:grid-cols-4">
           <StatCard label="Assigned" value={assignedCount} tone="sky" />
           <StatCard label="Pending" value={pending} tone="amber" />
+          <StatCard label="In Progress" value={inProgress} tone="indigo" />
           <StatCard label="Completed" value={completed} tone="green" />
         </div>
 
@@ -454,6 +476,37 @@ function ReviewerDashboard() {
                   })
                 }
               />
+              ))}
+            </ul>
+          )}
+        </section>
+
+        {/* In Progress */}
+        <section className="mb-10">
+          <h2 className="mb-4 flex items-center gap-2 font-serif text-lg font-bold text-[#2C1A0E]">
+            <span className="h-2.5 w-2.5 rounded-full bg-indigo-500" />
+            In Progress
+          </h2>
+
+          {loading ? (
+            <EmptyState text="Loading your assignments…" />
+          ) : inProgressItems.length === 0 ? (
+            <EmptyState text="No reviews in progress." />
+          ) : (
+            <ul className="space-y-4">
+              {inProgressItems.map((r) => (
+                <ReviewCard
+                  key={r.id}
+                  item={r}
+                  ctaLabel="Continue Review"
+                  ctaTone="indigo"
+                  onCta={() =>
+                    navigate({
+                      to: "/dashboard/reviewer/submission/$id",
+                      params: { id: r.proposalId || r.id },
+                    })
+                  }
+                />
               ))}
             </ul>
           )}
@@ -499,10 +552,10 @@ function StatCard({
 }: {
   label: string;
   value: number;
-  tone: "sky" | "amber" | "green";
+  tone: "sky" | "amber" | "green" | "indigo";
 }) {
   const tones: Record<
-    "sky" | "amber" | "green",
+    "sky" | "amber" | "green" | "indigo",
     { wrap: string; value: string; label: string }
   > = {
     sky: {
@@ -519,6 +572,11 @@ function StatCard({
       wrap: "bg-emerald-50 border border-emerald-200",
       value: "text-emerald-700",
       label: "text-emerald-700",
+    },
+    indigo: {
+      wrap: "bg-indigo-50 border border-indigo-200",
+      value: "text-indigo-700",
+      label: "text-indigo-700",
     },
   };
   const t = tones[tone];
@@ -540,7 +598,7 @@ function ReviewCard({
 }: {
   item: ReviewItem;
   ctaLabel: string;
-  ctaTone: "sky" | "muted";
+  ctaTone: "sky" | "muted" | "indigo";
   onCta?: () => void;
 }) {
   const subjectClass =
@@ -550,7 +608,9 @@ function ReviewCard({
   const ctaClass =
     ctaTone === "sky"
       ? "bg-sky-600 text-white hover:bg-sky-700"
-      : "bg-white text-stone-700 ring-1 ring-stone-300 hover:bg-stone-50";
+      : ctaTone === "indigo"
+        ? "bg-indigo-600 text-white hover:bg-indigo-700"
+        : "bg-white text-stone-700 ring-1 ring-stone-300 hover:bg-stone-50";
 
   return (
     <li className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
