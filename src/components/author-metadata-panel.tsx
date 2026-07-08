@@ -344,6 +344,8 @@ export function AuthorMetadataPanel({
   const canDeleteCover = isAdmin();
   const coverImg: CoverImage | null | undefined = metadata?.cover_image;
   const coverDisplayUrl = coverImg?.url || coverImg?.s3_url;
+  const isAttributionComplete =
+    !coverImg || (attributionType !== "" && attributionDetail.trim().length > 0);
 
   const md = metadata?.metadata || {};
   const authors = md.authors || [];
