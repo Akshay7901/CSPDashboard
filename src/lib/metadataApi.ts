@@ -193,7 +193,7 @@ export async function validateCoverImageFile(file: File): Promise<CoverImageVali
   if (dims.width < COVER_MIN_DIM || dims.height < COVER_MIN_DIM) {
     return {
       ok: false,
-      error: `Image must be at least ${COVER_MIN_DIM}×${COVER_MIN_DIM} px (got ${dims.width}×${dims.height}). DPI is also verified server-side.`,
+      error: `Image must be at least ${COVER_MIN_DIM}×${COVER_MIN_DIM} px (got ${dims.width}×${dims.height}). DPI and pixel dimensions are checked separately, so a 600 dpi image can still fail if its width or height is too small.`,
       width: dims.width,
       height: dims.height,
     };
