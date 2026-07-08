@@ -393,18 +393,9 @@ export function AuthorMetadataPanel({
     }
 
     // Show the finalisation confirmation first. If the user already confirmed
-    // (dialog still open) or is already on the no-cover path, skip.
-    if (!showNoCoverConfirm && !showFinalizeConfirm) {
+    // (dialog still open), skip.
+    if (!showFinalizeConfirm) {
       setShowFinalizeConfirm(true);
-      return;
-    }
-
-    // If no cover image and we haven't warned about it yet, show the no-cover
-    // panel. This is reached after the author confirms finalisation in the
-    // dialog.
-    if (!metadata?.cover_image && !showNoCoverConfirm) {
-      setShowNoCoverConfirm(true);
-      setShowFinalizeConfirm(false);
       return;
     }
 
@@ -415,7 +406,6 @@ export function AuthorMetadataPanel({
       await approveMetadata(ticket);
       setApproveSuccess("Metadata approved. Thank you!");
       toast.success("Metadata submitted successfully");
-      setShowNoCoverConfirm(false);
       setShowFinalizeConfirm(false);
       await reload();
     } catch (e) {
