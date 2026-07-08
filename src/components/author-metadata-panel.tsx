@@ -654,8 +654,8 @@ export function AuthorMetadataPanel({
                       </>
                     ) : (
                       <p className="text-stone-600">
-                        Upload a high-resolution cover image (JPEG/PNG/TIFF, minimum 2360×2360 px at
-                        300 dpi, max 50 MB).
+                        Upload a high-resolution cover image (JPEG/PNG/TIFF, minimum 2360×2360 px and
+                        at least 300 dpi, max 50 MB).
                       </p>
                     )}
 
@@ -766,7 +766,7 @@ export function AuthorMetadataPanel({
                               <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm">
                                 <p className="font-semibold text-rose-800">Image dimensions issue</p>
                                 <p className="mt-1 text-rose-700">{displayErr}</p>
-                                <p className="mt-2 text-rose-700">Your image couldn't be uploaded because its dimensions are too small. Adjust it with the free tool below and try again:</p>
+                                <p className="mt-2 text-rose-700">Your image may have enough DPI, but its pixel width or height is too small. Increase the image dimensions with the free tool below and try again:</p>
                                 <ul className="mt-2 list-disc space-y-1 pl-5 text-rose-700">
                                   <li>
                                     <a href="https://www.simpleimageresizer.com/" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-medium hover:underline">
