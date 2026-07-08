@@ -704,9 +704,10 @@ export function AuthorMetadataPanel({
                             /\b(width|height)\b[^.]*(too small|below|less than|insufficient)/i.test(s) ||
                             /(resize|upscale)[^.]*(image|cover)/i.test(s);
                           const dpiFail = (s: string) =>
-                            /\b(dpi|dots per inch)\b[^.]*(too low|below|less than|insufficient|do(es)? not meet|required|must be|at least|invalid|only)/i.test(s) ||
-                            /(too low|below|less than|only|insufficient)[^.]*\b(dpi|dots per inch)\b/i.test(s) ||
-                            /\b(low|insufficient)\s+(dpi|resolution)\b/i.test(s);
+                            /\b(dpi|dots per inch)\b[^.]*(too low|below|less than|insufficient|do(es)? not meet|required|must be|at least|invalid|only|metadata|information|embedded|read|missing|minimum)/i.test(s) ||
+                            /(too low|below|less than|only|insufficient|metadata|information|embedded|read|missing|minimum)[^.]*\b(dpi|dots per inch)\b/i.test(s) ||
+                            /\b(low|insufficient)\s+(dpi|resolution)\b/i.test(s) ||
+                            /\b(dpi|dots per inch)\b/i.test(s) && /(could not read|metadata|information|embedded|missing|minimum)/i.test(s);
                           const isDpi = sentences.some(dpiFail);
                           const isDim = sentences.some(dimFail);
                           const displayErr = (() => {
