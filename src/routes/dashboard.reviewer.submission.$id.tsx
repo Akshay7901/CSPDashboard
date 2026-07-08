@@ -518,9 +518,6 @@ function ReviewerSubmission() {
                     </h2>
                     <p className="mt-0.5 font-sans text-xs text-indigo-600">
                       <span>{displayedReviewerName}</span>
-                      {proposal.cd.institution && (
-                        <span> · {proposal.cd.institution}</span>
-                      )}
                     </p>
                   </div>
                   {recommendation && (
