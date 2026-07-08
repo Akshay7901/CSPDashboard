@@ -834,14 +834,21 @@ export function AuthorMetadataPanel({
 
                     {/* Attribution — shown only after a successful upload */}
                     {metadata?.cover_image && (
-                      <div className="space-y-3">
+                      <div id="cover-attribution-section" className="space-y-3">
                         <h4 className="font-semibold text-stone-900">
-                          Image Permissions & Attribution
+                          Image Permissions & Attribution{" "}
+                          <span className="text-rose-600" aria-hidden="true">*</span>
+                          <span className="sr-only">(required)</span>
                         </h4>
                         <p className="text-stone-700">
                           Your cover was uploaded. Please tell us how it's attributed — select the
-                          option that applies.
+                          option that applies and fill in the required details.
                         </p>
+                        {attributionError && (
+                          <p className="rounded-lg bg-rose-50 px-3 py-2 font-sans text-sm text-rose-700 ring-1 ring-rose-200">
+                            {attributionError}
+                          </p>
+                        )}
                         <div className="space-y-3">
                           <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-stone-200 bg-white p-3 hover:bg-stone-50">
                             <input
