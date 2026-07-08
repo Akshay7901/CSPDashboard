@@ -140,7 +140,6 @@ export function AuthorMetadataPanel({
   const [showQueries, setShowQueries] = useState(false);
   const [hasOpenQuery, setHasOpenQuery] = useState(false);
   const [flashApprove, setFlashApprove] = useState(false);
-  const [showNoCoverConfirm, setShowNoCoverConfirm] = useState(false);
   const [showFinalizeConfirm, setShowFinalizeConfirm] = useState(false);
   const approveBtnRef = useRef<HTMLButtonElement | null>(null);
   const cacheKey = `author_metadata_cache:${ticket}`;
@@ -394,18 +393,9 @@ export function AuthorMetadataPanel({
     }
 
     // Show the finalisation confirmation first. If the user already confirmed
-    // (dialog still open) or is already on the no-cover path, skip.
-    if (!showNoCoverConfirm && !showFinalizeConfirm) {
+    // (dialog still open), skip.
+    if (!showFinalizeConfirm) {
       setShowFinalizeConfirm(true);
-      return;
-    }
-
-    // If no cover image and we haven't warned about it yet, show the no-cover
-    // panel. This is reached after the author confirms finalisation in the
-    // dialog.
-    if (!metadata?.cover_image && !showNoCoverConfirm) {
-      setShowNoCoverConfirm(true);
-      setShowFinalizeConfirm(false);
       return;
     }
 
@@ -416,7 +406,6 @@ export function AuthorMetadataPanel({
       await approveMetadata(ticket);
       setApproveSuccess("Metadata approved. Thank you!");
       toast.success("Metadata submitted successfully");
-      setShowNoCoverConfirm(false);
       setShowFinalizeConfirm(false);
       await reload();
     } catch (e) {
@@ -976,108 +965,66 @@ export function AuthorMetadataPanel({
             {/* Actions */}
             {isSent && !isApproved && (
               <>
-                {showNoCoverConfirm ? (
-                  <div className="rounded-xl border border-amber-200 bg-amber-50/60 px-5 py-4">
-                    <p className="font-sans text-sm font-semibold text-amber-900">
-                      Are you sure you want to proceed without a cover image?
-                    </p>
-                    <p className="mt-1 font-sans text-xs text-amber-800/80">
-                      Your cover will be created using an abstract or plain design, and you won't be
-                      able to upload an image after this point.
-                    </p>
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowNoCoverConfirm(false);
-                          setShowFinalizeConfirm(false);
-                        }}
-                        className="inline-flex items-center gap-2 rounded-lg border border-stone-300 bg-white px-4 py-2 font-sans text-sm font-semibold text-stone-700 shadow-sm hover:bg-stone-50"
-                      >
-                        Go back and upload an image
-                      </button>
-                      <button
-                        type="button"
-                        onClick={onApprove}
-                        disabled={approving || hasOpenQuery}
-                        className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        {approving ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Check className="h-4 w-4" />
-                        )}
-                        {approving ? "Submitting…" : "Proceed without an image"}
-                      </button>
-                    </div>
-                    {hasOpenQuery && (
-                      <p className="mt-2 w-full font-sans text-xs text-amber-800">
-                        Submit is disabled until the publisher responds to your open query.
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50/60 px-5 py-4">
+                  {canApprove && (
+                    <div className="min-w-0">
+                      <p className="font-sans text-sm font-semibold text-emerald-900">
+                        {flashApprove
+                          ? "The publisher has responded — please review the table above."
+                          : "Happy with the metadata?"}
                       </p>
-                    )}
-                  </div>
-                ) : (
-                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50/60 px-5 py-4">
-                    {canApprove && (
-                      <div className="min-w-0">
-                        <p className="font-sans text-sm font-semibold text-emerald-900">
-                          {flashApprove
-                            ? "The publisher has responded — please review the table above."
-                            : "Happy with the metadata?"}
-                        </p>
-                        <p className="font-sans text-xs text-emerald-800/80">
-                          {flashApprove
-                            ? "If you're happy with the updated details, press Submit metadata to finalise your record."
-                            : "Approve to finalise your record, or raise a query if anything needs changing."}
-                        </p>
-                      </div>
-                    )}
-                    <div className="ml-auto flex flex-wrap items-center gap-2">
-                      {approveError && (
-                        <span className="font-sans text-xs text-rose-700">{approveError}</span>
-                      )}
-                      {!approveError && approveSuccess && (
-                        <span className="font-sans text-xs text-emerald-700">{approveSuccess}</span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => setShowQueries((v) => !v)}
-                        className="inline-flex items-center gap-2 rounded-lg border border-amber-300 bg-white px-4 py-2 font-sans text-sm font-semibold text-amber-800 shadow-sm hover:bg-amber-50"
-                      >
-                        <MessageSquarePlus className="h-4 w-4" />
-                        {showQueries ? "Hide queries" : "Raise query"}
-                      </button>
-                      <button
-                        type="button"
-                        ref={approveBtnRef}
-                        onClick={onApprove}
-                        disabled={approving || hasOpenQuery || (!!coverImg && !isAttributionComplete)}
-                        title={
-                          hasOpenQuery
-                            ? "Resolve the open metadata query before submitting."
-                            : !!coverImg && !isAttributionComplete
-                              ? "Complete the Image Permissions & Attribution section before submitting."
-                              : undefined
-                        }
-                        className={`inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60 ${
-                          flashApprove ? "ring-4 ring-amber-300 animate-pulse" : ""
-                        }`}
-                      >
-                        {approving ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Check className="h-4 w-4" />
-                        )}
-                        {approving ? "Submitting…" : "Submit metadata"}
-                      </button>
-                    </div>
-                    {hasOpenQuery && (
-                      <p className="w-full font-sans text-xs text-amber-800">
-                        Submit is disabled until the publisher responds to your open query.
+                      <p className="font-sans text-xs text-emerald-800/80">
+                        {flashApprove
+                          ? "If you're happy with the updated details, press Submit metadata to finalise your record."
+                          : "Approve to finalise your record, or raise a query if anything needs changing."}
                       </p>
+                    </div>
+                  )}
+                  <div className="ml-auto flex flex-wrap items-center gap-2">
+                    {approveError && (
+                      <span className="font-sans text-xs text-rose-700">{approveError}</span>
                     )}
+                    {!approveError && approveSuccess && (
+                      <span className="font-sans text-xs text-emerald-700">{approveSuccess}</span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setShowQueries((v) => !v)}
+                      className="inline-flex items-center gap-2 rounded-lg border border-amber-300 bg-white px-4 py-2 font-sans text-sm font-semibold text-amber-800 shadow-sm hover:bg-amber-50"
+                    >
+                      <MessageSquarePlus className="h-4 w-4" />
+                      {showQueries ? "Hide queries" : "Raise query"}
+                    </button>
+                    <button
+                      type="button"
+                      ref={approveBtnRef}
+                      onClick={onApprove}
+                      disabled={approving || hasOpenQuery || (!!coverImg && !isAttributionComplete)}
+                      title={
+                        hasOpenQuery
+                          ? "Resolve the open metadata query before submitting."
+                          : !!coverImg && !isAttributionComplete
+                            ? "Complete the Image Permissions & Attribution section before submitting."
+                            : undefined
+                      }
+                      className={`inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60 ${
+                        flashApprove ? "ring-4 ring-amber-300 animate-pulse" : ""
+                      }`}
+                    >
+                      {approving ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Check className="h-4 w-4" />
+                      )}
+                      {approving ? "Submitting…" : "Submit metadata"}
+                    </button>
                   </div>
-                )}
+                  {hasOpenQuery && (
+                    <p className="w-full font-sans text-xs text-amber-800">
+                      Submit is disabled until the publisher responds to your open query.
+                    </p>
+                  )}
+                </div>
               </>
             )}
 
