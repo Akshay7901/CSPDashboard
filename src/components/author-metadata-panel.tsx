@@ -1042,11 +1042,13 @@ export function AuthorMetadataPanel({
                         type="button"
                         ref={approveBtnRef}
                         onClick={onApprove}
-                        disabled={approving || hasOpenQuery}
+                        disabled={approving || hasOpenQuery || (coverImg && !isAttributionComplete)}
                         title={
                           hasOpenQuery
                             ? "Resolve the open metadata query before submitting."
-                            : undefined
+                            : coverImg && !isAttributionComplete
+                              ? "Complete the Image Permissions & Attribution section before submitting."
+                              : undefined
                         }
                         className={`inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60 ${
                           flashApprove ? "ring-4 ring-amber-300 animate-pulse" : ""
