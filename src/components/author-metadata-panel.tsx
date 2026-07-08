@@ -377,6 +377,7 @@ export function AuthorMetadataPanel({
     setAttributionError(null);
     // If a cover image exists, attribution details must be completed first.
     if (coverImg && !isAttributionComplete) {
+      setShowFinalizeConfirm(false);
       setAttributionError("Please complete the Image Permissions & Attribution section before finalising.");
       // Scroll the attribution section into view so the author can see the missing field.
       const attributionEl = document.getElementById("cover-attribution-section");
