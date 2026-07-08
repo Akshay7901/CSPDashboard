@@ -574,7 +574,7 @@ export function AuthorMetadataPanel({
             </div>
 
             {/* Cover image */}
-            <div className="rounded-xl border border-stone-200 bg-stone-50/40 p-5">
+            <div id="cover-image-section" className="rounded-xl border border-stone-200 bg-stone-50/40 p-5">
               <div className="mb-3 flex items-center gap-2">
                 <ImageIcon className="h-4 w-4 text-stone-500" />
                 <h3 className="font-serif text-sm font-bold text-stone-900">Cover image</h3>
