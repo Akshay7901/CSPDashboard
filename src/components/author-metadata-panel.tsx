@@ -582,11 +582,15 @@ export function AuthorMetadataPanel({
 
               <div className="space-y-4 font-sans text-sm">
                 <div>
-                  <h4 className="font-semibold text-stone-900">Upload Your Cover Image</h4>
+                  <h4 className="font-semibold text-stone-900">
+                    Upload Your Cover Image{" "}
+                    <span className="text-rose-600" aria-hidden="true">*</span>
+                    <span className="sr-only">(required)</span>
+                  </h4>
                   <p className="mt-1 text-stone-700">
-                    You can upload an image to be used on the front cover of your book. Your image
-                    will be incorporated into our standard cover template as a background image, so
-                    please note the following:
+                    A cover image is required to finalise your metadata. Your image will be
+                    incorporated into our standard cover template as a background image, so please
+                    note the following:
                   </p>
                   <ul className="mt-2 list-disc space-y-1 pl-5 text-stone-700">
                     <li>
@@ -600,9 +604,7 @@ export function AuthorMetadataPanel({
                     </li>
                   </ul>
                   <p className="mt-2 text-stone-700">
-                    If you choose not to upload an image, your cover will be produced using an
-                    abstract or plain design in keeping with our standard template. Please note that
-                    once you complete this stage, you will no longer be able to upload a cover
+                    Once you complete this stage, you will no longer be able to change your cover
                     image, so make sure you're happy with your choice before proceeding.
                   </p>
                 </div>
