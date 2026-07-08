@@ -259,6 +259,7 @@ function parseTiffDpi(
 }
 
 function readJpegDpi(bytes: Uint8Array): number | null {
+  let jfifDpi: number | null = null;
   let i = 2;
   while (i < bytes.length - 1) {
     if (bytes[i] !== 0xff) {
@@ -277,6 +278,25 @@ function readJpegDpi(bytes: Uint8Array): number | null {
     const segStart = i + 4;
     const segEnd = segStart + length - 2;
     if (segEnd > bytes.length) break;
+
+    if (marker === 0xe0 && segEnd - segStart >= 10) {
+      // APP0 (JFIF) — density is bytes 8-9 (0-indexed from segStart).
+      if (
+        bytes[segStart] === 0x4a && // J
+        bytes[segStart + 1] === 0x46 && // F
+        bytes[segStart + 2] === 0x49 && // I
+        bytes[segStart + 3] === 0x46 && // F
+        bytes[segStart + 4] === 0x00
+      ) {
+        const units = bytes[segStart + 7];
+        const xDensity = (bytes[segStart + 8] << 8) | bytes[segStart + 9];
+        if (xDensity > 0) {
+          if (units === 1) jfifDpi = xDensity; // pixels per inch
+          if (units === 2) jfifDpi = Math.round(xDensity / 2.54); // pixels per cm
+        }
+      }
+    }
+
     if (marker === 0xe1 && segEnd - segStart >= 6) {
       // APP1 (Exif)
       if (
@@ -294,7 +314,7 @@ function readJpegDpi(bytes: Uint8Array): number | null {
     }
     i = segEnd;
   }
-  return null;
+  return jfifDpi;
 }
 
 function readPngDpi(bytes: Uint8Array): number | null {
