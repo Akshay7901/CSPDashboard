@@ -413,7 +413,6 @@ export function AuthorMetadataPanel({
       await approveMetadata(ticket);
       setApproveSuccess("Metadata approved. Thank you!");
       toast.success("Metadata submitted successfully");
-      setShowNoCoverConfirm(false);
       setShowFinalizeConfirm(false);
       await reload();
     } catch (e) {
