@@ -294,6 +294,14 @@ export function AuthorMetadataPanel({
     }
   }, [attributionType, attributionDetail]);
 
+  // Clear the attribution error once the author has selected an option and
+  // started typing the required details.
+  useEffect(() => {
+    if (attributionError && attributionType && attributionDetail.trim()) {
+      setAttributionError(null);
+    }
+  }, [attributionType, attributionDetail, attributionError]);
+
   // Auto-save attribution whenever the author changes the option or details.
   // The backend requires the source string at upload time, so this re-uploads
   // the cached file with the real attribution statement.
