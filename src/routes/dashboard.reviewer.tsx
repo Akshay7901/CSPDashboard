@@ -106,6 +106,7 @@ function ReviewerDashboard() {
   const [assigned, setAssigned] = useState<ReviewItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"all" | "pending" | "in_progress" | "completed">("all");
 
   const isSubmissionDetail = Boolean(
     matchRoute({ to: "/dashboard/reviewer/submission/$id", fuzzy: true }),
@@ -444,13 +445,38 @@ function ReviewerDashboard() {
 
         {/* Stat cards */}
         <div className="mb-10 grid grid-cols-2 gap-5 sm:grid-cols-4">
-          <StatCard label="Assigned" value={assignedCount} tone="sky" />
-          <StatCard label="Pending" value={pending} tone="amber" />
-          <StatCard label="In Progress" value={inProgress} tone="indigo" />
-          <StatCard label="Completed" value={completed} tone="green" />
+          <StatCard
+            label="Assigned"
+            value={assignedCount}
+            tone="sky"
+            active={filter === "all"}
+            onClick={() => setFilter("all")}
+          />
+          <StatCard
+            label="Pending"
+            value={pending}
+            tone="amber"
+            active={filter === "pending"}
+            onClick={() => setFilter((f) => (f === "pending" ? "all" : "pending"))}
+          />
+          <StatCard
+            label="In Progress"
+            value={inProgress}
+            tone="indigo"
+            active={filter === "in_progress"}
+            onClick={() => setFilter((f) => (f === "in_progress" ? "all" : "in_progress"))}
+          />
+          <StatCard
+            label="Completed"
+            value={completed}
+            tone="green"
+            active={filter === "completed"}
+            onClick={() => setFilter((f) => (f === "completed" ? "all" : "completed"))}
+          />
         </div>
 
         {/* Awaiting Your Review */}
+        {(filter === "all" || filter === "pending") && (
         <section className="mb-10">
           <h2 className="mb-4 flex items-center gap-2 font-serif text-lg font-bold text-[#2C1A0E]">
             <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
@@ -480,8 +506,10 @@ function ReviewerDashboard() {
             </ul>
           )}
         </section>
+        )}
 
         {/* In Progress */}
+        {(filter === "all" || filter === "in_progress") && (
         <section className="mb-10">
           <h2 className="mb-4 flex items-center gap-2 font-serif text-lg font-bold text-[#2C1A0E]">
             <span className="h-2.5 w-2.5 rounded-full bg-indigo-500" />
@@ -511,8 +539,10 @@ function ReviewerDashboard() {
             </ul>
           )}
         </section>
+        )}
 
         {/* Completed */}
+        {(filter === "all" || filter === "completed") && (
         <section>
           <h2 className="mb-4 flex items-center gap-2 font-serif text-lg font-bold text-[#2C1A0E]">
             <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
@@ -540,6 +570,7 @@ function ReviewerDashboard() {
             </ul>
           )}
         </section>
+        )}
       </main>
     </div>
   );
@@ -549,10 +580,14 @@ function StatCard({
   label,
   value,
   tone,
+  active,
+  onClick,
 }: {
   label: string;
   value: number;
   tone: "sky" | "amber" | "green" | "indigo";
+  active?: boolean;
+  onClick?: () => void;
 }) {
   const tones: Record<
     "sky" | "amber" | "green" | "indigo",
@@ -580,13 +615,18 @@ function StatCard({
     },
   };
   const t = tones[tone];
+  const ringClass = active ? "ring-2 ring-offset-2 ring-stone-400" : "";
   return (
-    <div className={`rounded-xl p-5 text-center ${t.wrap}`}>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-xl p-5 text-center transition-all hover:shadow-md hover:-translate-y-0.5 ${t.wrap} ${ringClass}`}
+    >
       <div className={`font-serif text-3xl font-bold leading-none ${t.value}`}>
         {value}
       </div>
       <div className={`mt-1 font-sans text-xs font-medium ${t.label}`}>{label}</div>
-    </div>
+    </button>
   );
 }
 
