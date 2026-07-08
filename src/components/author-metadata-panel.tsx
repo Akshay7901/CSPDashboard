@@ -136,6 +136,7 @@ export function AuthorMetadataPanel({
   const attributionInitialisedRef = useRef(false);
   const [attributionSaving, setAttributionSaving] = useState(false);
   const [attributionSaved, setAttributionSaved] = useState(false);
+  const [attributionError, setAttributionError] = useState<string | null>(null);
   const [showQueries, setShowQueries] = useState(false);
   const [hasOpenQuery, setHasOpenQuery] = useState(false);
   const [flashApprove, setFlashApprove] = useState(false);
@@ -293,6 +294,14 @@ export function AuthorMetadataPanel({
     }
   }, [attributionType, attributionDetail]);
 
+  // Clear the attribution error once the author has selected an option and
+  // started typing the required details.
+  useEffect(() => {
+    if (attributionError && attributionType && attributionDetail.trim()) {
+      setAttributionError(null);
+    }
+  }, [attributionType, attributionDetail, attributionError]);
+
   // Auto-save attribution whenever the author changes the option or details.
   // The backend requires the source string at upload time, so this re-uploads
   // the cached file with the real attribution statement.
@@ -343,6 +352,8 @@ export function AuthorMetadataPanel({
   const canDeleteCover = isAdmin();
   const coverImg: CoverImage | null | undefined = metadata?.cover_image;
   const coverDisplayUrl = coverImg?.url || coverImg?.s3_url;
+  const isAttributionComplete =
+    !coverImg || (attributionType !== "" && attributionDetail.trim().length > 0);
 
   const md = metadata?.metadata || {};
   const authors = md.authors || [];
@@ -371,6 +382,17 @@ export function AuthorMetadataPanel({
   void notVisible;
 
   const onApprove = async () => {
+    setAttributionError(null);
+    // If a cover image exists, attribution details must be completed first.
+    if (coverImg && !isAttributionComplete) {
+      setShowFinalizeConfirm(false);
+      setAttributionError("Please complete the Image Permissions & Attribution section before finalising.");
+      // Scroll the attribution section into view so the author can see the missing field.
+      const attributionEl = document.getElementById("cover-attribution-section");
+      attributionEl?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+
     // Show the finalisation confirmation first. If the user already confirmed
     // (dialog still open) or is already on the no-cover path, skip.
     if (!showNoCoverConfirm && !showFinalizeConfirm) {
@@ -821,14 +843,21 @@ export function AuthorMetadataPanel({
 
                     {/* Attribution — shown only after a successful upload */}
                     {metadata?.cover_image && (
-                      <div className="space-y-3">
+                      <div id="cover-attribution-section" className="space-y-3">
                         <h4 className="font-semibold text-stone-900">
-                          Image Permissions & Attribution
+                          Image Permissions & Attribution{" "}
+                          <span className="text-rose-600" aria-hidden="true">*</span>
+                          <span className="sr-only">(required)</span>
                         </h4>
                         <p className="text-stone-700">
                           Your cover was uploaded. Please tell us how it's attributed — select the
-                          option that applies.
+                          option that applies and fill in the required details.
                         </p>
+                        {attributionError && (
+                          <p className="rounded-lg bg-rose-50 px-3 py-2 font-sans text-sm text-rose-700 ring-1 ring-rose-200">
+                            {attributionError}
+                          </p>
+                        )}
                         <div className="space-y-3">
                           <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-stone-200 bg-white p-3 hover:bg-stone-50">
                             <input
@@ -852,7 +881,8 @@ export function AuthorMetadataPanel({
                                   value={attributionDetail}
                                   onChange={(e) => setAttributionDetail(e.target.value)}
                                   maxLength={500}
-                                  placeholder="© Your name, year"
+                                  required
+                                  placeholder="© Your name, year *"
                                   className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
                                 />
                               )}
@@ -880,7 +910,8 @@ export function AuthorMetadataPanel({
                                   value={attributionDetail}
                                   onChange={(e) => setAttributionDetail(e.target.value)}
                                   maxLength={500}
-                                  placeholder="Source — title, year"
+                                  required
+                                  placeholder="Source — title, year *"
                                   className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
                                 />
                               )}
@@ -909,7 +940,8 @@ export function AuthorMetadataPanel({
                                     value={attributionDetail}
                                     onChange={(e) => setAttributionDetail(e.target.value)}
                                     maxLength={500}
-                                    placeholder="Copyright holder name and permission details"
+                                    required
+                                    placeholder="Copyright holder name and permission details *"
                                     className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
                                   />
                                   <a
@@ -1019,11 +1051,13 @@ export function AuthorMetadataPanel({
                         type="button"
                         ref={approveBtnRef}
                         onClick={onApprove}
-                        disabled={approving || hasOpenQuery}
+                        disabled={approving || hasOpenQuery || (!!coverImg && !isAttributionComplete)}
                         title={
                           hasOpenQuery
                             ? "Resolve the open metadata query before submitting."
-                            : undefined
+                            : !!coverImg && !isAttributionComplete
+                              ? "Complete the Image Permissions & Attribution section before submitting."
+                              : undefined
                         }
                         className={`inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60 ${
                           flashApprove ? "ring-4 ring-amber-300 animate-pulse" : ""
@@ -1079,7 +1113,7 @@ export function AuthorMetadataPanel({
                   <button
                     type="button"
                     onClick={onApprove}
-                    disabled={approving || hasOpenQuery}
+                    disabled={approving || hasOpenQuery || (!!coverImg && !isAttributionComplete)}
                     className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {approving ? (
