@@ -580,10 +580,14 @@ function StatCard({
   label,
   value,
   tone,
+  active,
+  onClick,
 }: {
   label: string;
   value: number;
   tone: "sky" | "amber" | "green" | "indigo";
+  active?: boolean;
+  onClick?: () => void;
 }) {
   const tones: Record<
     "sky" | "amber" | "green" | "indigo",
@@ -611,13 +615,18 @@ function StatCard({
     },
   };
   const t = tones[tone];
+  const ringClass = active ? "ring-2 ring-offset-2 ring-stone-400" : "";
   return (
-    <div className={`rounded-xl p-5 text-center ${t.wrap}`}>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-xl p-5 text-center transition-all hover:shadow-md hover:-translate-y-0.5 ${t.wrap} ${ringClass}`}
+    >
       <div className={`font-serif text-3xl font-bold leading-none ${t.value}`}>
         {value}
       </div>
       <div className={`mt-1 font-sans text-xs font-medium ${t.label}`}>{label}</div>
-    </div>
+    </button>
   );
 }
 
