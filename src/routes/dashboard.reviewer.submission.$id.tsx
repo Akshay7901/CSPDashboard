@@ -1088,6 +1088,8 @@ function ProposalDetails({
     .map((s) => s.trim())
     .filter(Boolean);
 
+  const [previewDoc, setPreviewDoc] = useState<{ url: string; filename: string } | null>(null);
+
   return (
     <section className="space-y-6 px-6 py-4">
       {/* Title card */}
