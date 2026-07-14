@@ -774,21 +774,26 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
   const title = contractTitleOverride || cd.main_title || proposal.ticket;
   const subtitle = contractSubtitleOverride || cd.sub_title;
   const kind = cd.book_type || "Proposal";
-  const allFiles: ManuscriptFile[] = (() => {
-    const cv = (cd as any).author_cv;
-    const cvUrl = (cd as any).author_cv_url;
-    if (cv && typeof cv === "object" && cv.url) {
-      return [{
-        url: cv.url,
-        filename: cv.filename || cv.url.split("/").pop() || "Author CV",
-        size_bytes: cv.size_bytes,
-      }];
-    }
-    if (typeof cvUrl === "string" && cvUrl) {
-      return [{ url: cvUrl, filename: cvUrl.split("/").pop() || "Author CV" }];
-    }
-    return [];
-  })();
+  const files = cd.manuscript_files || {};
+  const allFiles: ManuscriptFile[] = [
+    ...(() => {
+      const cv = (cd as any).author_cv;
+      const cvUrl = (cd as any).author_cv_url;
+      if (cv && typeof cv === "object" && cv.url) {
+        return [{
+          url: cv.url,
+          filename: cv.filename || cv.url.split("/").pop() || "Author CV",
+          size_bytes: cv.size_bytes,
+        }];
+      }
+      if (typeof cvUrl === "string" && cvUrl) {
+        return [{ url: cvUrl, filename: cvUrl.split("/").pop() || "Author CV" }];
+      }
+      return [];
+    })(),
+    ...(files.sampleChapter ? [files.sampleChapter] : []),
+    ...(files.additionalFiles || []),
+  ];
   const fmtBool = (v?: boolean | string) => {
     if (typeof v === "string") {
       const s = v.trim().toLowerCase();
