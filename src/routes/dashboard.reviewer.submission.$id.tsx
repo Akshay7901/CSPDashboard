@@ -1091,6 +1091,7 @@ function ProposalDetails({
   const [previewDoc, setPreviewDoc] = useState<{ url: string; filename: string } | null>(null);
 
   return (
+    <>
     <section className="space-y-6 px-6 py-4">
       {/* Title card */}
       <div className="rounded-2xl border border-stone-200 bg-white p-6">
