@@ -260,6 +260,24 @@ function extractProposalDocuments(currentData: Record<string, unknown>) {
     }
   }
 
+  const mf = currentData.manuscript_files;
+  if (isRecord(mf)) {
+    const sample = mf.sampleChapter ?? mf.sample_chapter;
+    if (isRecord(sample)) {
+      const doc = toProposalDocument(sample, "Sample Chapter");
+      if (doc) documents.push({ ...doc, label: "Sample Chapter" });
+    }
+    const additional = mf.additionalFiles ?? mf.additional_files;
+    if (Array.isArray(additional)) {
+      additional.forEach((item) => {
+        if (isRecord(item)) {
+          const doc = toProposalDocument(item, "Additional File");
+          if (doc) documents.push({ ...doc, label: "Additional File" });
+        }
+      });
+    }
+  }
+
   const seen = new Set<string>();
   return documents.filter((doc) => {
     const key = `${doc.url || ""}|${doc.filename}`;
