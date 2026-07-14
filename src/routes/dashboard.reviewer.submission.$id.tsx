@@ -1,6 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, LogOut, ChevronRight, FileText, Download, CheckCircle2 } from "lucide-react";
+import { ChevronLeft, LogOut, ChevronRight, FileText, Download, CheckCircle2, Eye } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import cspLogo from "@/assets/csp-logo.png";
 import { initialsFromName, displayNameFromEmail } from "@/lib/proposals";
 import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
