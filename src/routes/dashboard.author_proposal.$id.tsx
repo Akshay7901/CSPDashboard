@@ -1455,6 +1455,10 @@ const CONSUMED_CD_KEYS = new Set<string>([
   "co_authors",
   "additional_authors",
   "contributors",
+  "author_cv",
+  "author_cv_url",
+  "cv",
+  "cv_url",
 ]);
 
 function humanizeKey(key: string): string {
