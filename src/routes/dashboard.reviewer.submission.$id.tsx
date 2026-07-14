@@ -931,67 +931,122 @@ function ProposalDetails({
     submittedAt?: string;
     updatedAt?: string;
     assignments?: Array<{ assigned_at?: string; note?: string; reviewer_email?: string }>;
-    cd: Record<string, unknown> & {
-      main_title?: string;
-      sub_title?: string;
-      proposed_title?: string;
-      proposed_subtitle?: string;
-      book_type?: string;
-      subject?: string;
-      language?: string;
-      secondary_subjects?: string[];
-      corresponding_author_name?: string;
-      author_first_name?: string;
-      author_last_name?: string;
-      author_title?: string;
-      email?: string;
-      phone?: string;
-      institution?: string;
-      address?: string;
-      country?: string;
-      biography?: string;
-      co_authors?: unknown[];
-      estimated_word_count?: number;
-      estimated_pages?: number | null;
-      estimated_completion_date?: string;
-      has_tables?: boolean;
-      has_illustrations?: boolean;
-      illustration_count?: number;
-      is_previously_published?: boolean;
-      detailed_description?: string;
-      table_of_contents?: string;
-      key_features?: string;
-      unique_selling_points?: string;
-      target_audience?: string;
-      primary_market?: string;
-      competing_titles?: string;
-      conferences?: string;
-      promotional_channels?: string;
-      unique_contribution?: string;
-      marketing_info?: string;
-      additional_info?: string;
-      additional_notes?: string;
-      permissions_required?: string;
-      permissions_notes?: string;
-      co_authors_editors?: string;
-      recommended_reviewers?: string;
-      website_reference_number?: string;
-      source?: string;
-      manuscript_files?: {
-        sampleChapter?: { url: string; filename: string; size_bytes?: number };
-        additionalFiles?: Array<{ url: string; filename: string; size_bytes?: number }>;
-      };
-    };
+    cd: Record<string, unknown>;
   };
 }) {
-  const cd = proposal.cd;
-  const sample = cd.manuscript_files?.sampleChapter;
-  const additional = cd.manuscript_files?.additionalFiles ?? [];
+  const rawCd = proposal.cd as Record<string, unknown>;
+
+  // Mirror the Decision Reviewer's normalization so the Peer Reviewer sees
+  // exactly the same field names and values.
+  const asStr = (v: unknown): string | undefined => {
+    if (v === null || v === undefined || v === "") return undefined;
+    if (typeof v === "string") return v;
+    if (typeof v === "number" || typeof v === "boolean") return String(v);
+    if (Array.isArray(v)) {
+      const parts = v
+        .map((item) => {
+          if (item == null) return "";
+          if (typeof item === "string") return item;
+          if (typeof item === "object") {
+            const o = item as Record<string, unknown>;
+            const name = [o.first_name, o.last_name].filter(Boolean).join(" ").trim();
+            return name || (typeof o.name === "string" ? o.name : JSON.stringify(o));
+          }
+          return String(item);
+        })
+        .filter(Boolean);
+      return parts.length ? parts.join("\n") : undefined;
+    }
+    return undefined;
+  };
+  const pick = (...keys: string[]): string | undefined => {
+    for (const k of keys) {
+      const s = asStr(rawCd[k]);
+      if (s !== undefined) return s;
+    }
+    return undefined;
+  };
+  const cd: Record<string, string | undefined> = {
+    main_title: pick("main_title", "title"),
+    sub_title: pick("sub_title", "subtitle"),
+    proposed_title: pick("proposed_title", "proposed_book_title", "proposed"),
+    proposed_subtitle: pick("proposed_subtitle", "proposed_sub_title", "proposed_book_subtitle"),
+    book_type: pick("book_type"),
+    corresponding_author_name:
+      pick("corresponding_author_name") ||
+      [pick("author_first_name"), pick("author_last_name")].filter(Boolean).join(" ") ||
+      undefined,
+    email: pick("email"),
+    institution: pick("institution"),
+    country: pick("country"),
+    address: pick("address"),
+    address_line_1: pick("address_line_1", "address_line1"),
+    address_line_2: pick("address_line_2", "address_line2"),
+    city: pick("city"),
+    state: pick("state", "region", "province", "county"),
+    postal_code: pick("postal_code", "zip", "zip_code"),
+    biography: pick("biography"),
+    co_authors_editors: pick("co_authors_editors", "co_authors"),
+    word_count: pick("word_count", "estimated_word_count"),
+    illustration_count: pick("illustration_count", "number_of_illustrations"),
+    expected_completion_date: pick("expected_completion_date", "estimated_completion_date"),
+    manuscript_stage: pick("manuscript_stage", "stage", "current_stage"),
+    languages_used: pick("languages_used", "languages", "language"),
+    intended_audience: pick("intended_audience", "target_audience", "audience"),
+    under_review_elsewhere: pick(
+      "under_review_elsewhere",
+      "under_review_elsewhere_details",
+      "review_elsewhere",
+      "review_elsewhere_details",
+    ),
+    short_description: pick("short_description", "detailed_description"),
+    detailed_description: pick(
+      "detailed_description_extra",
+      "key_features",
+      "unique_selling_points",
+    ),
+    key_features: pick("key_features", "selling_points", "unique_selling_points"),
+    competing_titles: pick("competing_titles"),
+    unique_contribution: pick("unique_contribution", "unique_selling_points"),
+    primary_market: pick("primary_market", "market"),
+    conferences: pick("conferences", "relevant_conferences"),
+    promotional_channels: pick("promotional_channels", "promotion_channels"),
+    keywords: pick("keywords"),
+    marketing_info: pick(
+      "marketing_info",
+      "primary_market",
+      "target_audience",
+      "competing_titles",
+    ),
+    referees_reviewers: pick("referees_reviewers", "recommended_reviewers"),
+    additional_info: pick("additional_info", "conferences", "promotional_channels"),
+    additional_notes: pick("additional_notes", "additional_comments", "notes"),
+    permissions_required: pick("permissions_required"),
+    table_of_contents: pick("table_of_contents"),
+    subject: pick("subject"),
+    website_reference_number: pick("website_reference_number"),
+  };
+
+  const formatNumber = (v: string | undefined): string | undefined => {
+    if (!v) return undefined;
+    const n = Number(v);
+    if (!Number.isFinite(n)) return v;
+    return n.toLocaleString();
+  };
+
+  const manuscriptFiles = rawCd.manuscript_files as
+    | {
+        sampleChapter?: { url: string; filename: string; size_bytes?: number };
+        additionalFiles?: Array<{ url: string; filename: string; size_bytes?: number }>;
+      }
+    | undefined;
+  const sample = manuscriptFiles?.sampleChapter;
+  const additional = manuscriptFiles?.additionalFiles ?? [];
   const cvFile = (() => {
-    const cv = (cd as Record<string, unknown>).author_cv as
+    const cv = rawCd.author_cv as
       | { url?: string; filename?: string; size_bytes?: number }
       | undefined;
-    const cvUrl = (cd as Record<string, unknown>).author_cv_url as string | undefined;
+    const cvUrl = rawCd.author_cv_url as string | undefined;
     if (cv && typeof cv === "object" && cv.url) {
       return {
         url: cv.url,
@@ -1011,21 +1066,17 @@ function ProposalDetails({
     ...additional.map((f) => ({ ...f, label: "Additional" })),
   ];
 
-  const additionalNotes =
-    ((cd as Record<string, unknown>).additional_notes as string | undefined) ||
-    ((cd as Record<string, unknown>).additional_comments as string | undefined) ||
-    ((cd as Record<string, unknown>).permissions_notes as string | undefined) ||
-    "";
-
   const toc = (cd.table_of_contents || "")
     .split(/\r?\n/)
     .map((s) => s.replace(/^\s*\d+[.)]\s*/, "").trim())
     .filter(Boolean);
 
-  const isNonEnglish = !!cd.language && !/english/i.test(cd.language);
-  const fmtBool = (value?: boolean) => (value ? "Yes" : "No");
+  const keywords = (cd.keywords || "")
+    .split(/[,;]/)
+    .map((k) => k.trim())
+    .filter(Boolean);
 
-  const suggestedReviewers = (cd.recommended_reviewers || "")
+  const suggestedReviewers = (cd.referees_reviewers || "")
     .split(/\r?\n|;/)
     .map((s) => s.trim())
     .filter(Boolean);
@@ -1072,48 +1123,51 @@ function ProposalDetails({
       <Section title="Primary Author / Editor">
         <div className="-mt-2 mb-4 flex flex-wrap gap-x-8 gap-y-2 font-sans text-sm">
           <Field label="Type" value={cd.book_type || "—"} />
-          <Field
-            label="Words"
-            value={
-              typeof cd.estimated_word_count === "number"
-                ? cd.estimated_word_count.toLocaleString()
-                : "—"
-            }
-          />
-          <Field label="Completion" value={formatDate(cd.estimated_completion_date)} />
+          <Field label="Words" value={formatNumber(cd.word_count) || "—"} />
+          <Field label="Completion" value={cd.expected_completion_date || "—"} />
         </div>
         <hr className="my-4 border-stone-100" />
         <div className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
-          <Field
-            label="Name"
-            value={
-              cd.corresponding_author_name ||
-              [cd.author_title, cd.author_first_name, cd.author_last_name]
-                .filter(Boolean)
-                .join(" ") ||
-              "—"
-            }
-          />
+          <Field label="Name" value={cd.corresponding_author_name || "—"} />
           <Field label="Email" value={cd.email || "—"} />
-          <Field label="Phone" value={cd.phone || "—"} />
           <Field label="Institution" value={cd.institution || "—"} />
           <Field label="Country" value={cd.country || "—"} />
         </div>
-        <hr className="my-4 border-stone-100" />
-        <div>
-          <div className="font-sans text-xs uppercase tracking-wide text-stone-500">
-            Mailing Address
-          </div>
-          <p className="mt-2 font-sans text-sm text-stone-800">{cd.address || "—"}</p>
-        </div>
+        {(cd.address ||
+          cd.address_line_1 ||
+          cd.city ||
+          cd.state ||
+          cd.postal_code ||
+          cd.country) && (
+          <>
+            <hr className="my-4 border-stone-100" />
+            <div>
+              <div className="font-sans text-xs uppercase tracking-wide text-stone-500">
+                Mailing Address
+              </div>
+              <p className="mt-2 font-sans text-sm text-stone-800">
+                {[
+                  cd.address_line_1,
+                  cd.address_line_2,
+                  cd.city,
+                  cd.state,
+                  cd.postal_code,
+                  cd.country,
+                ]
+                  .filter(Boolean)
+                  .join(", ") || cd.address}
+              </p>
+            </div>
+          </>
+        )}
         <Para label="Biography" value={cd.biography} />
       </Section>
 
       {/* Co-authors / Editors / Contributors / Translators */}
-      {Array.isArray(cd.co_authors) && cd.co_authors.length > 0 ? (
+      {Array.isArray(rawCd.co_authors) && (rawCd.co_authors as unknown[]).length > 0 ? (
         <Section title="Co-authors / Editors / Contributors / Translators">
           <ul className="divide-y divide-stone-100">
-            {(cd.co_authors as Array<Record<string, unknown>>).map((c, i) => {
+            {(rawCd.co_authors as Array<Record<string, unknown>>).map((c, i) => {
               const name =
                 [c.firstName || c.first_name, c.lastName || c.last_name]
                   .filter(Boolean)
@@ -1146,42 +1200,61 @@ function ProposalDetails({
       {/* Manuscript Details */}
       <Section title="Manuscript Details">
         <div className="grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-3">
+          <Field label="Word Count" value={formatNumber(cd.word_count) || "—"} />
           <Field
-            label="Word Count"
-            value={
-              typeof cd.estimated_word_count === "number"
-                ? cd.estimated_word_count.toLocaleString()
-                : "—"
-            }
+            label="illustrations/figures/tables"
+            value={formatNumber(cd.illustration_count) || "—"}
           />
-          <Field label="Tables" value={fmtBool(cd.has_tables)} />
-          <Field label="Illustrations" value={fmtBool(cd.has_illustrations)} />
-          <Field
-            label="Illustration Count"
-            value={cd.illustration_count ? cd.illustration_count.toLocaleString() : "—"}
-          />
-          <Field label="Non-English Content" value={isNonEnglish ? "Yes" : "No"} />
-          <Field label="Est. Completion" value={formatDate(cd.estimated_completion_date)} />
+          <Field label="Languages" value={cd.languages_used || "—"} />
+          <Field label="Est. Completion" value={cd.expected_completion_date || "—"} />
           <Field label="Subject" value={cd.subject || "—"} />
         </div>
+        {(cd.intended_audience || cd.manuscript_stage || cd.under_review_elsewhere) && (
+          <div className="mt-4 flex flex-col gap-4 border-t border-stone-100 pt-4">
+            <Para label="Intended Audience" value={cd.intended_audience} />
+            {cd.manuscript_stage && (
+              <Field label="Manuscript Stage" value={cd.manuscript_stage} />
+            )}
+            {cd.under_review_elsewhere && (
+              <Field label="Under Review Elsewhere" value={cd.under_review_elsewhere} />
+            )}
+          </div>
+        )}
       </Section>
 
       {/* Summary & Description */}
-      <Section title="Summary & Description">
-        {(cd.subject || (cd.secondary_subjects && cd.secondary_subjects.length > 0)) && (
-          <p className="-mt-2 mb-4 font-sans text-xs text-stone-500">
-            {[cd.subject, (cd.secondary_subjects || []).join(", ")]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
-        )}
-        <Para label="Overview" value={cd.detailed_description} />
-        <Para
-          label="Key Features & Unique Contribution"
-          value={[cd.key_features, cd.unique_selling_points].filter(Boolean).join("\n\n")}
-        />
-        <Para label="Intended Audience" value={cd.target_audience} />
-      </Section>
+      {(cd.short_description || cd.detailed_description || keywords.length > 0) && (
+        <Section title="Summary & Description">
+          {cd.short_description && (
+            <div>
+              <div className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-500">
+                Overview
+              </div>
+              <p className="mt-1.5 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-700">
+                {cd.short_description}
+              </p>
+              {keywords.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {keywords.map((k) => (
+                    <span
+                      key={k}
+                      className="inline-flex rounded-full bg-amber-50 px-3 py-1 font-sans text-xs font-medium text-amber-800 ring-1 ring-amber-200"
+                    >
+                      {k}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          {cd.detailed_description && (
+            <Para label="Key Features & Unique Contribution" value={cd.detailed_description} />
+          )}
+          {cd.key_features && cd.key_features !== cd.detailed_description && (
+            <Para label="Key Features / Selling Points" value={cd.key_features} />
+          )}
+        </Section>
+      )}
 
       {/* Table of Contents */}
       {toc.length > 0 && (
@@ -1225,10 +1298,8 @@ function ProposalDetails({
       )}
 
       {/* Author-Suggested Reviewers */}
-      <Section title="Author-Suggested Reviewers">
-        {suggestedReviewers.length === 0 ? (
-          <p className="font-sans text-sm text-stone-500">No reviewers suggested.</p>
-        ) : (
+      {suggestedReviewers.length > 0 && (
+        <Section title="Author-Suggested Reviewers">
           <ol className="divide-y divide-stone-100">
             {suggestedReviewers.map((r, idx) => (
               <li key={idx} className="flex gap-4 py-3 first:pt-0">
@@ -1239,13 +1310,13 @@ function ProposalDetails({
               </li>
             ))}
           </ol>
-        )}
-      </Section>
+        </Section>
+      )}
 
       {/* Additional Comments & Permissions */}
-      {(additionalNotes || cd.additional_info || cd.permissions_required) && (
+      {(cd.additional_notes || cd.additional_info || cd.permissions_required) && (
         <Section title="Additional Comments & Permissions">
-          <Para label="Additional Notes from Author" value={additionalNotes} />
+          <Para label="Additional Notes from Author" value={cd.additional_notes} />
           {cd.additional_info && (
             <p className="mt-4 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-700 first:mt-0">
               {cd.additional_info}
@@ -1253,13 +1324,7 @@ function ProposalDetails({
           )}
           <Para
             label="Permissions Required from Copyright Holders"
-            value={
-              typeof cd.permissions_required === "boolean"
-                ? cd.permissions_required
-                  ? "Yes"
-                  : "No"
-                : (cd.permissions_required as string | undefined)
-            }
+            value={cd.permissions_required}
           />
         </Section>
       )}
@@ -1300,7 +1365,7 @@ function ProposalDetails({
       )}
 
       {/* Additional Proposal Information (catch-all) */}
-      <AdditionalProposalDetails rawCd={cd as Record<string, unknown>} />
+      <AdditionalProposalDetails rawCd={rawCd} />
 
       {/* Submission Info */}
       <Section title="Submission Info">
