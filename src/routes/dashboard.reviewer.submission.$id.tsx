@@ -1123,48 +1123,51 @@ function ProposalDetails({
       <Section title="Primary Author / Editor">
         <div className="-mt-2 mb-4 flex flex-wrap gap-x-8 gap-y-2 font-sans text-sm">
           <Field label="Type" value={cd.book_type || "—"} />
-          <Field
-            label="Words"
-            value={
-              typeof cd.estimated_word_count === "number"
-                ? cd.estimated_word_count.toLocaleString()
-                : "—"
-            }
-          />
-          <Field label="Completion" value={formatDate(cd.estimated_completion_date)} />
+          <Field label="Words" value={formatNumber(cd.word_count) || "—"} />
+          <Field label="Completion" value={cd.expected_completion_date || "—"} />
         </div>
         <hr className="my-4 border-stone-100" />
         <div className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
-          <Field
-            label="Name"
-            value={
-              cd.corresponding_author_name ||
-              [cd.author_title, cd.author_first_name, cd.author_last_name]
-                .filter(Boolean)
-                .join(" ") ||
-              "—"
-            }
-          />
+          <Field label="Name" value={cd.corresponding_author_name || "—"} />
           <Field label="Email" value={cd.email || "—"} />
-          <Field label="Phone" value={cd.phone || "—"} />
           <Field label="Institution" value={cd.institution || "—"} />
           <Field label="Country" value={cd.country || "—"} />
         </div>
-        <hr className="my-4 border-stone-100" />
-        <div>
-          <div className="font-sans text-xs uppercase tracking-wide text-stone-500">
-            Mailing Address
-          </div>
-          <p className="mt-2 font-sans text-sm text-stone-800">{cd.address || "—"}</p>
-        </div>
+        {(cd.address ||
+          cd.address_line_1 ||
+          cd.city ||
+          cd.state ||
+          cd.postal_code ||
+          cd.country) && (
+          <>
+            <hr className="my-4 border-stone-100" />
+            <div>
+              <div className="font-sans text-xs uppercase tracking-wide text-stone-500">
+                Mailing Address
+              </div>
+              <p className="mt-2 font-sans text-sm text-stone-800">
+                {[
+                  cd.address_line_1,
+                  cd.address_line_2,
+                  cd.city,
+                  cd.state,
+                  cd.postal_code,
+                  cd.country,
+                ]
+                  .filter(Boolean)
+                  .join(", ") || cd.address}
+              </p>
+            </div>
+          </>
+        )}
         <Para label="Biography" value={cd.biography} />
       </Section>
 
       {/* Co-authors / Editors / Contributors / Translators */}
-      {Array.isArray(cd.co_authors) && cd.co_authors.length > 0 ? (
+      {Array.isArray(rawCd.co_authors) && (rawCd.co_authors as unknown[]).length > 0 ? (
         <Section title="Co-authors / Editors / Contributors / Translators">
           <ul className="divide-y divide-stone-100">
-            {(cd.co_authors as Array<Record<string, unknown>>).map((c, i) => {
+            {(rawCd.co_authors as Array<Record<string, unknown>>).map((c, i) => {
               const name =
                 [c.firstName || c.first_name, c.lastName || c.last_name]
                   .filter(Boolean)
@@ -1197,42 +1200,61 @@ function ProposalDetails({
       {/* Manuscript Details */}
       <Section title="Manuscript Details">
         <div className="grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-3">
+          <Field label="Word Count" value={formatNumber(cd.word_count) || "—"} />
           <Field
-            label="Word Count"
-            value={
-              typeof cd.estimated_word_count === "number"
-                ? cd.estimated_word_count.toLocaleString()
-                : "—"
-            }
+            label="illustrations/figures/tables"
+            value={formatNumber(cd.illustration_count) || "—"}
           />
-          <Field label="Tables" value={fmtBool(cd.has_tables)} />
-          <Field label="Illustrations" value={fmtBool(cd.has_illustrations)} />
-          <Field
-            label="Illustration Count"
-            value={cd.illustration_count ? cd.illustration_count.toLocaleString() : "—"}
-          />
-          <Field label="Non-English Content" value={isNonEnglish ? "Yes" : "No"} />
-          <Field label="Est. Completion" value={formatDate(cd.estimated_completion_date)} />
+          <Field label="Languages" value={cd.languages_used || "—"} />
+          <Field label="Est. Completion" value={cd.expected_completion_date || "—"} />
           <Field label="Subject" value={cd.subject || "—"} />
         </div>
+        {(cd.intended_audience || cd.manuscript_stage || cd.under_review_elsewhere) && (
+          <div className="mt-4 flex flex-col gap-4 border-t border-stone-100 pt-4">
+            <Para label="Intended Audience" value={cd.intended_audience} />
+            {cd.manuscript_stage && (
+              <Field label="Manuscript Stage" value={cd.manuscript_stage} />
+            )}
+            {cd.under_review_elsewhere && (
+              <Field label="Under Review Elsewhere" value={cd.under_review_elsewhere} />
+            )}
+          </div>
+        )}
       </Section>
 
       {/* Summary & Description */}
-      <Section title="Summary & Description">
-        {(cd.subject || (cd.secondary_subjects && cd.secondary_subjects.length > 0)) && (
-          <p className="-mt-2 mb-4 font-sans text-xs text-stone-500">
-            {[cd.subject, (cd.secondary_subjects || []).join(", ")]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
-        )}
-        <Para label="Overview" value={cd.detailed_description} />
-        <Para
-          label="Key Features & Unique Contribution"
-          value={[cd.key_features, cd.unique_selling_points].filter(Boolean).join("\n\n")}
-        />
-        <Para label="Intended Audience" value={cd.target_audience} />
-      </Section>
+      {(cd.short_description || cd.detailed_description || keywords.length > 0) && (
+        <Section title="Summary & Description">
+          {cd.short_description && (
+            <div>
+              <div className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-500">
+                Overview
+              </div>
+              <p className="mt-1.5 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-700">
+                {cd.short_description}
+              </p>
+              {keywords.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {keywords.map((k) => (
+                    <span
+                      key={k}
+                      className="inline-flex rounded-full bg-amber-50 px-3 py-1 font-sans text-xs font-medium text-amber-800 ring-1 ring-amber-200"
+                    >
+                      {k}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          {cd.detailed_description && (
+            <Para label="Key Features & Unique Contribution" value={cd.detailed_description} />
+          )}
+          {cd.key_features && cd.key_features !== cd.detailed_description && (
+            <Para label="Key Features / Selling Points" value={cd.key_features} />
+          )}
+        </Section>
+      )}
 
       {/* Table of Contents */}
       {toc.length > 0 && (
@@ -1276,10 +1298,8 @@ function ProposalDetails({
       )}
 
       {/* Author-Suggested Reviewers */}
-      <Section title="Author-Suggested Reviewers">
-        {suggestedReviewers.length === 0 ? (
-          <p className="font-sans text-sm text-stone-500">No reviewers suggested.</p>
-        ) : (
+      {suggestedReviewers.length > 0 && (
+        <Section title="Author-Suggested Reviewers">
           <ol className="divide-y divide-stone-100">
             {suggestedReviewers.map((r, idx) => (
               <li key={idx} className="flex gap-4 py-3 first:pt-0">
@@ -1290,13 +1310,13 @@ function ProposalDetails({
               </li>
             ))}
           </ol>
-        )}
-      </Section>
+        </Section>
+      )}
 
       {/* Additional Comments & Permissions */}
-      {(additionalNotes || cd.additional_info || cd.permissions_required) && (
+      {(cd.additional_notes || cd.additional_info || cd.permissions_required) && (
         <Section title="Additional Comments & Permissions">
-          <Para label="Additional Notes from Author" value={additionalNotes} />
+          <Para label="Additional Notes from Author" value={cd.additional_notes} />
           {cd.additional_info && (
             <p className="mt-4 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-700 first:mt-0">
               {cd.additional_info}
@@ -1304,13 +1324,7 @@ function ProposalDetails({
           )}
           <Para
             label="Permissions Required from Copyright Holders"
-            value={
-              typeof cd.permissions_required === "boolean"
-                ? cd.permissions_required
-                  ? "Yes"
-                  : "No"
-                : (cd.permissions_required as string | undefined)
-            }
+            value={cd.permissions_required}
           />
         </Section>
       )}
@@ -1351,7 +1365,7 @@ function ProposalDetails({
       )}
 
       {/* Additional Proposal Information (catch-all) */}
-      <AdditionalProposalDetails rawCd={cd as Record<string, unknown>} />
+      <AdditionalProposalDetails rawCd={rawCd} />
 
       {/* Submission Info */}
       <Section title="Submission Info">
