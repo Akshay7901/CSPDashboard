@@ -766,6 +766,21 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
   const tint = STATUS_TINT[status];
   const isContractView =
     status === "contract" || status === "signed" || status === "approved";
+  // Auto-expand the Reviewer Feedback section once when the editor has
+  // requested revisions (or the review has been returned), so the author
+  // sees any submitted peer reviewer comments alongside the editor's note.
+  const reviewerFeedbackAutoOpenedRef = useRef(false);
+  useEffect(() => {
+    if (reviewerFeedbackAutoOpenedRef.current) return;
+    if (
+      status === "revisions" ||
+      status === "major_revisions" ||
+      status === "review_returned"
+    ) {
+      setReviewerFeedbackOpen(true);
+      reviewerFeedbackAutoOpenedRef.current = true;
+    }
+  }, [status]);
   // Default to showing the full proposal details even in later states
   // (contract / signed / approved) so authors can always see the underlying
   // proposal information without having to expand it manually.
