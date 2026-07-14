@@ -5015,6 +5015,10 @@ const ADDITIONAL_DETAILS_SKIP = new Set<string>([
   "attachments",
   "source",
   "website_reference_number",
+  "author_cv",
+  "author_cv_url",
+  "cv",
+  "cv_url",
 ]);
 
 function humanizeKey(key: string): string {
