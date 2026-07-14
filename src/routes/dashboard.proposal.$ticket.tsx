@@ -243,47 +243,22 @@ function toProposalDocument(value: unknown, fallbackLabel?: string): ProposalDoc
 
 function extractProposalDocuments(currentData: Record<string, unknown>) {
   const documents: ProposalDocument[] = [];
-  const add = (value: unknown, label?: string) => {
-    if (!value) return;
-    if (Array.isArray(value)) {
-      value.forEach((item) => add(item, label));
-      return;
-    }
-    if (isRecord(value)) {
-      const groupedFields: Array<[string, string]> = [
-        ["sampleChapter", "Sample Chapter"],
-        ["sample_chapter", "Sample Chapter"],
-        ["additionalFiles", "Additional File"],
-        ["additional_files", "Additional File"],
-        ["supportingDocuments", "Supporting Document"],
-        ["supporting_documents", "Supporting Document"],
-      ];
-      let handledGroup = false;
-      groupedFields.forEach(([key, groupLabel]) => {
-        if (value[key]) {
-          handledGroup = true;
-          add(value[key], groupLabel);
-        }
+  const cv = currentData.author_cv;
+  if (isRecord(cv)) {
+    const doc = toProposalDocument(cv, "Author CV");
+    if (doc) documents.push({ ...doc, label: "Author CV" });
+  } else if (typeof cv === "string" && cv) {
+    documents.push({ url: cv, filename: filenameFromUrl(cv) || "Author CV", label: "Author CV" });
+  } else {
+    const cvUrl = currentData.author_cv_url;
+    if (typeof cvUrl === "string" && cvUrl) {
+      documents.push({
+        url: cvUrl,
+        filename: filenameFromUrl(cvUrl) || "Author CV",
+        label: "Author CV",
       });
-      const doc = toProposalDocument(value, label);
-      if (doc) documents.push(doc);
-      if (handledGroup) return;
-      return;
     }
-    const doc = toProposalDocument(value, label);
-    if (doc) documents.push(doc);
-  };
-
-  [
-    ["manuscript_files", undefined],
-    ["supporting_documents", "Supporting Document"],
-    ["supportingDocs", "Supporting Document"],
-    ["documents", "Document"],
-    ["files", "Document"],
-    ["attachments", "Attachment"],
-    ["uploaded_files", "Document"],
-    ["supporting_materials", "Supporting Material"],
-  ].forEach(([key, label]) => add(currentData[key as string], label as string | undefined));
+  }
 
   const seen = new Set<string>();
   return documents.filter((doc) => {

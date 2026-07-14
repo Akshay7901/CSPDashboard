@@ -774,31 +774,21 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
   const title = contractTitleOverride || cd.main_title || proposal.ticket;
   const subtitle = contractSubtitleOverride || cd.sub_title;
   const kind = cd.book_type || "Proposal";
-  const files = cd.manuscript_files || {};
-  const allFiles: ManuscriptFile[] = [
-    ...(files.sampleChapter ? [files.sampleChapter] : []),
-    ...(files.additionalFiles || []),
-    ...(() => {
-      const sd = (cd as any).supporting_documents ?? (cd as any).supporting_materials;
-      if (!sd) return [];
-      const arr = Array.isArray(sd) ? sd : [sd];
-      return arr
-        .map((d: any): ManuscriptFile | null => {
-          if (!d) return null;
-          if (typeof d === "string") {
-            return { url: d, filename: d.split("/").pop() || d };
-          }
-          const url = d.url || d.file_url || d.href || d.link;
-          if (!url) return null;
-          return {
-            url,
-            filename: d.filename || d.name || d.title || url.split("/").pop() || "Document",
-            size_bytes: d.size_bytes || d.size,
-          };
-        })
-        .filter((x): x is ManuscriptFile => !!x);
-    })(),
-  ];
+  const allFiles: ManuscriptFile[] = (() => {
+    const cv = (cd as any).author_cv;
+    const cvUrl = (cd as any).author_cv_url;
+    if (cv && typeof cv === "object" && cv.url) {
+      return [{
+        url: cv.url,
+        filename: cv.filename || cv.url.split("/").pop() || "Author CV",
+        size_bytes: cv.size_bytes,
+      }];
+    }
+    if (typeof cvUrl === "string" && cvUrl) {
+      return [{ url: cvUrl, filename: cvUrl.split("/").pop() || "Author CV" }];
+    }
+    return [];
+  })();
   const fmtBool = (v?: boolean | string) => {
     if (typeof v === "string") {
       const s = v.trim().toLowerCase();
