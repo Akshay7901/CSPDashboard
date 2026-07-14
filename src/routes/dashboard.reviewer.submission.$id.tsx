@@ -902,24 +902,31 @@ function ProposalDetails({
   };
 }) {
   const cd = proposal.cd;
-  const allFiles = (() => {
+  const sample = cd.manuscript_files?.sampleChapter;
+  const additional = cd.manuscript_files?.additionalFiles ?? [];
+  const cvFile = (() => {
     const cv = (cd as Record<string, unknown>).author_cv as
       | { url?: string; filename?: string; size_bytes?: number }
       | undefined;
     const cvUrl = (cd as Record<string, unknown>).author_cv_url as string | undefined;
     if (cv && typeof cv === "object" && cv.url) {
-      return [{
+      return {
         url: cv.url,
         filename: cv.filename || cv.url.split("/").pop() || "Author CV",
         size_bytes: cv.size_bytes,
         label: "Author CV",
-      }];
+      };
     }
     if (typeof cvUrl === "string" && cvUrl) {
-      return [{ url: cvUrl, filename: cvUrl.split("/").pop() || "Author CV", label: "Author CV" }];
+      return { url: cvUrl, filename: cvUrl.split("/").pop() || "Author CV", label: "Author CV" };
     }
-    return [] as Array<{ url: string; filename: string; size_bytes?: number; label: string }>;
+    return null;
   })();
+  const allFiles = [
+    ...(cvFile ? [cvFile] : []),
+    ...(sample ? [{ ...sample, label: "Sample Chapter" }] : []),
+    ...additional.map((f) => ({ ...f, label: "Additional" })),
+  ];
 
   const additionalNotes =
     ((cd as Record<string, unknown>).additional_notes as string | undefined) ||
