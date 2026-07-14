@@ -1414,5 +1414,68 @@ function ProposalDetails({
         )}
       </Section>
     </section>
+    <Dialog open={!!previewDoc} onOpenChange={(open) => !open && setPreviewDoc(null)}>
+      <DialogContent className="max-w-5xl p-0 sm:max-w-5xl">
+        <DialogHeader className="flex flex-row items-center justify-between border-b border-stone-200 px-5 py-3">
+          <div className="flex-1">
+            <DialogTitle className="truncate font-sans text-sm font-semibold text-stone-900">
+              {previewDoc?.filename}
+            </DialogTitle>
+            <DialogDescription className="sr-only">Document preview</DialogDescription>
+          </div>
+          {previewDoc?.url && (
+            <a
+              href={previewDoc.url}
+              download={previewDoc.filename}
+              title="Download file"
+              className="ml-4 mr-4 flex items-center gap-1.5 rounded-md bg-stone-900 px-3 py-1.5 font-sans text-xs font-semibold text-white hover:bg-stone-800"
+            >
+              <Download className="h-3.5 w-3.5" />
+              Download
+            </a>
+          )}
+        </DialogHeader>
+        {previewDoc && (() => {
+          const url = previewDoc.url;
+          const ext = (previewDoc.filename.split(".").pop() || "").toLowerCase();
+          const isImage = ["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp"].includes(ext);
+          const isPdf = ext === "pdf" || url.toLowerCase().includes(".pdf");
+          const isOffice = ["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(ext);
+          return (
+            <div className="h-[75vh] w-full bg-stone-100">
+              {isImage ? (
+                <div className="flex h-full w-full items-center justify-center overflow-auto p-4">
+                  <img src={url} alt={previewDoc.filename} className="max-h-full max-w-full object-contain" />
+                </div>
+              ) : isPdf ? (
+                <iframe src={url} title={previewDoc.filename} className="h-full w-full" />
+              ) : isOffice ? (
+                <iframe
+                  src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`}
+                  title={previewDoc.filename}
+                  className="h-full w-full"
+                />
+              ) : (
+                <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
+                  <FileText className="h-10 w-10 text-stone-400" />
+                  <p className="font-sans text-sm text-stone-600">
+                    Preview isn't available for this file type.
+                  </p>
+                  <a
+                    href={url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-md bg-stone-900 px-4 py-2 font-sans text-sm font-semibold text-white hover:bg-stone-800"
+                  >
+                    Open in new tab
+                  </a>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
