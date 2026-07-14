@@ -684,10 +684,6 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
   const { cd } = proposal;
   const [contractSigned, setContractSigned] = useState(false);
   const [reviewerFeedbackOpen, setReviewerFeedbackOpen] = useState(false);
-  // Auto-open the reviewer feedback section when the editor has requested
-  // revisions, so the author immediately sees any submitted peer reviewer
-  // comments alongside the editor's note.
-  const reviewerFeedbackAutoOpenedRef = useRef(false);
   const [contractTitleOverride, setContractTitleOverride] = useState<string | undefined>();
   const [contractSubtitleOverride, setContractSubtitleOverride] = useState<string | undefined>();
   const lastContractKeyRef = useRef<string | null>(null);
