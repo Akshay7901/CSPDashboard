@@ -1420,6 +1420,7 @@ function ProposalDetailPage() {
     additional_notes: pick("additional_notes", "additional_comments", "notes"),
     permissions_required: pick("permissions_required"),
     table_of_contents: pick("table_of_contents"),
+    subject: pick("subject"),
   };
   // Prefer the title/subtitle from the most recent contract (the DR may
   // have edited them at /contract/send time); fall back to the proposal's
@@ -3202,6 +3203,11 @@ function ProposalDetailPage() {
                     <Stat
                       label="Est. Completion"
                       value={cd.expected_completion_date || "—"}
+                      large
+                    />
+                    <Stat
+                      label="Subject"
+                      value={cd.subject || "—"}
                       large
                     />
                   </div>
@@ -5037,6 +5043,7 @@ const ADDITIONAL_DETAILS_SKIP = new Set<string>([
   "author_cv_url",
   "cv",
   "cv_url",
+  "subject",
 ]);
 
 function humanizeKey(key: string): string {
