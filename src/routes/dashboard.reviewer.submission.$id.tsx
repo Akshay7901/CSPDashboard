@@ -1162,6 +1162,7 @@ function ProposalDetails({
           />
           <Field label="Non-English Content" value={isNonEnglish ? "Yes" : "No"} />
           <Field label="Est. Completion" value={formatDate(cd.estimated_completion_date)} />
+          <Field label="Subject" value={cd.subject || "—"} />
         </div>
       </Section>
 
@@ -1252,7 +1253,13 @@ function ProposalDetails({
           )}
           <Para
             label="Permissions Required from Copyright Holders"
-            value={cd.permissions_required}
+            value={
+              typeof cd.permissions_required === "boolean"
+                ? cd.permissions_required
+                  ? "Yes"
+                  : "No"
+                : (cd.permissions_required as string | undefined)
+            }
           />
         </Section>
       )}
@@ -1291,6 +1298,9 @@ function ProposalDetails({
           </ul>
         </Section>
       )}
+
+      {/* Additional Proposal Information (catch-all) */}
+      <AdditionalProposalDetails rawCd={cd as Record<string, unknown>} />
 
       {/* Submission Info */}
       <Section title="Submission Info">
