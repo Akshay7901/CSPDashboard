@@ -838,6 +838,89 @@ function Para({ label, value }: { label: string; value?: string }) {
   );
 }
 
+const ADDITIONAL_DETAILS_SKIP = new Set<string>([
+  "main_title", "title", "sub_title", "subtitle", "proposed_title", "proposed_subtitle",
+  "book_type", "corresponding_author_name", "author_first_name", "author_last_name",
+  "author_title", "email", "secondary_email", "email_2", "phone", "phone_number",
+  "qualifications", "academic_qualifications", "professional_qualifications",
+  "institution", "job_title", "address", "address_line_1", "address_line_2",
+  "address_line1", "address_line2", "city", "state", "region", "province", "county",
+  "postal_code", "zip", "zip_code", "country",
+  "languages_used", "languages", "language",
+  "intended_audience", "audience", "target_audience",
+  "manuscript_stage", "stage", "current_stage",
+  "expected_submission_date", "submission_date",
+  "competing_titles", "unique_contribution", "primary_market", "market",
+  "conferences", "relevant_conferences", "promotional_channels", "promotion_channels",
+  "additional_notes", "additional_comments", "notes", "additional_info",
+  "authors", "mailing", "book", "description", "marketing", "manuscript", "agreement",
+  "biography", "co_authors_editors", "co_authors",
+  "word_count", "estimated_word_count", "figures_tables_count", "illustration_count",
+  "has_tables", "has_illustrations", "under_review_elsewhere", "is_previously_published",
+  "expected_completion_date", "estimated_completion_date",
+  "short_description", "detailed_description", "detailed_description_extra",
+  "key_features", "unique_selling_points", "keywords", "marketing_info",
+  "referees_reviewers", "recommended_reviewers",
+  "permissions_required", "permissions_notes",
+  "table_of_contents", "manuscript_files", "documents", "supporting_documents",
+  "files", "attachments",
+  "source", "website_reference_number",
+  "author_cv", "author_cv_url", "cv", "cv_url",
+  "subject", "secondary_subjects",
+]);
+
+function humanizeKey(key: string): string {
+  return key.replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function formatDetailValue(value: unknown): string | null {
+  if (value === null || value === undefined || value === "") return null;
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (typeof value === "number") return String(value);
+  if (typeof value === "string") return value;
+  if (Array.isArray(value)) {
+    const parts = value
+      .map((v) => (typeof v === "object" ? JSON.stringify(v) : String(v ?? "")))
+      .filter((s) => s && s !== "[]" && s !== "{}");
+    return parts.length ? parts.join(", ") : null;
+  }
+  if (typeof value === "object") {
+    try {
+      const s = JSON.stringify(value);
+      return s && s !== "{}" && s !== "[]" ? s : null;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+function AdditionalProposalDetails({ rawCd }: { rawCd: Record<string, unknown> }) {
+  const entries = Object.entries(rawCd)
+    .filter(([k]) => !ADDITIONAL_DETAILS_SKIP.has(k))
+    .map(([k, v]) => [k, formatDetailValue(v)] as const)
+    .filter(([, v]) => v !== null) as Array<[string, string]>;
+
+  if (entries.length === 0) return null;
+
+  return (
+    <Section title="Additional Proposal Information">
+      <div className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
+        {entries.map(([key, value]) => (
+          <div key={key}>
+            <div className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-500">
+              {humanizeKey(key)}
+            </div>
+            <p className="mt-1.5 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-700">
+              {value}
+            </p>
+          </div>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
 function ProposalDetails({
   proposal,
 }: {
