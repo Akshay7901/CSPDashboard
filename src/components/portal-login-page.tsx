@@ -248,6 +248,7 @@ function PortalLoginForm({ portal, onBack }: { portal: PortalConfig; onBack: () 
       editor: ["editor", "admin", "decision_reviewer"],
       reviewer: ["reviewer", "peer_reviewer"],
       decision_reviewer: ["decision_reviewer"],
+      proofreader: ["proofreader", "proof_reader"],
     };
     const normalized = (apiRole || "").toLowerCase();
     return allowed[portal.id].includes(normalized);
