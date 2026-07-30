@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { ChevronRight, LogOut, RefreshCw, User2 } from "lucide-react";
+import { ChevronRight, LogOut, User2 } from "lucide-react";
 import { toast } from "sonner";
 import cspLogo from "@/assets/csp-logo.png";
 import { portalLogout, getPortalSession } from "@/lib/auth";
