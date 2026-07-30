@@ -37,32 +37,21 @@ type FieldKey =
   | "display_names"
   | "display_bios"
   | "book_description"
-  | "short_description"
   | "keywords"
   | "website_classification"
-  | "bic"
-  | "bisac"
-  | "thema";
+  | "bic";
 
 const FIELDS: { key: FieldKey; label: string; type: "text" | "textarea"; hint?: string }[] = [
-  { key: "full_title", label: "Full Title", type: "text" },
+  { key: "full_title", label: "Title (full)", type: "text" },
   { key: "title", label: "Title", type: "text" },
   { key: "subtitle", label: "Subtitle", type: "text" },
   { key: "category", label: "Category", type: "text" },
-  {
-    key: "display_names",
-    label: "Author Display Names",
-    type: "text",
-    hint: "Comma separated",
-  },
-  { key: "display_bios", label: "Author Bios", type: "textarea" },
-  { key: "book_description", label: "Book Description", type: "textarea" },
-  { key: "short_description", label: "Short Description", type: "textarea" },
-  { key: "keywords", label: "Keywords", type: "text", hint: "Comma separated" },
-  { key: "website_classification", label: "Website Classification", type: "text" },
-  { key: "bic", label: "BIC", type: "text" },
-  { key: "bisac", label: "BISAC", type: "text" },
-  { key: "thema", label: "Thema", type: "text" },
+  { key: "display_names", label: "Display names", type: "text" },
+  { key: "display_bios", label: "Display bios", type: "textarea" },
+  { key: "book_description", label: "Book description", type: "textarea" },
+  { key: "keywords", label: "Keywords", type: "text" },
+  { key: "website_classification", label: "Website classification", type: "text" },
+  { key: "bic", label: "BIC codes", type: "text" },
 ];
 
 const EMPTY = Object.fromEntries(FIELDS.map((f) => [f.key, ""])) as Record<FieldKey, string>;
@@ -85,11 +74,11 @@ type AuthorEntry = {
 };
 
 const AUTHOR_FIELDS: { key: keyof AuthorEntry; label: string }[] = [
-  { key: "title", label: "Title" },
+  { key: "title", label: "Salutation" },
   { key: "first_name", label: "First name" },
   { key: "last_name", label: "Last name" },
   { key: "email", label: "Email" },
-  { key: "email_2", label: "Secondary email" },
+  { key: "email_2", label: "Email 2" },
   { key: "institution", label: "Institution" },
   { key: "country", label: "Country" },
 ];
@@ -118,6 +107,7 @@ function ProofreaderProposalPage() {
   const [sending, setSending] = useState(false);
   const [metadataHasOpenQuery, setMetadataHasOpenQuery] = useState(false);
   const [authors, setAuthors] = useState<AuthorEntry[]>([]);
+  const [extras, setExtras] = useState<Record<string, unknown>>({});
   const [coverImage, setCoverImage] = useState<string | null>(null);
   const [revisions, setRevisions] = useState<Revision[]>([]);
   const [compiledAt, setCompiledAt] = useState<string | null>(null);
@@ -141,6 +131,10 @@ function ProofreaderProposalPage() {
       next[f.key] = typeof v === "string" ? v : v == null ? "" : String(v);
     }
     setValues(next);
+    const known = new Set<string>([...FIELDS.map((f) => f.key), "authors"]);
+    setExtras(
+      Object.fromEntries(Object.entries(raw).filter(([k]) => !known.has(k))),
+    );
     const rawAuthors = raw.authors;
     setAuthors(Array.isArray(rawAuthors) ? (rawAuthors as AuthorEntry[]) : []);
     const d = res.data as unknown as Record<string, unknown>;
@@ -195,7 +189,7 @@ function ProofreaderProposalPage() {
     try {
       await saveProofreaderMetadata(
         ticket,
-        { ...values, authors },
+        { ...extras, ...values, authors },
         notes.trim() || undefined,
       );
       toast.success("Metadata saved");
@@ -228,12 +222,9 @@ function ProofreaderProposalPage() {
     display_names: "Display names",
     display_bios: "Display bios",
     book_description: "Book description",
-    short_description: "Short description",
     keywords: "Keywords",
     website_classification: "Website classification",
     bic: "BIC codes",
-    bisac: "BISAC codes",
-    thema: "Thema codes",
   };
 
   const onSaveFields = async (updates: Record<string, string>) => {
@@ -241,7 +232,7 @@ function ProofreaderProposalPage() {
     setValues(next);
     await saveProofreaderMetadata(
       ticket,
-      { ...next, authors },
+      { ...extras, ...next, authors },
       notes.trim() || undefined,
     );
   };
