@@ -599,6 +599,10 @@ function ProposalDetailPage() {
     ticket_number?: string;
     current_version?: number;
     metadata_status?: string;
+    is_locked?: boolean;
+    proofreader_email?: string | null;
+    compiled_at?: string | null;
+    sent_for_confirmation_at?: string | null;
     metadata?: {
       full_title?: string;
       title?: string;
@@ -1489,6 +1493,16 @@ function ProposalDetailPage() {
     return s === "locked" || s === "confirmed_and_finalised" || s === "confirmed_and_finalized";
   }, [data?.status]);
 
+  /**
+   * Proofreader phase: once a contract is signed the proofreader owns the
+   * proposal. Admin / DR can observe only — the API rejects assign, decline
+   * and metadata writes while the proposal sits in awaiting_author_approval.
+   */
+  const isProofreaderPhase = useMemo(() => {
+    const s = (data?.status || "").toLowerCase().replace(/\s+/g, "_");
+    return s === "awaiting_author_approval";
+  }, [data?.status]);
+
   // Latest unanswered author query (used for prominent DR action panel)
   const openQuery = useMemo<ContractQueryEntry | null>(() => {
     const answered = new Set(
@@ -2222,6 +2236,18 @@ function ProposalDetailPage() {
 
         {data && !loading && (
           <>
+            {isProofreaderPhase && (
+              <div className="mt-6 rounded-2xl border border-purple-200 bg-purple-50 px-6 py-5">
+                <p className="font-serif text-base font-bold text-purple-900">
+                  This proposal is in the Proofreader phase.
+                </p>
+                <p className="mt-1 font-sans text-sm leading-relaxed text-purple-800/90">
+                  The proofreader is compiling editorial metadata. Admin and
+                  Decision Reviewer actions are limited until the author
+                  approves.
+                </p>
+              </div>
+            )}
             {/* Title hero card */}
             <section className="mt-6 rounded-2xl border border-stone-200 bg-white px-8 py-7">
               <div className="flex items-start justify-between gap-6">
@@ -2354,16 +2380,21 @@ function ProposalDetailPage() {
                         const authorsList = metaForm.authors;
                          const isMetaLocked =
                            isLocked ||
+                           isProofreaderPhase ||
+                           metadata.is_locked === true ||
                            (metadata.metadata_status === "sent_to_author" &&
                              !metadataHasOpenQuery);
                         const isMetaApproved = metadata.metadata_status === "approved" || !!metadata.approved_at;
                         return (
                           <div className="space-y-4">
+                            <ProofreaderStatusPanel metadata={metadata} />
                             {isMetaLocked && (
                               <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 font-sans text-sm text-amber-800">
                                 {isLocked
                                   ? "Metadata has been locked — no further changes can be made."
-                                  : "Metadata has been sent to the author for approval. Editing is disabled until the author responds."}
+                                  : isProofreaderPhase
+                                    ? "The proofreader owns this metadata while the proposal is in the Proofreader phase — this panel is read-only."
+                                    : "Metadata has been sent to the author for approval. Editing is disabled until the author responds."}
                               </div>
                             )}
                             {metadata.metadata_status === "sent_to_author" &&
@@ -3571,6 +3602,16 @@ function ProposalDetailPage() {
                       <p className="py-6 text-center font-sans text-sm text-stone-500">
                         No actions available
                       </p>
+                    ) : isProofreaderPhase ? (
+                      <div className="rounded-xl border border-purple-200 bg-purple-50/70 px-5 py-6 text-center">
+                        <p className="font-serif text-lg font-bold text-purple-900">
+                          Proofreader Phase
+                        </p>
+                        <p className="mt-1 font-sans text-xs leading-relaxed text-purple-800/80">
+                          Actions are unavailable until the author approves the
+                          compiled metadata.
+                        </p>
+                      </div>
                     ) : isLocked ? (
                       <div className="rounded-xl border border-emerald-300 bg-emerald-50/70 px-5 py-6 text-center">
                         <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-emerald-700 text-white shadow-sm">
@@ -5099,5 +5140,72 @@ function AdditionalProposalDetails({ rawCd }: { rawCd: Record<string, unknown> }
         ))}
       </div>
     </Card>
+  );
+}
+/**
+ * Read-only proofreader status for admin / decision reviewer oversight.
+ * Mirrors the extra fields returned by GET /api/proposals/:ticket/metadata.
+ */
+function ProofreaderStatusPanel({
+  metadata,
+}: {
+  metadata: {
+    metadata_status?: string;
+    is_locked?: boolean;
+    proofreader_email?: string | null;
+    compiled_at?: string | null;
+    sent_for_confirmation_at?: string | null;
+  };
+}) {
+  const statusLabel =
+    metadata.metadata_status === "sent_to_author"
+      ? "With Author"
+      : metadata.metadata_status === "approved"
+        ? "Approved"
+        : "Compiling";
+
+  return (
+    <div className="rounded-xl border border-purple-200 bg-purple-50/50 px-5 py-4">
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <h3 className="font-sans text-xs font-semibold uppercase tracking-wider text-purple-800">
+          Proofreader Status
+        </h3>
+        {metadata.is_locked && (
+          <span className="rounded-md border border-red-200 bg-red-50 px-2 py-0.5 font-sans text-xs font-medium text-red-700">
+            Locked
+          </span>
+        )}
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <ProofreaderStatusItem
+          label="Assigned proofreader"
+          value={metadata.proofreader_email || "Not yet assigned"}
+        />
+        <ProofreaderStatusItem label="Metadata status" value={statusLabel} />
+        <ProofreaderStatusItem
+          label="First compiled"
+          value={metadata.compiled_at ? formatDate(metadata.compiled_at) : "—"}
+        />
+        <ProofreaderStatusItem
+          label="Sent to author"
+          value={
+            metadata.sent_for_confirmation_at
+              ? formatDate(metadata.sent_for_confirmation_at)
+              : "—"
+          }
+        />
+      </div>
+    </div>
+  );
+}
+
+function ProofreaderStatusItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="font-sans text-[11px] font-semibold uppercase tracking-wider text-purple-700/70">
+        {label}
+      </p>
+      <p className="mt-0.5 break-words font-sans text-sm text-stone-800">{value}</p>
+    </div>
   );
 }

@@ -8,6 +8,8 @@ export type StatusKey =
   | "contract"
   | "signed"
   | "approved"
+  | "proofreader_review"
+  | "author_approved"
   | "declined";
 
 export interface StatusMeta {
@@ -92,6 +94,22 @@ export const STATUS_META: Record<StatusKey, StatusMeta> = {
     badgeClass: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
     rowBar: "bg-emerald-500",
   },
+  proofreader_review: {
+    key: "proofreader_review",
+    label: "Proofreader Review",
+    filterLabel: "Proofreader Review",
+    dot: "bg-purple-500",
+    badgeClass: "bg-purple-50 text-purple-700 ring-1 ring-purple-200",
+    rowBar: "bg-purple-500",
+  },
+  author_approved: {
+    key: "author_approved",
+    label: "Author Approved",
+    filterLabel: "Author Approved",
+    dot: "bg-green-500",
+    badgeClass: "bg-green-50 text-green-700 ring-1 ring-green-200",
+    rowBar: "bg-green-500",
+  },
   declined: {
     key: "declined",
     label: "Declined",
@@ -117,8 +135,9 @@ const STATUS_KEY_MAP: Record<string, StatusKey> = {
   contract_issued: "contract",
   queries_raised: "question",
   question_raised: "question",
-  awaiting_author_approval: "contract",
-  author_approved: "contract",
+  awaiting_author_approval: "proofreader_review",
+  proofreader_review: "proofreader_review",
+  author_approved: "author_approved",
   locked: "signed",
   contract_signed: "signed",
   contract_received: "signed",

@@ -306,6 +306,8 @@ const STATUS_LABEL: Record<StatusKey, string> = {
   contract: "Contract Issued",
   signed: "Contract Signed",
   approved: "Metadata Approved",
+  proofreader_review: "Proofreader Review",
+  author_approved: "Author Approved",
   declined: "Declined",
 };
 
@@ -319,6 +321,8 @@ const STATUS_TINT: Record<StatusKey, { bg: string; text: string; dot: string }> 
   contract: { bg: "bg-violet-50", text: "text-violet-700", dot: "bg-violet-500" },
   signed: { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },
   approved: { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },
+  proofreader_review: { bg: "bg-purple-50", text: "text-purple-700", dot: "bg-purple-500" },
+  author_approved: { bg: "bg-green-50", text: "text-green-700", dot: "bg-green-500" },
   declined: { bg: "bg-stone-100", text: "text-stone-600", dot: "bg-stone-400" },
 };
 

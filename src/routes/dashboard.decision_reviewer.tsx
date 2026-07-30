@@ -28,6 +28,11 @@ import {
 } from "@/lib/proposals";
 import { proposalApiFetch } from "@/lib/proposalApi";
 import { getMetadata, getMetadataQueries } from "@/lib/metadataApi";
+import {
+  getProofreaderQueue,
+  type ProofreaderQueueItem,
+  type ProofreaderQueueTab,
+} from "@/lib/proofreaderApi";
 import { ChangePasswordButton } from "@/components/change-password-dialog";
 
 type PeerReviewer = {
@@ -105,8 +110,8 @@ const STATUS_MAP: Record<string, StatusKey> = {
   review_returned: "review_returned",
   contract_issued: "contract",
   queries_raised: "question",
-  awaiting_author_approval: "contract",
-  author_approved: "contract",
+  awaiting_author_approval: "proofreader_review",
+  author_approved: "author_approved",
   locked: "signed",
   declined: "declined",
   awaiting_more_info: "revisions",
@@ -121,7 +126,9 @@ const API_STATUSES_BY_KEY: Record<StatusKey, string[]> = {
   in_review: ["in_review"],
   review_returned: ["review_returned"],
   major_revisions: [],
-  contract: ["contract_issued", "awaiting_author_approval"],
+  contract: ["contract_issued"],
+  proofreader_review: ["awaiting_author_approval"],
+  author_approved: ["author_approved"],
   question: ["queries_raised"],
   signed: ["locked", "contract_signed", "contract_received"],
   approved: [],
@@ -142,10 +149,11 @@ const DISPLAY_STATUS_MAP: Record<string, StatusKey> = {
   "review returned": "review_returned",
   "contract issued": "contract",
   "contract received": "signed",
-  "awaiting author approval": "contract",
+  "awaiting author approval": "proofreader_review",
+  "proofreader review": "proofreader_review",
   "queries raised": "question",
   "question raised": "question",
-  "author approved": "contract",
+  "author approved": "author_approved",
   locked: "signed",
   "contract signed": "signed",
   declined: "declined",
@@ -271,7 +279,7 @@ const TABS: { key: TabKey; label: string; dot: string }[] = (
     { key: "review_returned", label: "Review Returned" },
     { key: "contract_issued", label: "Contract Issued" },
     { key: "queries_raised", label: "Queries Raised" },
-    { key: "awaiting_author_approval", label: "Contract Received" },
+    { key: "awaiting_author_approval", label: "Proofreader Review" },
     { key: "author_approved", label: "Author Approved" },
     { key: "locked", label: "Locked" },
     { key: "declined", label: "Declined" },
@@ -931,6 +939,8 @@ function DecisionReviewerDashboard() {
           </button>
         </div>
 
+        <ProofreaderQueueOverview />
+
         {/* Filter pills */}
         <div className="mb-5 flex flex-wrap gap-2.5">
           {TABS.map(({ key, label, dot }) => {
@@ -1562,5 +1572,167 @@ function HeaderCell({
       <ArrowUpDown className="h-3 w-3 opacity-60" />
       {active && sort && <span className="sr-only">{sort}</span>}
     </button>
+  );
+}
+
+const PROOFREADER_GROUPS: {
+  key: ProofreaderQueueTab;
+  label: string;
+  hint: string;
+  dot: string;
+}[] = [
+  {
+    key: "needs_compiling",
+    label: "Needs Compiling",
+    hint: "Proofreader hasn't started yet",
+    dot: "bg-orange-500",
+  },
+  {
+    key: "with_author",
+    label: "With Author",
+    hint: "Sent to author, awaiting approval",
+    dot: "bg-blue-500",
+  },
+  {
+    key: "confirmed",
+    label: "Author Approved",
+    hint: "Author has confirmed",
+    dot: "bg-green-500",
+  },
+];
+
+/** Read-only oversight of the proofreader metadata queue for admin / DR. */
+function ProofreaderQueueOverview() {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [group, setGroup] = useState<ProofreaderQueueTab>("needs_compiling");
+  const [queue, setQueue] = useState<Record<ProofreaderQueueTab, ProofreaderQueueItem[]>>({
+    needs_compiling: [],
+    with_author: [],
+    confirmed: [],
+  });
+  const [counts, setCounts] = useState<Record<ProofreaderQueueTab, number>>({
+    needs_compiling: 0,
+    with_author: 0,
+    confirmed: 0,
+  });
+
+  useEffect(() => {
+    if (!open || loaded) return;
+    let cancelled = false;
+    setLoading(true);
+    void getProofreaderQueue().then((res) => {
+      if (cancelled) return;
+      setQueue(res.data.queue);
+      setCounts(res.data.counts);
+      if (!res.ok) toast.error(res.error ?? "Could not load the proofreader queue.");
+      setLoading(false);
+      setLoaded(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, loaded]);
+
+  const rows = queue[group];
+
+  return (
+    <section className="mb-6 overflow-hidden rounded-2xl border border-purple-200 bg-purple-50/40">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between gap-4 px-6 py-4 text-left"
+      >
+        <div>
+          <h2 className="font-serif text-lg font-bold text-[#2C1A0E]">Proofreader Queue</h2>
+          <p className="mt-0.5 font-sans text-xs text-[#7A6A5A]">
+            Read-only oversight of proposals in the proofreader phase
+          </p>
+        </div>
+        <ChevronDown
+          className={`h-4 w-4 shrink-0 text-purple-700 transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+        <div className="border-t border-purple-200 bg-white px-6 py-5">
+          <div className="mb-4 flex flex-wrap gap-2">
+            {PROOFREADER_GROUPS.map((g) => (
+              <button
+                key={g.key}
+                type="button"
+                onClick={() => setGroup(g.key)}
+                title={g.hint}
+                className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 font-sans text-sm transition-colors ${
+                  group === g.key
+                    ? "border-purple-600 bg-purple-600 text-white"
+                    : "border-stone-200 bg-white text-stone-700 hover:border-stone-300"
+                }`}
+              >
+                <span
+                  className={`h-2 w-2 rounded-full ${group === g.key ? "bg-white" : g.dot}`}
+                />
+                {g.label}
+                <span
+                  className={`ml-1 inline-flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-xs font-medium ${
+                    group === g.key ? "bg-white/20 text-white" : "bg-stone-100 text-stone-600"
+                  }`}
+                >
+                  {counts[g.key]}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {loading ? (
+            <div className="space-y-2">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="h-12 animate-pulse rounded-lg bg-stone-100" />
+              ))}
+            </div>
+          ) : rows.length === 0 ? (
+            <p className="rounded-xl border border-dashed border-stone-200 px-4 py-6 text-center font-sans text-sm text-[#7A6A5A]">
+              Nothing in this group right now.
+            </p>
+          ) : (
+            <div className="overflow-hidden rounded-xl border border-stone-200">
+              <div className="hidden grid-cols-[1.1fr_2fr_1.2fr_1.4fr_1fr] gap-4 border-b border-stone-200 bg-stone-50/60 px-4 py-2.5 font-sans text-xs font-semibold uppercase tracking-wider text-[#7A6A5A] md:grid">
+                <span>Ticket</span>
+                <span>Title</span>
+                <span>Author</span>
+                <span>Proofreader</span>
+                <span>Last updated</span>
+              </div>
+              <ul>
+                {rows.map((item) => (
+                  <li key={item.ticket_number} className="border-b border-stone-100 last:border-b-0">
+                    <Link
+                      to="/dashboard/proposal/$ticket"
+                      params={{ ticket: item.ticket_number }}
+                      className="grid grid-cols-1 gap-2 px-4 py-3 hover:bg-stone-50 md:grid-cols-[1.1fr_2fr_1.2fr_1.4fr_1fr] md:items-center md:gap-4"
+                    >
+                      <span className="font-mono text-xs text-[#7A6A5A]">{item.ticket_number}</span>
+                      <span className="font-sans text-sm font-medium text-[#2C1A0E]">
+                        {item.title || "Untitled proposal"}
+                      </span>
+                      <span className="font-sans text-sm text-[#7A6A5A]">
+                        {item.author_name || item.author_email || "—"}
+                      </span>
+                      <span className="truncate font-sans text-sm text-[#7A6A5A]">
+                        {item.proofreader_email || "Unassigned"}
+                      </span>
+                      <span className="font-sans text-xs text-[#9A8A7A]">
+                        {item.updated_at ? formatDate(item.updated_at) : "—"}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+    </section>
   );
 }
