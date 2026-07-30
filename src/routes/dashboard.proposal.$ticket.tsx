@@ -3590,6 +3590,16 @@ function ProposalDetailPage() {
                       <p className="py-6 text-center font-sans text-sm text-stone-500">
                         No actions available
                       </p>
+                    ) : isProofreaderPhase ? (
+                      <div className="rounded-xl border border-purple-200 bg-purple-50/70 px-5 py-6 text-center">
+                        <p className="font-serif text-lg font-bold text-purple-900">
+                          Proofreader Phase
+                        </p>
+                        <p className="mt-1 font-sans text-xs leading-relaxed text-purple-800/80">
+                          Actions are unavailable until the author approves the
+                          compiled metadata.
+                        </p>
+                      </div>
                     ) : isLocked ? (
                       <div className="rounded-xl border border-emerald-300 bg-emerald-50/70 px-5 py-6 text-center">
                         <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-emerald-700 text-white shadow-sm">
