@@ -436,7 +436,10 @@ export function MetadataQueries({
                       }
                       const current = rowEdits[key] ?? queryText;
                       const isApplying = !!applyingKeys[key];
-                      const isApplied = !!appliedKeys[key];
+                      const savedValue = (fieldValues?.[fkey] ?? "").toString().trim();
+                      const isApplied =
+                        !!appliedKeys[key] ||
+                        (savedValue.length > 0 && savedValue === current.trim());
                       const multiline =
                         fkey === "display_bios" || fkey === "book_description";
                       return (
