@@ -247,13 +247,31 @@ function ProofreaderProposalPage() {
   };
 
   const onSaveFields = async (updates: Record<string, string>) => {
-    const next = { ...values, ...updates } as Record<FieldKey, string>;
+    // Queries can target nested author fields ("authors.country"), which must be
+    // written into the authors array rather than as a top-level metadata key.
+    const next = { ...values } as Record<FieldKey, string>;
+    let nextAuthors = authors.map((a) => ({ ...a }));
+    let authorsChanged = false;
+
+    for (const [key, value] of Object.entries(updates)) {
+      if (key.startsWith("authors.")) {
+        const authorKey = key.slice("authors.".length) as keyof AuthorEntry;
+        if (nextAuthors.length === 0) nextAuthors = [{}];
+        nextAuthors[0] = { ...nextAuthors[0], [authorKey]: value };
+        authorsChanged = true;
+      } else if (key in next) {
+        next[key as FieldKey] = value;
+      }
+    }
+
     setValues(next);
+    if (authorsChanged) setAuthors(nextAuthors);
     await saveProofreaderMetadata(
       ticket,
-      { ...extras, ...next, authors },
+      { ...extras, ...next, authors: nextAuthors },
       notes.trim() || undefined,
     );
+    await load();
   };
 
   return (
