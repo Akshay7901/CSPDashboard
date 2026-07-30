@@ -44,7 +44,7 @@ export async function getProofreaderQueue(): Promise<{
   error?: string;
 }> {
   try {
-    const res = await fetch(`${API_ROOT}/proofreader/queue?_t=${Date.now()}`, {
+    const res = await fetch(`${API_ROOT}/proposals/proofreader/queue?_t=${Date.now()}`, {
       headers: authHeaders(),
       cache: "no-store",
     });
