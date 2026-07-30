@@ -481,6 +481,11 @@ function PortalLoginForm({ portal, onBack }: { portal: PortalConfig; onBack: () 
             </button>
             {error && <p role="alert" className="text-center font-sans text-xs text-red-300">{error}</p>}
             {info && !error && <p className="text-center font-sans text-xs text-foreground/60">{info}</p>}
+            {portal.id === "proofreader" && (
+              <p className="rounded-lg bg-foreground/10 px-3 py-2 text-center font-sans text-xs text-foreground/60">
+                Demo access: <span className="font-medium text-foreground/80">proofreader@csp.com</span> / <span className="font-medium text-foreground/80">proofread123</span>
+              </p>
+            )}
           </form>
         )}
 
