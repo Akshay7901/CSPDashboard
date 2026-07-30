@@ -1,4 +1,8 @@
-const EXTERNAL_API_BASE = "https://api.cambridgescholars.com/api/proposals";
+export const API_BASE_URL =
+  (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, "") ||
+  "https://api.cambridgescholars.com";
+
+const EXTERNAL_API_BASE = `${API_BASE_URL}/api/proposals`;
 
 let isRedirectingForAuth = false;
 
