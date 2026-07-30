@@ -233,16 +233,10 @@ function QueueRow({
       <div className="flex flex-1 items-center justify-between gap-4 px-4 py-4">
         <div>
           <div className="mb-1 flex flex-wrap items-center gap-2">
-            <span className="rounded-md border border-stone-200 bg-stone-50 px-2 py-0.5 font-mono text-xs font-medium text-[#7A6A5A]">
-              {item.ticket_number}
-            </span>
             {item.is_locked && (
               <span className="rounded-md border border-stone-300 bg-stone-100 px-2 py-0.5 font-sans text-xs text-stone-600">
                 Locked
               </span>
-            )}
-            {item.current_version != null && (
-              <span className="font-sans text-xs text-[#9A8A7A]">v{item.current_version}</span>
             )}
           </div>
           <h3 className="font-serif text-base font-semibold text-[#2C1A0E]">
