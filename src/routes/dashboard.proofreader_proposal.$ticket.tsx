@@ -137,11 +137,7 @@ function ProofreaderProposalPage() {
   const [authors, setAuthors] = useState<AuthorEntry[]>([]);
   const [extras, setExtras] = useState<Record<string, unknown>>({});
   const [coverImage, setCoverImage] = useState<string | null>(null);
-  const [revisions, setRevisions] = useState<Revision[]>([]);
-  const [compiledAt, setCompiledAt] = useState<string | null>(null);
-  const [sentAt, setSentAt] = useState<string | null>(null);
-  const [approvedAt, setApprovedAt] = useState<string | null>(null);
-  const [proofreaderEmail, setProofreaderEmail] = useState<string | null>(null);
+
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -176,11 +172,6 @@ function ProofreaderProposalPage() {
             null)
           : null,
     );
-    setRevisions(Array.isArray(d.revisions) ? (d.revisions as Revision[]) : []);
-    setCompiledAt((d.compiled_at as string) ?? null);
-    setSentAt((d.sent_for_confirmation_at as string) ?? null);
-    setApprovedAt((d.approved_at as string) ?? null);
-    setProofreaderEmail((d.proofreader_email as string) ?? null);
     setMetadataStatus((res.data.metadata_status || "draft").toLowerCase());
     setProposalStatus((res.data.proposal_status || "").toLowerCase());
     setIsLocked(Boolean((res.data as unknown as { is_locked?: boolean }).is_locked));
@@ -427,57 +418,6 @@ function ProofreaderProposalPage() {
               )}
             </section>
 
-            <section className="mt-6 rounded-xl border border-stone-200 bg-white p-6">
-              <h2 className="mb-4 font-serif text-lg font-bold text-[#2C1A0E]">
-                Compilation Record
-              </h2>
-              <dl className="grid gap-4 sm:grid-cols-2">
-                {[
-                  { label: "Proofreader", value: proofreaderEmail },
-                  { label: "Current version", value: version != null ? `v${version}` : null },
-                  { label: "Compiled at", value: formatDateTime(compiledAt) },
-                  { label: "Sent for confirmation", value: formatDateTime(sentAt) },
-                  { label: "Author approved at", value: formatDateTime(approvedAt) },
-                ].map((row) => (
-                  <div key={row.label}>
-                    <dt className="font-sans text-xs font-semibold uppercase tracking-wider text-[#7A6A5A]">
-                      {row.label}
-                    </dt>
-                    <dd className="font-sans text-sm text-[#2C1A0E]">{row.value || "—"}</dd>
-                  </div>
-                ))}
-              </dl>
-
-              {revisions.length > 0 && (
-                <>
-                  <h3 className="mb-2 mt-6 font-sans text-xs font-semibold uppercase tracking-wider text-[#7A6A5A]">
-                    Revision history
-                  </h3>
-                  <ul className="space-y-2">
-                    {[...revisions]
-                      .sort((a, b) => (b.version_number ?? 0) - (a.version_number ?? 0))
-                      .map((r) => (
-                        <li
-                          key={r.version_number ?? r.created_at}
-                          className="rounded-lg border border-stone-200 px-3 py-2 font-sans text-sm text-[#2C1A0E]"
-                        >
-                          <span className="font-medium">v{r.version_number}</span>
-                          <span className="text-[#7A6A5A]">
-                            {" · "}
-                            {r.updated_by || "unknown"}
-                            {r.updated_by_role ? ` (${r.updated_by_role.replace(/_/g, " ")})` : ""}
-                            {" · "}
-                            {formatDateTime(r.created_at) || "—"}
-                          </span>
-                          {r.notes ? (
-                            <span className="block text-[#7A6A5A]">{r.notes}</span>
-                          ) : null}
-                        </li>
-                      ))}
-                  </ul>
-                </>
-              )}
-            </section>
 
             <section className="mt-6 rounded-xl border border-stone-200 bg-white p-6">
               <h2 className="mb-3 font-serif text-lg font-bold text-[#2C1A0E]">Author Queries</h2>
