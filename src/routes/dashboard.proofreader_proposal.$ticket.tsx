@@ -131,7 +131,7 @@ function ProofreaderProposalPage() {
   const [metadataStatus, setMetadataStatus] = useState<string>("draft");
   const [proposalStatus, setProposalStatus] = useState<string>("");
   const [isLocked, setIsLocked] = useState(false);
-  const [version, setVersion] = useState<number | undefined>(undefined);
+  
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
   const [metadataHasOpenQuery, setMetadataHasOpenQuery] = useState(false);
