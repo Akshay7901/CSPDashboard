@@ -5120,3 +5120,70 @@ function AdditionalProposalDetails({ rawCd }: { rawCd: Record<string, unknown> }
     </Card>
   );
 }
+/**
+ * Read-only proofreader status for admin / decision reviewer oversight.
+ * Mirrors the extra fields returned by GET /api/proposals/:ticket/metadata.
+ */
+function ProofreaderStatusPanel({
+  metadata,
+}: {
+  metadata: {
+    metadata_status?: string;
+    is_locked?: boolean;
+    proofreader_email?: string | null;
+    compiled_at?: string | null;
+    sent_for_confirmation_at?: string | null;
+  };
+}) {
+  const statusLabel =
+    metadata.metadata_status === "sent_to_author"
+      ? "With Author"
+      : metadata.metadata_status === "approved"
+        ? "Approved"
+        : "Compiling";
+
+  return (
+    <div className="rounded-xl border border-purple-200 bg-purple-50/50 px-5 py-4">
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <h3 className="font-sans text-xs font-semibold uppercase tracking-wider text-purple-800">
+          Proofreader Status
+        </h3>
+        {metadata.is_locked && (
+          <span className="rounded-md border border-red-200 bg-red-50 px-2 py-0.5 font-sans text-xs font-medium text-red-700">
+            Locked
+          </span>
+        )}
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <ProofreaderStatusItem
+          label="Assigned proofreader"
+          value={metadata.proofreader_email || "Not yet assigned"}
+        />
+        <ProofreaderStatusItem label="Metadata status" value={statusLabel} />
+        <ProofreaderStatusItem
+          label="First compiled"
+          value={metadata.compiled_at ? formatDate(metadata.compiled_at) : "—"}
+        />
+        <ProofreaderStatusItem
+          label="Sent to author"
+          value={
+            metadata.sent_for_confirmation_at
+              ? formatDate(metadata.sent_for_confirmation_at)
+              : "—"
+          }
+        />
+      </div>
+    </div>
+  );
+}
+
+function ProofreaderStatusItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="font-sans text-[11px] font-semibold uppercase tracking-wider text-purple-700/70">
+        {label}
+      </p>
+      <p className="mt-0.5 break-words font-sans text-sm text-stone-800">{value}</p>
+    </div>
+  );
+}
