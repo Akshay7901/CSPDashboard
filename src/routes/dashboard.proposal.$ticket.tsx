@@ -1489,6 +1489,16 @@ function ProposalDetailPage() {
     return s === "locked" || s === "confirmed_and_finalised" || s === "confirmed_and_finalized";
   }, [data?.status]);
 
+  /**
+   * Proofreader phase: once a contract is signed the proofreader owns the
+   * proposal. Admin / DR can observe only — the API rejects assign, decline
+   * and metadata writes while the proposal sits in awaiting_author_approval.
+   */
+  const isProofreaderPhase = useMemo(() => {
+    const s = (data?.status || "").toLowerCase().replace(/\s+/g, "_");
+    return s === "awaiting_author_approval";
+  }, [data?.status]);
+
   // Latest unanswered author query (used for prominent DR action panel)
   const openQuery = useMemo<ContractQueryEntry | null>(() => {
     const answered = new Set(
