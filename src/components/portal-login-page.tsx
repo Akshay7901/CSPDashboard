@@ -170,6 +170,12 @@ function PortalLoginForm({ portal, onBack }: { portal: PortalConfig; onBack: () 
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Temporary demo credentials for the Proofreader portal until the real
+  // authentication APIs are available.
+  const DEMO_PROOFREADER = { email: "proofreader@csp.com", password: "proofread123" };
+  const isDemoProofreaderEmail = () =>
+    portal.id === "proofreader" && email.trim().toLowerCase() === DEMO_PROOFREADER.email;
+
   const goToDashboard = (apiRole: ApiRole, token: string, userEmail: string, name?: string) => {
     const role = roleToPortal(apiRole);
     if (!isRoleAllowedForPortal(apiRole)) {
@@ -194,6 +200,11 @@ function PortalLoginForm({ portal, onBack }: { portal: PortalConfig; onBack: () 
     }
     setLoading(true);
     try {
+      if (isDemoProofreaderEmail()) {
+        setStep("password");
+        setInfo("Demo account — use the temporary password provided.");
+        return;
+      }
       const res = await proposalApiFetch("/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -265,6 +276,14 @@ function PortalLoginForm({ portal, onBack }: { portal: PortalConfig; onBack: () 
     setInfo(null);
     setLoading(true);
     try {
+      if (isDemoProofreaderEmail()) {
+        if (password === DEMO_PROOFREADER.password) {
+          goToDashboard("proofreader", "demo-proofreader-token", DEMO_PROOFREADER.email, "Demo Proofreader");
+        } else {
+          setError("Invalid credentials.");
+        }
+        return;
+      }
       const body: Record<string, string> = { email: email.trim() };
       if (password) body.password = password;
       const res = await proposalApiFetch("/login", {
@@ -462,6 +481,11 @@ function PortalLoginForm({ portal, onBack }: { portal: PortalConfig; onBack: () 
             </button>
             {error && <p role="alert" className="text-center font-sans text-xs text-red-300">{error}</p>}
             {info && !error && <p className="text-center font-sans text-xs text-foreground/60">{info}</p>}
+            {portal.id === "proofreader" && (
+              <p className="rounded-lg bg-foreground/10 px-3 py-2 text-center font-sans text-xs text-foreground/60">
+                Demo access: <span className="font-medium text-foreground/80">proofreader@csp.com</span> / <span className="font-medium text-foreground/80">proofread123</span>
+              </p>
+            )}
           </form>
         )}
 
