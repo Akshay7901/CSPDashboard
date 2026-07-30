@@ -2236,6 +2236,18 @@ function ProposalDetailPage() {
 
         {data && !loading && (
           <>
+            {isProofreaderPhase && (
+              <div className="mt-6 rounded-2xl border border-purple-200 bg-purple-50 px-6 py-5">
+                <p className="font-serif text-base font-bold text-purple-900">
+                  This proposal is in the Proofreader phase.
+                </p>
+                <p className="mt-1 font-sans text-sm leading-relaxed text-purple-800/90">
+                  The proofreader is compiling editorial metadata. Admin and
+                  Decision Reviewer actions are limited until the author
+                  approves.
+                </p>
+              </div>
+            )}
             {/* Title hero card */}
             <section className="mt-6 rounded-2xl border border-stone-200 bg-white px-8 py-7">
               <div className="flex items-start justify-between gap-6">
