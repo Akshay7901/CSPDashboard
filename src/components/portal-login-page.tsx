@@ -130,13 +130,13 @@ export function LoginPage() {
 
 function PortalCards({ onSelect }: { onSelect: (role: Role) => void }) {
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-row gap-5 overflow-x-auto pb-2">
+    <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
       {portals.map(({ id, title, cardDescription, Icon, toneClass }) => (
         <button
           key={id}
           type="button"
           onClick={() => onSelect(id)}
-          className="group min-w-[280px] flex-1 cursor-pointer rounded-2xl border border-foreground/20 bg-foreground/10 p-7 text-left backdrop-blur-sm transition-all duration-200 hover:border-foreground/40 hover:bg-foreground/20"
+          className="group cursor-pointer rounded-2xl border border-foreground/20 bg-foreground/10 p-7 text-left backdrop-blur-sm transition-all duration-200 hover:border-foreground/40 hover:bg-foreground/20"
         >
           <div
             className={`mb-4 flex h-14 w-14 items-center justify-center rounded-xl ${toneClass} text-foreground`}
