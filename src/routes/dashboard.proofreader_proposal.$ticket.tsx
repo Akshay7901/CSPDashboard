@@ -329,7 +329,7 @@ function ProofreaderProposalPage() {
           className="inline-flex items-center gap-1.5 font-sans text-sm text-[#7A6A5A] hover:text-stone-900"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to queue
+          Back to dashboard
         </Link>
 
         <div className="mt-4 flex flex-wrap items-center gap-3">
