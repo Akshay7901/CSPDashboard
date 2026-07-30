@@ -2,12 +2,13 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { portalLogout, getPortalSession } from "@/lib/auth";
 
-type Role = "author" | "editor" | "reviewer";
+type Role = "author" | "editor" | "reviewer" | "proofreader";
 
 const ROLE_LABEL: Record<Role, string> = {
   author: "Author Portal",
   editor: "Editor Portal",
   reviewer: "Reviewer Portal",
+  proofreader: "Proofreader Portal",
 };
 
 export const Route = createFileRoute("/dashboard/$role")({

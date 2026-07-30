@@ -64,6 +64,7 @@
   --color-portal-author: var(--portal-author);
   --color-portal-editor: var(--portal-editor);
   --color-portal-reviewer: var(--portal-reviewer);
+  --color-portal-proofreader: var(--portal-proofreader);
   --color-text: var(--text);
   --color-text-muted: var(--text-muted);
 }
@@ -92,6 +93,7 @@
   --portal-author: oklch(0.67 0.18 35.3);
   --portal-editor: oklch(0.31 0.08 165.7);
   --portal-reviewer: oklch(0.61 0.16 245.6);
+  --portal-proofreader: oklch(0.55 0.13 300);
   --text: oklch(0.2 0.04 58.7);
   --text-muted: oklch(0.52 0.03 55);
   --chart-1: oklch(0.646 0.222 41.116);

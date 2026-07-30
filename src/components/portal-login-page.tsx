@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
-import { UserRound, FileText, ClipboardCheck, ArrowRight, ArrowLeft, type LucideIcon } from "lucide-react";
+import { UserRound, FileText, ClipboardCheck, SpellCheck, ArrowRight, ArrowLeft, type LucideIcon } from "lucide-react";
 import libraryBg from "@/assets/library-reference.jpg";
 import cspLogo from "@/assets/csp-logo.png";
 import { getPortalSession, persistPortalSession } from "@/lib/auth";
@@ -13,11 +13,12 @@ function roleToPortal(apiRole: ApiRole): Role {
   if (r === "decision_reviewer") return "decision_reviewer";
   if (r === "admin") return "decision_reviewer";
   if (r === "editor") return "editor";
+  if (r === "proofreader" || r === "proof_reader") return "proofreader";
   if (r === "reviewer" || r === "peer_reviewer" || r.includes("reviewer")) return "reviewer";
   return "author";
 }
 
-type Role = "author" | "editor" | "reviewer" | "decision_reviewer";
+type Role = "author" | "editor" | "reviewer" | "decision_reviewer" | "proofreader";
 
 interface PortalConfig {
   id: Role;
@@ -64,6 +65,17 @@ const portals: PortalConfig[] = [
     badgeClass: "bg-portal-reviewer text-white",
     demoEmail: "reviewer@cambridge.ac.uk",
     demoCode: "9012",
+  },
+  {
+    id: "proofreader",
+    title: "Proofreader Portal",
+    cardDescription: "Compile and confirm publication metadata for contract-signed titles.",
+    formSubtitle: "Compile and confirm publication metadata",
+    Icon: SpellCheck,
+    toneClass: "bg-portal-proofreader",
+    badgeClass: "bg-portal-proofreader text-white",
+    demoEmail: "proofreader@csp.com",
+    demoCode: "3456",
   },
 ];
 
@@ -118,7 +130,7 @@ export function LoginPage() {
 
 function PortalCards({ onSelect }: { onSelect: (role: Role) => void }) {
   return (
-    <div className="mx-auto grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
+    <div className="mx-auto grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
       {portals.map(({ id, title, cardDescription, Icon, toneClass }) => (
         <button
           key={id}
@@ -236,6 +248,7 @@ function PortalLoginForm({ portal, onBack }: { portal: PortalConfig; onBack: () 
       editor: ["editor", "admin", "decision_reviewer"],
       reviewer: ["reviewer", "peer_reviewer"],
       decision_reviewer: ["decision_reviewer"],
+      proofreader: ["proofreader", "proof_reader"],
     };
     const normalized = (apiRole || "").toLowerCase();
     return allowed[portal.id].includes(normalized);
