@@ -67,6 +67,34 @@ const FIELDS: { key: FieldKey; label: string; type: "text" | "textarea"; hint?: 
 
 const EMPTY = Object.fromEntries(FIELDS.map((f) => [f.key, ""])) as Record<FieldKey, string>;
 
+type AuthorEntry = {
+  first_name?: string;
+  last_name?: string;
+  title?: string;
+  email?: string;
+  email_2?: string;
+  institution?: string;
+  country?: string;
+};
+
+const AUTHOR_FIELDS: { key: keyof AuthorEntry; label: string }[] = [
+  { key: "title", label: "Title" },
+  { key: "first_name", label: "First name" },
+  { key: "last_name", label: "Last name" },
+  { key: "email", label: "Email" },
+  { key: "email_2", label: "Secondary email" },
+  { key: "institution", label: "Institution" },
+  { key: "country", label: "Country" },
+];
+
+type Revision = {
+  version_number?: number;
+  updated_by?: string;
+  updated_by_role?: string;
+  notes?: string;
+  created_at?: string;
+};
+
 function ProofreaderProposalPage() {
   const { ticket } = Route.useParams();
   const navigate = useNavigate();
@@ -82,6 +110,13 @@ function ProofreaderProposalPage() {
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
   const [metadataHasOpenQuery, setMetadataHasOpenQuery] = useState(false);
+  const [authors, setAuthors] = useState<AuthorEntry[]>([]);
+  const [coverImage, setCoverImage] = useState<string | null>(null);
+  const [revisions, setRevisions] = useState<Revision[]>([]);
+  const [compiledAt, setCompiledAt] = useState<string | null>(null);
+  const [sentAt, setSentAt] = useState<string | null>(null);
+  const [approvedAt, setApprovedAt] = useState<string | null>(null);
+  const [proofreaderEmail, setProofreaderEmail] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -99,6 +134,24 @@ function ProofreaderProposalPage() {
       next[f.key] = typeof v === "string" ? v : v == null ? "" : String(v);
     }
     setValues(next);
+    const rawAuthors = raw.authors;
+    setAuthors(Array.isArray(rawAuthors) ? (rawAuthors as AuthorEntry[]) : []);
+    const d = res.data as unknown as Record<string, unknown>;
+    const cover = d.cover_image;
+    setCoverImage(
+      typeof cover === "string"
+        ? cover
+        : cover && typeof cover === "object"
+          ? ((cover as { url?: string; file_url?: string }).url ??
+            (cover as { file_url?: string }).file_url ??
+            null)
+          : null,
+    );
+    setRevisions(Array.isArray(d.revisions) ? (d.revisions as Revision[]) : []);
+    setCompiledAt((d.compiled_at as string) ?? null);
+    setSentAt((d.sent_for_confirmation_at as string) ?? null);
+    setApprovedAt((d.approved_at as string) ?? null);
+    setProofreaderEmail((d.proofreader_email as string) ?? null);
     setMetadataStatus((res.data.metadata_status || "draft").toLowerCase());
     setProposalStatus((res.data.proposal_status || "").toLowerCase());
     setIsLocked(Boolean((res.data as unknown as { is_locked?: boolean }).is_locked));
