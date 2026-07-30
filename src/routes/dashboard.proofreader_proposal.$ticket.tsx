@@ -56,12 +56,6 @@ const FIELDS: { key: FieldKey; label: string; type: "text" | "textarea"; hint?: 
 
 const EMPTY = Object.fromEntries(FIELDS.map((f) => [f.key, ""])) as Record<FieldKey, string>;
 
-function formatDateTime(value?: string | null): string {
-  if (!value) return "";
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
-}
 
 function MetaRow({
   label,
@@ -124,13 +118,6 @@ const AUTHOR_FIELDS: { key: keyof AuthorEntry; label: string }[] = [
   { key: "country", label: "Country" },
 ];
 
-type Revision = {
-  version_number?: number;
-  updated_by?: string;
-  updated_by_role?: string;
-  notes?: string;
-  created_at?: string;
-};
 
 function ProofreaderProposalPage() {
   const { ticket } = Route.useParams();
