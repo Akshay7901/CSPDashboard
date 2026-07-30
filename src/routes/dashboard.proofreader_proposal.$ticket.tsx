@@ -42,16 +42,16 @@ type FieldKey =
   | "bic";
 
 const FIELDS: { key: FieldKey; label: string; type: "text" | "textarea"; hint?: string }[] = [
-  { key: "full_title", label: "Title (full)", type: "text" },
+  { key: "full_title", label: "Title Full", type: "text" },
   { key: "title", label: "Title", type: "text" },
   { key: "subtitle", label: "Subtitle", type: "text" },
-  { key: "category", label: "Category", type: "text" },
-  { key: "display_names", label: "Display names", type: "text" },
-  { key: "display_bios", label: "Display bios", type: "textarea" },
-  { key: "book_description", label: "Book description", type: "textarea" },
+  { key: "category", label: "Category Auth/Ed", type: "text" },
+  { key: "display_names", label: "Display Names", type: "text" },
+  { key: "display_bios", label: "Display Bios", type: "textarea" },
+  { key: "book_description", label: "Book Description", type: "textarea" },
   { key: "keywords", label: "Keywords", type: "text" },
-  { key: "website_classification", label: "Website classification", type: "text" },
-  { key: "bic", label: "BIC codes", type: "text" },
+  { key: "website_classification", label: "Website Classification", type: "text" },
+  { key: "bic", label: "BIC Codes", type: "text" },
 ];
 
 const EMPTY = Object.fromEntries(FIELDS.map((f) => [f.key, ""])) as Record<FieldKey, string>;
@@ -61,6 +61,47 @@ function formatDateTime(value?: string | null): string {
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "";
   return d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+}
+
+function MetaRow({
+  label,
+  value,
+  onChange,
+  multiline,
+  disabled,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  multiline?: boolean;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="grid grid-cols-[220px_1fr] gap-0 border-t border-stone-200 first:border-t-0">
+      <div className="flex items-center bg-stone-50/60 px-5 py-4 font-sans text-sm font-medium text-stone-700">
+        {label}
+      </div>
+      <div className="border-l border-stone-200 px-4 py-3">
+        {multiline ? (
+          <textarea
+            rows={5}
+            disabled={disabled}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 font-sans text-sm text-stone-900 outline-none focus:border-stone-400 disabled:bg-stone-50 disabled:text-stone-500"
+          />
+        ) : (
+          <input
+            type="text"
+            disabled={disabled}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 font-sans text-sm text-stone-900 outline-none focus:border-stone-400 disabled:bg-stone-50 disabled:text-stone-500"
+          />
+        )}
+      </div>
+    </div>
+  );
 }
 
 type AuthorEntry = {
@@ -299,70 +340,74 @@ function ProofreaderProposalPage() {
           </div>
         ) : (
           <>
-            <section className="mt-6 rounded-xl border border-stone-200 bg-white p-6">
-              <div className="grid gap-5 sm:grid-cols-2">
+            <section className="mt-6">
+              <div className="overflow-hidden rounded-xl border border-stone-200 bg-white">
                 {FIELDS.map((f) => (
-                  <div
+                  <MetaRow
                     key={f.key}
-                    className={f.type === "textarea" ? "sm:col-span-2" : undefined}
-                  >
-                    <label
-                      htmlFor={`pf-${f.key}`}
-                      className="mb-1 block font-sans text-xs font-semibold uppercase tracking-wider text-[#7A6A5A]"
-                    >
-                      {f.label}
-                      {f.hint && (
-                        <span className="ml-2 font-normal normal-case tracking-normal text-[#9A8A7A]">
-                          {f.hint}
-                        </span>
-                      )}
-                    </label>
-                    {f.type === "textarea" ? (
-                      <textarea
-                        id={`pf-${f.key}`}
-                        rows={4}
-                        disabled={readOnly}
-                        value={values[f.key]}
-                        onChange={(e) =>
-                          setValues((v) => ({ ...v, [f.key]: e.target.value }))
-                        }
-                        className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 font-sans text-sm text-[#2C1A0E] outline-none focus:border-stone-400 disabled:bg-stone-50 disabled:text-stone-500"
+                    label={f.label}
+                    value={values[f.key]}
+                    multiline={f.type === "textarea"}
+                    disabled={readOnly}
+                    onChange={(v) => setValues((prev) => ({ ...prev, [f.key]: v }))}
+                  />
+                ))}
+
+                <div className="grid grid-cols-[220px_1fr] gap-0 border-t border-stone-200">
+                  <div className="flex items-center bg-stone-50/60 px-5 py-4 font-sans text-sm font-medium text-stone-700">
+                    Cover Image
+                  </div>
+                  <div className="border-l border-stone-200 px-4 py-4">
+                    {coverImage ? (
+                      <img
+                        src={coverImage}
+                        alt="Cover"
+                        className="h-40 rounded-lg border border-stone-200 object-contain shadow-sm"
                       />
                     ) : (
-                      <input
-                        id={`pf-${f.key}`}
-                        type="text"
-                        disabled={readOnly}
-                        value={values[f.key]}
-                        onChange={(e) =>
-                          setValues((v) => ({ ...v, [f.key]: e.target.value }))
-                        }
-                        className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 font-sans text-sm text-[#2C1A0E] outline-none focus:border-stone-400 disabled:bg-stone-50 disabled:text-stone-500"
-                      />
+                      <div className="flex h-32 items-center justify-center rounded-lg border-2 border-dashed border-stone-300 px-4 font-sans text-xs text-stone-400">
+                        No cover image uploaded
+                      </div>
                     )}
+                  </div>
+                </div>
+
+                {authors.map((a, i) => (
+                  <div key={i}>
+                    <div className="border-t border-stone-200 bg-emerald-700 px-5 py-3 font-sans text-xs font-bold uppercase tracking-[0.18em] text-white">
+                      {authors.length > 1
+                        ? `Primary Author(s) — ${i + 1}`
+                        : "Primary Author(s)"}
+                    </div>
+                    {AUTHOR_FIELDS.map((af) => (
+                      <MetaRow
+                        key={af.key}
+                        label={af.label}
+                        value={a[af.key] ?? ""}
+                        disabled={readOnly}
+                        onChange={(v) =>
+                          setAuthors((prev) =>
+                            prev.map((row, idx) =>
+                              idx === i ? { ...row, [af.key]: v } : row,
+                            ),
+                          )
+                        }
+                      />
+                    ))}
                   </div>
                 ))}
 
-                <div className="sm:col-span-2">
-                  <label
-                    htmlFor="pf-notes"
-                    className="mb-1 block font-sans text-xs font-semibold uppercase tracking-wider text-[#7A6A5A]"
-                  >
-                    Notes <span className="font-normal normal-case">(optional)</span>
-                  </label>
-                  <textarea
-                    id="pf-notes"
-                    rows={3}
-                    disabled={readOnly}
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 font-sans text-sm text-[#2C1A0E] outline-none focus:border-stone-400 disabled:bg-stone-50 disabled:text-stone-500"
-                  />
-                </div>
+                <MetaRow
+                  label="Notes (optional)"
+                  value={notes}
+                  multiline
+                  disabled={readOnly}
+                  onChange={setNotes}
+                />
               </div>
 
               {!readOnly && (
-                <div className="mt-6 flex flex-wrap items-center gap-3">
+                <div className="mt-4 flex flex-wrap items-center gap-3">
                   <button
                     type="button"
                     onClick={() => void onSave()}
@@ -392,67 +437,6 @@ function ProofreaderProposalPage() {
                     </button>
                   )}
                 </div>
-              )}
-            </section>
-
-            <section className="mt-6 rounded-xl border border-stone-200 bg-white p-6">
-              <h2 className="mb-4 font-serif text-lg font-bold text-[#2C1A0E]">Authors</h2>
-              {authors.length === 0 ? (
-                <p className="font-sans text-sm text-[#7A6A5A]">No author records provided.</p>
-              ) : (
-                <div className="space-y-5">
-                  {authors.map((a, i) => (
-                    <div
-                      key={i}
-                      className="rounded-lg border border-stone-200 bg-stone-50/60 p-4"
-                    >
-                      <p className="mb-3 font-sans text-xs font-semibold uppercase tracking-wider text-[#7A6A5A]">
-                        Author {i + 1}
-                      </p>
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        {AUTHOR_FIELDS.map((af) => (
-                          <div key={af.key}>
-                            <label
-                              htmlFor={`pf-author-${i}-${af.key}`}
-                              className="mb-1 block font-sans text-xs font-semibold uppercase tracking-wider text-[#7A6A5A]"
-                            >
-                              {af.label}
-                            </label>
-                            <input
-                              id={`pf-author-${i}-${af.key}`}
-                              type="text"
-                              disabled={readOnly}
-                              value={a[af.key] ?? ""}
-                              onChange={(e) =>
-                                setAuthors((prev) =>
-                                  prev.map((row, idx) =>
-                                    idx === i ? { ...row, [af.key]: e.target.value } : row,
-                                  ),
-                                )
-                              }
-                              className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 font-sans text-sm text-[#2C1A0E] outline-none focus:border-stone-400 disabled:bg-stone-50 disabled:text-stone-500"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-
-            <section className="mt-6 rounded-xl border border-stone-200 bg-white p-6">
-              <h2 className="mb-4 font-serif text-lg font-bold text-[#2C1A0E]">Cover Image</h2>
-              {coverImage ? (
-                <img
-                  src={coverImage}
-                  alt="Proposed book cover"
-                  className="max-h-72 rounded-lg border border-stone-200"
-                />
-              ) : (
-                <p className="font-sans text-sm text-[#7A6A5A]">
-                  No cover image provided by the author.
-                </p>
               )}
             </section>
 
