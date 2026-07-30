@@ -98,6 +98,7 @@ function ProofreaderProposalPage() {
     const res = await getMetadata(ticket);
     if (!res.ok || !res.data) {
       setError(res.error ?? "Could not load metadata.");
+      toast.error(res.error ?? "Could not load metadata.");
       setLoading(false);
       return;
     }
@@ -206,9 +207,10 @@ function ProofreaderProposalPage() {
         )}
 
         {loading ? (
-          <p className="mt-8 flex items-center gap-2 font-sans text-sm text-[#7A6A5A]">
-            <Loader2 className="h-4 w-4 animate-spin" /> Loading metadata…
-          </p>
+          <div className="mt-6 space-y-3">
+            <div className="h-64 animate-pulse rounded-xl border border-stone-200 bg-white" />
+            <div className="h-32 animate-pulse rounded-xl border border-stone-200 bg-white" />
+          </div>
         ) : (
           <>
             <section className="mt-6 rounded-xl border border-stone-200 bg-white p-6">
