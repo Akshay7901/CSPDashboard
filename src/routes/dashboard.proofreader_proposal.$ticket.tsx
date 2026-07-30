@@ -1,9 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, CheckCircle2, Loader2, Lock, Save, Send } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Loader2, Lock, LogOut, Save, Send } from "lucide-react";
 import { toast } from "sonner";
 import cspLogo from "@/assets/csp-logo.png";
-import { getPortalSession } from "@/lib/auth";
+import { getPortalSession, portalLogout } from "@/lib/auth";
+import { initialsFromName, displayNameFromEmail } from "@/lib/proposals";
+import { ChangePasswordButton } from "@/components/change-password-dialog";
 import { getMetadata } from "@/lib/metadataApi";
 import { saveProofreaderMetadata, sendMetadataToAuthor } from "@/lib/proofreaderApi";
 import { MetadataQueries } from "@/components/metadata-queries";
