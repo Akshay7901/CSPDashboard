@@ -139,6 +139,7 @@ function ProofreaderProposalPage() {
   const [authors, setAuthors] = useState<AuthorEntry[]>([]);
   const [extras, setExtras] = useState<Record<string, unknown>>({});
   const [coverImage, setCoverImage] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState("");
 
 
   const load = useCallback(async () => {
@@ -183,12 +184,19 @@ function ProofreaderProposalPage() {
   }, [ticket]);
 
   useEffect(() => {
-    if (!getPortalSession()) {
+    const session = getPortalSession();
+    if (!session) {
       navigate({ to: "/login" });
       return;
     }
+    setDisplayName(session.name || displayNameFromEmail(session.email));
     void load();
   }, [load, navigate]);
+
+  const onLogout = async () => {
+    await portalLogout();
+    navigate({ to: "/login" });
+  };
 
   const readOnly =
     isLocked || proposalStatus === "author_approved" || metadataStatus !== "draft";
@@ -287,15 +295,35 @@ function ProofreaderProposalPage() {
 
   return (
     <div className="min-h-screen bg-[#FBF9F6]">
-      <header className="bg-white">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-8 py-4">
-          <Link to="/dashboard/proofreader" className="flex items-center gap-3">
-            <img src={cspLogo} alt="Cambridge Scholars Publishing" width={32} height={32} />
-            <span className="font-serif text-base font-bold leading-none text-[#2C1A0E]">
-              Cambridge Scholars Publishing
-            </span>
-          </Link>
-          <span className="font-sans text-sm font-medium text-violet-600">Proofreader Portal</span>
+      <header className="border-b border-stone-200 bg-white">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
+          <div className="flex items-center gap-3">
+            <Link to="/dashboard/proofreader" className="flex items-center gap-3">
+              <img src={cspLogo} alt="Cambridge Scholars Publishing" width={32} height={32} />
+              <span className="font-serif text-xl font-bold text-stone-900">
+                Cambridge Scholars Publishing
+              </span>
+            </Link>
+            <span className="mx-2 h-5 w-px bg-stone-300" />
+            <span className="font-sans text-base text-stone-700">Proofreader Portal</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-violet-100 font-sans text-xs font-semibold text-violet-700">
+              {initialsFromName(displayName)}
+            </div>
+            <span className="font-sans text-sm font-medium text-stone-800">{displayName}</span>
+            <span className="h-5 w-px bg-stone-300" />
+            <ChangePasswordButton triggerClassName="inline-flex items-center gap-1.5 font-sans text-sm text-stone-600 hover:text-stone-900 transition-colors" />
+            <span className="h-5 w-px bg-stone-300" />
+            <button
+              type="button"
+              onClick={() => void onLogout()}
+              className="inline-flex items-center gap-1.5 font-sans text-sm text-stone-600 hover:text-stone-900 transition-colors"
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
+            </button>
+          </div>
         </div>
       </header>
 
