@@ -7,16 +7,6 @@ import { getPortalSession } from "@/lib/auth";
 import { getMetadata } from "@/lib/metadataApi";
 import { saveProofreaderMetadata, sendMetadataToAuthor } from "@/lib/proofreaderApi";
 import { MetadataQueries } from "@/components/metadata-queries";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/dashboard/proofreader_proposal/$ticket")({
   head: () => ({
@@ -91,7 +81,6 @@ function ProofreaderProposalPage() {
   const [version, setVersion] = useState<number | undefined>(undefined);
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
-  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -158,7 +147,6 @@ function ProofreaderProposalPage() {
     try {
       await sendMetadataToAuthor(ticket, notes.trim() || undefined);
       toast.success("Metadata sent to the author for approval");
-      setConfirmOpen(false);
       await load();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Send failed");
@@ -302,10 +290,15 @@ function ProofreaderProposalPage() {
                   {canSend && (
                     <button
                       type="button"
-                      onClick={() => setConfirmOpen(true)}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-[#2C1A0E] px-4 py-2.5 font-sans text-sm font-medium text-white transition-opacity hover:opacity-90"
+                      onClick={() => void onSend()}
+                      disabled={sending}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-[#2C1A0E] px-4 py-2.5 font-sans text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
                     >
-                      <Send className="h-4 w-4" />
+                      {sending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
                       Send to Author
                     </button>
                   )}
@@ -321,28 +314,6 @@ function ProofreaderProposalPage() {
         )}
       </main>
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Send metadata to the author?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will send the metadata to the author for approval. Continue?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={sending}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                void onSend();
-              }}
-              disabled={sending}
-            >
-              {sending ? "Sending…" : "Send to author"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
