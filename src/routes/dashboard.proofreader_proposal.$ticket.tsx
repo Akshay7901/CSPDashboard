@@ -131,7 +131,7 @@ function ProofreaderProposalPage() {
   const [metadataStatus, setMetadataStatus] = useState<string>("draft");
   const [proposalStatus, setProposalStatus] = useState<string>("");
   const [isLocked, setIsLocked] = useState(false);
-  const [version, setVersion] = useState<number | undefined>(undefined);
+  
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
   const [metadataHasOpenQuery, setMetadataHasOpenQuery] = useState(false);
@@ -177,7 +177,6 @@ function ProofreaderProposalPage() {
     setMetadataStatus((res.data.metadata_status || "draft").toLowerCase());
     setProposalStatus((res.data.proposal_status || "").toLowerCase());
     setIsLocked(Boolean((res.data as unknown as { is_locked?: boolean }).is_locked));
-    setVersion(res.data.current_version);
     setError(null);
     setLoading(false);
   }, [ticket]);
@@ -337,12 +336,6 @@ function ProofreaderProposalPage() {
           <h1 className="font-serif text-2xl font-bold tracking-tight text-[#2C1A0E]">
             Metadata Compilation
           </h1>
-          <span className="rounded-md border border-stone-200 bg-white px-2 py-0.5 font-sans text-xs text-[#7A6A5A]">
-            {ticket}
-          </span>
-          {version != null && (
-            <span className="font-sans text-xs text-[#9A8A7A]">Version {version}</span>
-          )}
           {isLocked && (
             <span className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-2 py-0.5 font-sans text-xs font-medium text-red-700">
               <Lock className="h-3 w-3" /> Locked
