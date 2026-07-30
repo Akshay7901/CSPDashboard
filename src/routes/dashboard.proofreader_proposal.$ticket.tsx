@@ -67,6 +67,13 @@ const FIELDS: { key: FieldKey; label: string; type: "text" | "textarea"; hint?: 
 
 const EMPTY = Object.fromEntries(FIELDS.map((f) => [f.key, ""])) as Record<FieldKey, string>;
 
+function formatDateTime(value?: string | null): string {
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+}
+
 type AuthorEntry = {
   first_name?: string;
   last_name?: string;
