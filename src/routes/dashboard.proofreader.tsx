@@ -149,14 +149,6 @@ function ProofreaderDashboard() {
               Contract-signed proposals pending metadata compilation and author approval
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => void load()}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-stone-200 bg-white px-3 py-2 font-sans text-sm text-[#7A6A5A] hover:text-stone-900"
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
-          </button>
         </div>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-3">
