@@ -63,6 +63,47 @@ function formatDateTime(value?: string | null): string {
   return d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 }
 
+function MetaRow({
+  label,
+  value,
+  onChange,
+  multiline,
+  disabled,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  multiline?: boolean;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="grid grid-cols-[220px_1fr] gap-0 border-t border-stone-200 first:border-t-0">
+      <div className="flex items-center bg-stone-50/60 px-5 py-4 font-sans text-sm font-medium text-stone-700">
+        {label}
+      </div>
+      <div className="border-l border-stone-200 px-4 py-3">
+        {multiline ? (
+          <textarea
+            rows={5}
+            disabled={disabled}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 font-sans text-sm text-stone-900 outline-none focus:border-stone-400 disabled:bg-stone-50 disabled:text-stone-500"
+          />
+        ) : (
+          <input
+            type="text"
+            disabled={disabled}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 font-sans text-sm text-stone-900 outline-none focus:border-stone-400 disabled:bg-stone-50 disabled:text-stone-500"
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
 type AuthorEntry = {
   first_name?: string;
   last_name?: string;
