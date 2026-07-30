@@ -244,6 +244,15 @@ function ProofreaderProposalPage() {
     keywords: "Keywords",
     website_classification: "Website classification",
     bic: "BIC codes",
+    cover_image: "Cover image",
+    authors: "Authors",
+    "authors.title": "Salutation",
+    "authors.first_name": "First name",
+    "authors.last_name": "Last name",
+    "authors.email": "Email",
+    "authors.email_2": "Email 2",
+    "authors.institution": "Institution",
+    "authors.country": "Country",
   };
 
   const onSaveFields = async (updates: Record<string, string>) => {
