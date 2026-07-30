@@ -67,6 +67,41 @@ const FIELDS: { key: FieldKey; label: string; type: "text" | "textarea"; hint?: 
 
 const EMPTY = Object.fromEntries(FIELDS.map((f) => [f.key, ""])) as Record<FieldKey, string>;
 
+function formatDateTime(value?: string | null): string {
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+}
+
+type AuthorEntry = {
+  first_name?: string;
+  last_name?: string;
+  title?: string;
+  email?: string;
+  email_2?: string;
+  institution?: string;
+  country?: string;
+};
+
+const AUTHOR_FIELDS: { key: keyof AuthorEntry; label: string }[] = [
+  { key: "title", label: "Title" },
+  { key: "first_name", label: "First name" },
+  { key: "last_name", label: "Last name" },
+  { key: "email", label: "Email" },
+  { key: "email_2", label: "Secondary email" },
+  { key: "institution", label: "Institution" },
+  { key: "country", label: "Country" },
+];
+
+type Revision = {
+  version_number?: number;
+  updated_by?: string;
+  updated_by_role?: string;
+  notes?: string;
+  created_at?: string;
+};
+
 function ProofreaderProposalPage() {
   const { ticket } = Route.useParams();
   const navigate = useNavigate();
@@ -82,6 +117,13 @@ function ProofreaderProposalPage() {
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
   const [metadataHasOpenQuery, setMetadataHasOpenQuery] = useState(false);
+  const [authors, setAuthors] = useState<AuthorEntry[]>([]);
+  const [coverImage, setCoverImage] = useState<string | null>(null);
+  const [revisions, setRevisions] = useState<Revision[]>([]);
+  const [compiledAt, setCompiledAt] = useState<string | null>(null);
+  const [sentAt, setSentAt] = useState<string | null>(null);
+  const [approvedAt, setApprovedAt] = useState<string | null>(null);
+  const [proofreaderEmail, setProofreaderEmail] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -99,6 +141,24 @@ function ProofreaderProposalPage() {
       next[f.key] = typeof v === "string" ? v : v == null ? "" : String(v);
     }
     setValues(next);
+    const rawAuthors = raw.authors;
+    setAuthors(Array.isArray(rawAuthors) ? (rawAuthors as AuthorEntry[]) : []);
+    const d = res.data as unknown as Record<string, unknown>;
+    const cover = d.cover_image;
+    setCoverImage(
+      typeof cover === "string"
+        ? cover
+        : cover && typeof cover === "object"
+          ? ((cover as { url?: string; file_url?: string }).url ??
+            (cover as { file_url?: string }).file_url ??
+            null)
+          : null,
+    );
+    setRevisions(Array.isArray(d.revisions) ? (d.revisions as Revision[]) : []);
+    setCompiledAt((d.compiled_at as string) ?? null);
+    setSentAt((d.sent_for_confirmation_at as string) ?? null);
+    setApprovedAt((d.approved_at as string) ?? null);
+    setProofreaderEmail((d.proofreader_email as string) ?? null);
     setMetadataStatus((res.data.metadata_status || "draft").toLowerCase());
     setProposalStatus((res.data.proposal_status || "").toLowerCase());
     setIsLocked(Boolean((res.data as unknown as { is_locked?: boolean }).is_locked));
@@ -133,7 +193,11 @@ function ProofreaderProposalPage() {
   const onSave = async () => {
     setSaving(true);
     try {
-      await saveProofreaderMetadata(ticket, values, notes.trim() || undefined);
+      await saveProofreaderMetadata(
+        ticket,
+        { ...values, authors },
+        notes.trim() || undefined,
+      );
       toast.success("Metadata saved");
       await load();
     } catch (err) {
@@ -177,7 +241,7 @@ function ProofreaderProposalPage() {
     setValues(next);
     await saveProofreaderMetadata(
       ticket,
-      next,
+      { ...next, authors },
       notes.trim() || undefined,
     );
   };
@@ -337,6 +401,119 @@ function ProofreaderProposalPage() {
                     </button>
                   )}
                 </div>
+              )}
+            </section>
+
+            <section className="mt-6 rounded-xl border border-stone-200 bg-white p-6">
+              <h2 className="mb-4 font-serif text-lg font-bold text-[#2C1A0E]">Authors</h2>
+              {authors.length === 0 ? (
+                <p className="font-sans text-sm text-[#7A6A5A]">No author records provided.</p>
+              ) : (
+                <div className="space-y-5">
+                  {authors.map((a, i) => (
+                    <div
+                      key={i}
+                      className="rounded-lg border border-stone-200 bg-stone-50/60 p-4"
+                    >
+                      <p className="mb-3 font-sans text-xs font-semibold uppercase tracking-wider text-[#7A6A5A]">
+                        Author {i + 1}
+                      </p>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        {AUTHOR_FIELDS.map((af) => (
+                          <div key={af.key}>
+                            <label
+                              htmlFor={`pf-author-${i}-${af.key}`}
+                              className="mb-1 block font-sans text-xs font-semibold uppercase tracking-wider text-[#7A6A5A]"
+                            >
+                              {af.label}
+                            </label>
+                            <input
+                              id={`pf-author-${i}-${af.key}`}
+                              type="text"
+                              disabled={readOnly}
+                              value={a[af.key] ?? ""}
+                              onChange={(e) =>
+                                setAuthors((prev) =>
+                                  prev.map((row, idx) =>
+                                    idx === i ? { ...row, [af.key]: e.target.value } : row,
+                                  ),
+                                )
+                              }
+                              className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 font-sans text-sm text-[#2C1A0E] outline-none focus:border-stone-400 disabled:bg-stone-50 disabled:text-stone-500"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            <section className="mt-6 rounded-xl border border-stone-200 bg-white p-6">
+              <h2 className="mb-4 font-serif text-lg font-bold text-[#2C1A0E]">Cover Image</h2>
+              {coverImage ? (
+                <img
+                  src={coverImage}
+                  alt="Proposed book cover"
+                  className="max-h-72 rounded-lg border border-stone-200"
+                />
+              ) : (
+                <p className="font-sans text-sm text-[#7A6A5A]">
+                  No cover image provided by the author.
+                </p>
+              )}
+            </section>
+
+            <section className="mt-6 rounded-xl border border-stone-200 bg-white p-6">
+              <h2 className="mb-4 font-serif text-lg font-bold text-[#2C1A0E]">
+                Compilation Record
+              </h2>
+              <dl className="grid gap-4 sm:grid-cols-2">
+                {[
+                  { label: "Proofreader", value: proofreaderEmail },
+                  { label: "Current version", value: version != null ? `v${version}` : null },
+                  { label: "Compiled at", value: formatDateTime(compiledAt) },
+                  { label: "Sent for confirmation", value: formatDateTime(sentAt) },
+                  { label: "Author approved at", value: formatDateTime(approvedAt) },
+                ].map((row) => (
+                  <div key={row.label}>
+                    <dt className="font-sans text-xs font-semibold uppercase tracking-wider text-[#7A6A5A]">
+                      {row.label}
+                    </dt>
+                    <dd className="font-sans text-sm text-[#2C1A0E]">{row.value || "—"}</dd>
+                  </div>
+                ))}
+              </dl>
+
+              {revisions.length > 0 && (
+                <>
+                  <h3 className="mb-2 mt-6 font-sans text-xs font-semibold uppercase tracking-wider text-[#7A6A5A]">
+                    Revision history
+                  </h3>
+                  <ul className="space-y-2">
+                    {[...revisions]
+                      .sort((a, b) => (b.version_number ?? 0) - (a.version_number ?? 0))
+                      .map((r) => (
+                        <li
+                          key={r.version_number ?? r.created_at}
+                          className="rounded-lg border border-stone-200 px-3 py-2 font-sans text-sm text-[#2C1A0E]"
+                        >
+                          <span className="font-medium">v{r.version_number}</span>
+                          <span className="text-[#7A6A5A]">
+                            {" · "}
+                            {r.updated_by || "unknown"}
+                            {r.updated_by_role ? ` (${r.updated_by_role.replace(/_/g, " ")})` : ""}
+                            {" · "}
+                            {formatDateTime(r.created_at) || "—"}
+                          </span>
+                          {r.notes ? (
+                            <span className="block text-[#7A6A5A]">{r.notes}</span>
+                          ) : null}
+                        </li>
+                      ))}
+                  </ul>
+                </>
               )}
             </section>
 
