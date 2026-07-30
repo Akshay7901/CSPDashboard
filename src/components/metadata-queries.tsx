@@ -514,7 +514,7 @@ export function MetadataQueries({
                 onChange={(e) => setResponseText(e.target.value)}
                 rows={3}
                 placeholder="Type one response — it will be sent for all open queries…"
-                className="w-full resize-none rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
+                className="w-full resize-none rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-sm text-stone-900 placeholder:text-stone-400 focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
               />
               <button
                 type="button"
