@@ -42,16 +42,16 @@ type FieldKey =
   | "bic";
 
 const FIELDS: { key: FieldKey; label: string; type: "text" | "textarea"; hint?: string }[] = [
-  { key: "full_title", label: "Title (full)", type: "text" },
+  { key: "full_title", label: "Title Full", type: "text" },
   { key: "title", label: "Title", type: "text" },
   { key: "subtitle", label: "Subtitle", type: "text" },
-  { key: "category", label: "Category", type: "text" },
-  { key: "display_names", label: "Display names", type: "text" },
-  { key: "display_bios", label: "Display bios", type: "textarea" },
-  { key: "book_description", label: "Book description", type: "textarea" },
+  { key: "category", label: "Category Auth/Ed", type: "text" },
+  { key: "display_names", label: "Display Names", type: "text" },
+  { key: "display_bios", label: "Display Bios", type: "textarea" },
+  { key: "book_description", label: "Book Description", type: "textarea" },
   { key: "keywords", label: "Keywords", type: "text" },
-  { key: "website_classification", label: "Website classification", type: "text" },
-  { key: "bic", label: "BIC codes", type: "text" },
+  { key: "website_classification", label: "Website Classification", type: "text" },
+  { key: "bic", label: "BIC Codes", type: "text" },
 ];
 
 const EMPTY = Object.fromEntries(FIELDS.map((f) => [f.key, ""])) as Record<FieldKey, string>;
