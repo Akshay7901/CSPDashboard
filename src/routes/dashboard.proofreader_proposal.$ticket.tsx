@@ -217,12 +217,9 @@ function ProofreaderProposalPage() {
     display_names: "Display names",
     display_bios: "Display bios",
     book_description: "Book description",
-    short_description: "Short description",
     keywords: "Keywords",
     website_classification: "Website classification",
     bic: "BIC codes",
-    bisac: "BISAC codes",
-    thema: "Thema codes",
   };
 
   const onSaveFields = async (updates: Record<string, string>) => {
