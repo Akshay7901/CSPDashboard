@@ -455,7 +455,16 @@ function ProofreaderProposalPage() {
                 onOpenQueryChange={setMetadataHasOpenQuery}
                 onAfterRespond={onSend}
                 fieldLabels={fieldLabels}
-                fieldValues={values}
+                fieldValues={{
+                  ...values,
+                  "authors.title": authors[0]?.title || "",
+                  "authors.first_name": authors[0]?.first_name || "",
+                  "authors.last_name": authors[0]?.last_name || "",
+                  "authors.email": authors[0]?.email || "",
+                  "authors.email_2": authors[0]?.email_2 || "",
+                  "authors.institution": authors[0]?.institution || "",
+                  "authors.country": authors[0]?.country || "",
+                }}
                 onSaveFields={onSaveFields}
               />
             </section>
