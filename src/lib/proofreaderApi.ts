@@ -1,7 +1,7 @@
 import { getPortalToken } from "./auth";
-import { proposalApiFetch } from "./proposalApi";
+import { API_BASE_URL, proposalApiFetch } from "./proposalApi";
 
-const API_ROOT = "https://api.cambridgescholars.com/api";
+const API_ROOT = `${API_BASE_URL}/api`;
 
 export type ProofreaderQueueItem = {
   ticket_number: string;
