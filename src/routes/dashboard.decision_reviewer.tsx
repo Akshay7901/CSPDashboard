@@ -28,6 +28,11 @@ import {
 } from "@/lib/proposals";
 import { proposalApiFetch } from "@/lib/proposalApi";
 import { getMetadata, getMetadataQueries } from "@/lib/metadataApi";
+import {
+  getProofreaderQueue,
+  type ProofreaderQueueItem,
+  type ProofreaderQueueTab,
+} from "@/lib/proofreaderApi";
 import { ChangePasswordButton } from "@/components/change-password-dialog";
 
 type PeerReviewer = {
@@ -274,7 +279,7 @@ const TABS: { key: TabKey; label: string; dot: string }[] = (
     { key: "review_returned", label: "Review Returned" },
     { key: "contract_issued", label: "Contract Issued" },
     { key: "queries_raised", label: "Queries Raised" },
-    { key: "awaiting_author_approval", label: "Contract Received" },
+    { key: "awaiting_author_approval", label: "Proofreader Review" },
     { key: "author_approved", label: "Author Approved" },
     { key: "locked", label: "Locked" },
     { key: "declined", label: "Declined" },
