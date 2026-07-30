@@ -2406,7 +2406,8 @@ function ProposalDetailPage() {
                               </div>
                             )}
                             {metadata.metadata_status === "sent_to_author" &&
-                              metadataHasOpenQuery && (
+                              metadataHasOpenQuery &&
+                              !isAdminOrDR && (
                                 <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 font-sans text-sm text-emerald-800">
                                   The author has raised a query — metadata fields
                                   are editable so you can update them before
