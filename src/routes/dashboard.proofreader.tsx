@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { ChevronRight, LogOut, RefreshCw, User2 } from "lucide-react";
+import { toast } from "sonner";
 import cspLogo from "@/assets/csp-logo.png";
 import { portalLogout, getPortalSession } from "@/lib/auth";
 import { ChangePasswordButton } from "@/components/change-password-dialog";
@@ -85,6 +86,7 @@ function ProofreaderDashboard() {
     setQueue(res.data.queue);
     setCounts(res.data.counts);
     setError(res.ok ? null : (res.error ?? "Could not load the queue."));
+    if (!res.ok) toast.error(res.error ?? "Could not load the queue.");
     setLoading(false);
   }, []);
 
@@ -183,12 +185,22 @@ function ProofreaderDashboard() {
           <div key={t.key}>
             <SectionHeading dotClass={t.dot} title={t.label} />
             <div className="space-y-3">
+              {loading && (
+                <div className="space-y-3">
+                  {[0, 1, 2].map((i) => (
+                    <div
+                      key={i}
+                      className="h-24 animate-pulse rounded-xl border border-stone-200 bg-white"
+                    />
+                  ))}
+                </div>
+              )}
               {queue[t.key].length === 0 && !loading && (
                 <p className="rounded-xl border border-dashed border-stone-200 bg-white px-5 py-8 text-center font-sans text-sm text-[#7A6A5A]">
                   Nothing in this list right now.
                 </p>
               )}
-              {queue[t.key].map((item) => (
+              {!loading && queue[t.key].map((item) => (
                 <QueueRow key={item.ticket_number} item={item} accentClass={t.bar} tab={t.key} />
               ))}
             </div>
@@ -219,21 +231,6 @@ function QueueRow({
   accentClass: string;
   tab: ProofreaderQueueTab;
 }) {
-  const stamp =
-    tab === "needs_compiling"
-      ? item.compiled_at
-        ? `Compiled ${formatDate(item.compiled_at)}`
-        : item.updated_at
-          ? `Updated ${formatDate(item.updated_at)}`
-          : ""
-      : tab === "with_author"
-        ? item.sent_for_confirmation_at
-          ? `Sent ${formatDate(item.sent_for_confirmation_at)}`
-          : ""
-        : item.updated_at
-          ? `Approved ${formatDate(item.updated_at)}`
-          : "";
-
   return (
     <Link
       to="/dashboard/proofreader_proposal/$ticket"
@@ -244,7 +241,7 @@ function QueueRow({
       <div className="flex flex-1 items-center justify-between gap-4 px-4 py-4">
         <div>
           <div className="mb-1 flex flex-wrap items-center gap-2">
-            <span className="rounded-md border border-stone-200 bg-stone-50 px-2 py-0.5 font-sans text-xs font-medium text-[#7A6A5A]">
+            <span className="rounded-md border border-stone-200 bg-stone-50 px-2 py-0.5 font-mono text-xs font-medium text-[#7A6A5A]">
               {item.ticket_number}
             </span>
             {item.is_locked && (
@@ -262,7 +259,15 @@ function QueueRow({
           <p className="mt-1 flex items-center gap-1.5 font-sans text-xs text-[#7A6A5A]">
             <User2 className="h-3.5 w-3.5" />
             {item.author_name || item.author_email || "Unknown author"}
-            {stamp ? ` · ${stamp}` : ""}
+            {item.author_name && item.author_email ? ` · ${item.author_email}` : ""}
+          </p>
+          <p className="mt-1.5 font-sans text-xs text-[#9A8A7A]">
+            {item.compiled_at ? `Compiled ${formatDate(item.compiled_at)}` : "Not yet compiled"}
+            {" · "}
+            {item.sent_for_confirmation_at
+              ? `Sent ${formatDate(item.sent_for_confirmation_at)}`
+              : "Not yet sent"}
+            {item.updated_at ? ` · Updated ${relativeTime(item.updated_at)}` : ""}
           </p>
         </div>
         <span className="inline-flex shrink-0 items-center gap-1 font-sans text-sm text-[#7A6A5A]">
@@ -272,4 +277,18 @@ function QueueRow({
       </div>
     </Link>
   );
+}
+
+function relativeTime(iso: string): string {
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return formatDate(iso);
+  const diff = Math.max(0, Date.now() - then);
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins} minute${mins === 1 ? "" : "s"} ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days} day${days === 1 ? "" : "s"} ago`;
+  return formatDate(iso);
 }
