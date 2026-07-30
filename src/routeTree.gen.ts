@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardReviewerRouteImport } from './routes/dashboard.reviewer'
+import { Route as DashboardProofreaderRouteImport } from './routes/dashboard.proofreader'
 import { Route as DashboardEditorRouteImport } from './routes/dashboard.editor'
 import { Route as DashboardDecision_reviewerRouteImport } from './routes/dashboard.decision_reviewer'
 import { Route as DashboardAuthorRouteImport } from './routes/dashboard.author'
@@ -35,6 +36,11 @@ const IndexRoute = IndexRouteImport.update({
 const DashboardReviewerRoute = DashboardReviewerRouteImport.update({
   id: '/dashboard/reviewer',
   path: '/dashboard/reviewer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardProofreaderRoute = DashboardProofreaderRouteImport.update({
+  id: '/dashboard/proofreader',
+  path: '/dashboard/proofreader',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardEditorRoute = DashboardEditorRouteImport.update({
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/author': typeof DashboardAuthorRoute
   '/dashboard/decision_reviewer': typeof DashboardDecision_reviewerRoute
   '/dashboard/editor': typeof DashboardEditorRouteWithChildren
+  '/dashboard/proofreader': typeof DashboardProofreaderRoute
   '/dashboard/reviewer': typeof DashboardReviewerRouteWithChildren
   '/dashboard/author_proposal/$id': typeof DashboardAuthor_proposalIdRoute
   '/dashboard/proposal/$ticket': typeof DashboardProposalTicketRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/dashboard/author': typeof DashboardAuthorRoute
   '/dashboard/decision_reviewer': typeof DashboardDecision_reviewerRoute
   '/dashboard/editor': typeof DashboardEditorRouteWithChildren
+  '/dashboard/proofreader': typeof DashboardProofreaderRoute
   '/dashboard/reviewer': typeof DashboardReviewerRouteWithChildren
   '/dashboard/author_proposal/$id': typeof DashboardAuthor_proposalIdRoute
   '/dashboard/proposal/$ticket': typeof DashboardProposalTicketRoute
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/dashboard/author': typeof DashboardAuthorRoute
   '/dashboard/decision_reviewer': typeof DashboardDecision_reviewerRoute
   '/dashboard/editor': typeof DashboardEditorRouteWithChildren
+  '/dashboard/proofreader': typeof DashboardProofreaderRoute
   '/dashboard/reviewer': typeof DashboardReviewerRouteWithChildren
   '/dashboard/author_proposal/$id': typeof DashboardAuthor_proposalIdRoute
   '/dashboard/proposal/$ticket': typeof DashboardProposalTicketRoute
@@ -140,6 +149,7 @@ export interface FileRouteTypes {
     | '/dashboard/author'
     | '/dashboard/decision_reviewer'
     | '/dashboard/editor'
+    | '/dashboard/proofreader'
     | '/dashboard/reviewer'
     | '/dashboard/author_proposal/$id'
     | '/dashboard/proposal/$ticket'
@@ -154,6 +164,7 @@ export interface FileRouteTypes {
     | '/dashboard/author'
     | '/dashboard/decision_reviewer'
     | '/dashboard/editor'
+    | '/dashboard/proofreader'
     | '/dashboard/reviewer'
     | '/dashboard/author_proposal/$id'
     | '/dashboard/proposal/$ticket'
@@ -168,6 +179,7 @@ export interface FileRouteTypes {
     | '/dashboard/author'
     | '/dashboard/decision_reviewer'
     | '/dashboard/editor'
+    | '/dashboard/proofreader'
     | '/dashboard/reviewer'
     | '/dashboard/author_proposal/$id'
     | '/dashboard/proposal/$ticket'
@@ -183,6 +195,7 @@ export interface RootRouteChildren {
   DashboardAuthorRoute: typeof DashboardAuthorRoute
   DashboardDecision_reviewerRoute: typeof DashboardDecision_reviewerRoute
   DashboardEditorRoute: typeof DashboardEditorRouteWithChildren
+  DashboardProofreaderRoute: typeof DashboardProofreaderRoute
   DashboardReviewerRoute: typeof DashboardReviewerRouteWithChildren
   DashboardAuthor_proposalIdRoute: typeof DashboardAuthor_proposalIdRoute
   DashboardProposalTicketRoute: typeof DashboardProposalTicketRoute
@@ -209,6 +222,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard/reviewer'
       fullPath: '/dashboard/reviewer'
       preLoaderRoute: typeof DashboardReviewerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/proofreader': {
+      id: '/dashboard/proofreader'
+      path: '/dashboard/proofreader'
+      fullPath: '/dashboard/proofreader'
+      preLoaderRoute: typeof DashboardProofreaderRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/editor': {
@@ -308,6 +328,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardAuthorRoute: DashboardAuthorRoute,
   DashboardDecision_reviewerRoute: DashboardDecision_reviewerRoute,
   DashboardEditorRoute: DashboardEditorRouteWithChildren,
+  DashboardProofreaderRoute: DashboardProofreaderRoute,
   DashboardReviewerRoute: DashboardReviewerRouteWithChildren,
   DashboardAuthor_proposalIdRoute: DashboardAuthor_proposalIdRoute,
   DashboardProposalTicketRoute: DashboardProposalTicketRoute,
