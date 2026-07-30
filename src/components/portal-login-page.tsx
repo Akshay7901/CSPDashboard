@@ -130,24 +130,24 @@ export function LoginPage() {
 
 function PortalCards({ onSelect }: { onSelect: (role: Role) => void }) {
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-row gap-4 overflow-x-auto pb-2">
+    <div className="mx-auto flex w-full max-w-6xl flex-row gap-5 overflow-x-auto pb-2">
       {portals.map(({ id, title, cardDescription, Icon, toneClass }) => (
         <button
           key={id}
           type="button"
           onClick={() => onSelect(id)}
-          className="group min-w-[200px] flex-1 cursor-pointer rounded-2xl border border-foreground/20 bg-foreground/10 p-5 text-left backdrop-blur-sm transition-all duration-200 hover:border-foreground/40 hover:bg-foreground/20"
+          className="group min-w-[280px] flex-1 cursor-pointer rounded-2xl border border-foreground/20 bg-foreground/10 p-7 text-left backdrop-blur-sm transition-all duration-200 hover:border-foreground/40 hover:bg-foreground/20"
         >
           <div
-            className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${toneClass} text-foreground`}
+            className={`mb-4 flex h-14 w-14 items-center justify-center rounded-xl ${toneClass} text-foreground`}
           >
-            <Icon className="h-5 w-5" strokeWidth={2} />
+            <Icon className="h-7 w-7" strokeWidth={2} />
           </div>
-          <h2 className="mb-1 font-serif text-base font-bold text-foreground">{title}</h2>
-          <p className="text-xs leading-relaxed text-foreground/60">{cardDescription}</p>
-          <span className="mt-3 inline-flex items-center gap-1 text-xs text-foreground/50 transition-colors group-hover:text-foreground/80">
+          <h2 className="mb-2 font-serif text-lg font-bold text-foreground">{title}</h2>
+          <p className="text-sm leading-relaxed text-foreground/60">{cardDescription}</p>
+          <span className="mt-4 inline-flex items-center gap-1 text-sm text-foreground/50 transition-colors group-hover:text-foreground/80">
             Sign in
-            <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </span>
         </button>
       ))}
