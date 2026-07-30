@@ -81,6 +81,7 @@ function ProofreaderProposalPage() {
   const [version, setVersion] = useState<number | undefined>(undefined);
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
+  const [metadataHasOpenQuery, setMetadataHasOpenQuery] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -155,6 +156,32 @@ function ProofreaderProposalPage() {
     }
   };
 
+  const fieldLabels: Record<string, string> = {
+    full_title: "Title (full)",
+    title: "Title",
+    subtitle: "Subtitle",
+    category: "Category",
+    display_names: "Display names",
+    display_bios: "Display bios",
+    book_description: "Book description",
+    short_description: "Short description",
+    keywords: "Keywords",
+    website_classification: "Website classification",
+    bic: "BIC codes",
+    bisac: "BISAC codes",
+    thema: "Thema codes",
+  };
+
+  const onSaveFields = async (updates: Record<string, string>) => {
+    const next = { ...values, ...updates } as Record<FieldKey, string>;
+    setValues(next);
+    await saveProofreaderMetadata(
+      ticket,
+      next,
+      notes.trim() || undefined,
+    );
+  };
+
   return (
     <div className="min-h-screen bg-[#FBF9F6]">
       <header className="bg-white">
@@ -196,6 +223,13 @@ function ProofreaderProposalPage() {
         </div>
 
         <StatusBanner status={metadataStatus} proposalStatus={proposalStatus} />
+
+        {metadataStatus === "sent_to_author" && metadataHasOpenQuery && (
+          <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 font-sans text-sm text-emerald-800">
+            The author has raised a query — metadata fields are editable so you can
+            update them before responding.
+          </div>
+        )}
 
         {error && (
           <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 font-sans text-sm text-red-700">
@@ -308,7 +342,16 @@ function ProofreaderProposalPage() {
 
             <section className="mt-6 rounded-xl border border-stone-200 bg-white p-6">
               <h2 className="mb-3 font-serif text-lg font-bold text-[#2C1A0E]">Author Queries</h2>
-              <MetadataQueries ticket={ticket} viewer="dr" canRaise={false} />
+              <MetadataQueries
+                ticket={ticket}
+                viewer="dr"
+                canRaise={false}
+                onOpenQueryChange={setMetadataHasOpenQuery}
+                onAfterRespond={onSend}
+                fieldLabels={fieldLabels}
+                fieldValues={values}
+                onSaveFields={onSaveFields}
+              />
             </section>
           </>
         )}
