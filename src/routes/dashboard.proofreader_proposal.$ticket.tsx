@@ -175,12 +175,11 @@ function ProofreaderProposalPage() {
   const onSaveFields = async (updates: Record<string, string>) => {
     const next = { ...values, ...updates } as Record<FieldKey, string>;
     setValues(next);
-    const res = await saveProofreaderMetadata(
+    await saveProofreaderMetadata(
       ticket,
       next,
       notes.trim() || undefined,
     );
-    return res;
   };
 
   return (
