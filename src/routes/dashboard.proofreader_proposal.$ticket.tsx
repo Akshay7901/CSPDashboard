@@ -177,7 +177,6 @@ function ProofreaderProposalPage() {
     setMetadataStatus((res.data.metadata_status || "draft").toLowerCase());
     setProposalStatus((res.data.proposal_status || "").toLowerCase());
     setIsLocked(Boolean((res.data as unknown as { is_locked?: boolean }).is_locked));
-    setVersion(res.data.current_version);
     setError(null);
     setLoading(false);
   }, [ticket]);
