@@ -2390,9 +2390,12 @@ function ProposalDetailPage() {
                           isProofreaderPhase ||
                           metadata.is_locked === true ||
                           !isMetaApproved;
+                        const session = getPortalSession();
+                        const role = (session?.role || "").toLowerCase();
+                        const isAdminOrDR = role === "admin" || role === "decision_reviewer";
                         return (
                           <div className="space-y-4">
-                            <ProofreaderStatusPanel metadata={metadata} />
+                            {!isAdminOrDR && <ProofreaderStatusPanel metadata={metadata} />}
                             {isMetaLocked && (
                               <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 font-sans text-sm text-amber-800">
                                 {isLocked
