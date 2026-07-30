@@ -107,6 +107,7 @@ function ProofreaderProposalPage() {
   const [sending, setSending] = useState(false);
   const [metadataHasOpenQuery, setMetadataHasOpenQuery] = useState(false);
   const [authors, setAuthors] = useState<AuthorEntry[]>([]);
+  const [extras, setExtras] = useState<Record<string, unknown>>({});
   const [coverImage, setCoverImage] = useState<string | null>(null);
   const [revisions, setRevisions] = useState<Revision[]>([]);
   const [compiledAt, setCompiledAt] = useState<string | null>(null);
@@ -130,6 +131,10 @@ function ProofreaderProposalPage() {
       next[f.key] = typeof v === "string" ? v : v == null ? "" : String(v);
     }
     setValues(next);
+    const known = new Set<string>([...FIELDS.map((f) => f.key), "authors"]);
+    setExtras(
+      Object.fromEntries(Object.entries(raw).filter(([k]) => !known.has(k))),
+    );
     const rawAuthors = raw.authors;
     setAuthors(Array.isArray(rawAuthors) ? (rawAuthors as AuthorEntry[]) : []);
     const d = res.data as unknown as Record<string, unknown>;
@@ -184,7 +189,7 @@ function ProofreaderProposalPage() {
     try {
       await saveProofreaderMetadata(
         ticket,
-        { ...values, authors },
+        { ...extras, ...values, authors },
         notes.trim() || undefined,
       );
       toast.success("Metadata saved");
@@ -227,7 +232,7 @@ function ProofreaderProposalPage() {
     setValues(next);
     await saveProofreaderMetadata(
       ticket,
-      { ...next, authors },
+      { ...extras, ...next, authors },
       notes.trim() || undefined,
     );
   };
