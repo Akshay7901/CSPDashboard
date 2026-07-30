@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import cspLogo from "@/assets/csp-logo.png";
 import { getPortalSession, portalLogout } from "@/lib/auth";
 import { initialsFromName, displayNameFromEmail } from "@/lib/proposals";
-import { ChangePasswordButton } from "@/components/change-password-dialog";
 import { getMetadata } from "@/lib/metadataApi";
 import { saveProofreaderMetadata, sendMetadataToAuthor } from "@/lib/proofreaderApi";
 import { MetadataQueries } from "@/components/metadata-queries";
@@ -312,8 +311,6 @@ function ProofreaderProposalPage() {
               {initialsFromName(displayName)}
             </div>
             <span className="font-sans text-sm font-medium text-stone-800">{displayName}</span>
-            <span className="h-5 w-px bg-stone-300" />
-            <ChangePasswordButton triggerClassName="inline-flex items-center gap-1.5 font-sans text-sm text-stone-600 hover:text-stone-900 transition-colors" />
             <span className="h-5 w-px bg-stone-300" />
             <button
               type="button"
