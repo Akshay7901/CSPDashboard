@@ -1,10 +1,15 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { ChevronRight, LogOut, User2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { ChevronRight, LogOut, RefreshCw, User2 } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
 import { portalLogout, getPortalSession } from "@/lib/auth";
 import { ChangePasswordButton } from "@/components/change-password-dialog";
-import { initialsFromName, displayNameFromEmail } from "@/lib/proposals";
+import { initialsFromName, displayNameFromEmail, formatDate } from "@/lib/proposals";
+import {
+  getProofreaderQueue,
+  type ProofreaderQueueItem,
+  type ProofreaderQueueTab,
+} from "@/lib/proofreaderApi";
 
 export const Route = createFileRoute("/dashboard/proofreader")({
   head: () => ({
@@ -27,45 +32,61 @@ export const Route = createFileRoute("/dashboard/proofreader")({
   component: ProofreaderDashboard,
 });
 
-type QueueItem = {
-  id: string;
-  title: string;
-  author: string;
-  meta: string;
-  kind?: string;
-};
-
-const NEEDS_COMPILING: QueueItem[] = [
+const TABS: {
+  key: ProofreaderQueueTab;
+  label: string;
+  dot: string;
+  card: string;
+  bar: string;
+}[] = [
   {
-    id: "CSP-2026-0141",
-    title: "Sound and Silence: Acoustic Ecologies of the Post-Industrial North",
-    author: "Dr. Elena Vasquez, Sorbonne University",
-    meta: "Contract signed 20 Jul 2026",
-    kind: "Monograph",
+    key: "needs_compiling",
+    label: "Needs Compiling",
+    dot: "bg-orange-500",
+    card: "border-orange-200 bg-orange-50/70 text-orange-700",
+    bar: "bg-orange-500",
   },
-];
-
-const WITH_AUTHOR: QueueItem[] = [
   {
-    id: "CSP-2026-0126",
-    title: "Weaving the Commons: Craft Guilds and Civic Life in Renaissance Flanders",
-    author: "Dr. Willem De Groot",
-    meta: "Sent 10 Jul 2026",
+    key: "with_author",
+    label: "With Author",
+    dot: "bg-blue-500",
+    card: "border-blue-200 bg-blue-50/70 text-blue-700",
+    bar: "bg-blue-500",
   },
-];
-
-const CONFIRMED: QueueItem[] = [
   {
-    id: "CSP-2026-0098",
-    title: "The Ethics of Algorithmic Care: Machine Learning in Community Health Systems",
-    author: "Dr. Priya Nair",
-    meta: "Confirmed 2 Jun 2026",
+    key: "confirmed",
+    label: "Author Approved",
+    dot: "bg-emerald-500",
+    card: "border-emerald-200 bg-emerald-50/70 text-emerald-700",
+    bar: "bg-emerald-500",
   },
 ];
 
 function ProofreaderDashboard() {
   const navigate = useNavigate();
   const [displayName, setDisplayName] = useState("");
+  const [tab, setTab] = useState<ProofreaderQueueTab>("needs_compiling");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [queue, setQueue] = useState<Record<ProofreaderQueueTab, ProofreaderQueueItem[]>>({
+    needs_compiling: [],
+    with_author: [],
+    confirmed: [],
+  });
+  const [counts, setCounts] = useState<Record<ProofreaderQueueTab, number>>({
+    needs_compiling: 0,
+    with_author: 0,
+    confirmed: 0,
+  });
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const res = await getProofreaderQueue();
+    setQueue(res.data.queue);
+    setCounts(res.data.counts);
+    setError(res.ok ? null : (res.error ?? "Could not load the queue."));
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
     const session = getPortalSession();
@@ -74,7 +95,8 @@ function ProofreaderDashboard() {
       return;
     }
     setDisplayName(session.name || displayNameFromEmail(session.email));
-  }, [navigate]);
+    void load();
+  }, [navigate, load]);
 
   const onLogout = async () => {
     await portalLogout();
@@ -116,96 +138,63 @@ function ProofreaderDashboard() {
       </header>
 
       <main className="mx-auto max-w-5xl px-6 py-10">
-        <h1 className="font-serif text-3xl font-bold tracking-tight text-[#2C1A0E]">
-          Metadata Queue
-        </h1>
-        <p className="mt-1 font-sans text-sm text-[#7A6A5A]">
-          Contract-signed proposals pending metadata confirmation
-        </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="font-serif text-3xl font-bold tracking-tight text-[#2C1A0E]">
+              Metadata Queue
+            </h1>
+            <p className="mt-1 font-sans text-sm text-[#7A6A5A]">
+              Contract-signed proposals pending metadata compilation and author approval
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => void load()}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-stone-200 bg-white px-3 py-2 font-sans text-sm text-[#7A6A5A] hover:text-stone-900"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </button>
+        </div>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-3">
-          <StatCard
-            value={NEEDS_COMPILING.length}
-            label="Needs Compiling"
-            className="border-amber-200 bg-amber-50/70 text-amber-700"
-          />
-          <StatCard
-            value={WITH_AUTHOR.length}
-            label="With Author"
-            className="border-emerald-200 bg-emerald-50/70 text-emerald-700"
-          />
-          <StatCard
-            value={CONFIRMED.length}
-            label="Confirmed"
-            className="border-slate-200 bg-slate-50/70 text-slate-700"
-          />
-        </div>
-
-        <SectionHeading dotClass="bg-amber-500" title="Needs metadata compiled" />
-        <div className="space-y-3">
-          {NEEDS_COMPILING.map((item) => (
-            <article
-              key={item.id}
-              className="flex items-start justify-between gap-4 rounded-xl border border-stone-200 bg-white px-5 py-4"
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => setTab(t.key)}
+              className={`rounded-xl border px-4 py-5 text-center transition-shadow ${t.card} ${
+                tab === t.key ? "ring-2 ring-offset-2 ring-stone-300" : "hover:shadow-sm"
+              }`}
             >
-              <div>
-                <div className="mb-2 flex items-center gap-3">
-                  <span className="rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 font-sans text-xs font-medium text-amber-700">
-                    Contract Signed
-                  </span>
-                  {item.kind && (
-                    <span className="font-sans text-xs text-[#7A6A5A]">{item.kind}</span>
-                  )}
-                </div>
-                <h2 className="font-serif text-base font-bold text-[#2C1A0E]">{item.title}</h2>
-                <p className="mt-1 flex items-center gap-1.5 font-sans text-sm text-[#7A6A5A]">
-                  <User2 className="h-3.5 w-3.5" />
-                  {item.author}
+              <p className="font-serif text-2xl font-bold leading-none">{counts[t.key]}</p>
+              <p className="mt-2 font-sans text-xs">{t.label}</p>
+            </button>
+          ))}
+        </div>
+
+        {error && (
+          <p className="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 font-sans text-sm text-red-700">
+            {error}
+          </p>
+        )}
+
+        {TABS.filter((t) => t.key === tab).map((t) => (
+          <div key={t.key}>
+            <SectionHeading dotClass={t.dot} title={t.label} />
+            <div className="space-y-3">
+              {queue[t.key].length === 0 && !loading && (
+                <p className="rounded-xl border border-dashed border-stone-200 bg-white px-5 py-8 text-center font-sans text-sm text-[#7A6A5A]">
+                  Nothing in this list right now.
                 </p>
-                <p className="mt-1 font-sans text-xs text-[#9A8A7A]">{item.meta}</p>
-              </div>
-              <button
-                type="button"
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-[#2C1A0E] px-4 py-2.5 font-sans text-sm font-medium text-white transition-opacity hover:opacity-90"
-              >
-                Compile metadata
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </article>
-          ))}
-        </div>
-
-        <SectionHeading dotClass="bg-emerald-500" title="With author — awaiting confirmation" />
-        <div className="space-y-3">
-          {WITH_AUTHOR.map((item) => (
-            <QueueRow key={item.id} item={item} accentClass="bg-emerald-400" />
-          ))}
-        </div>
-
-        <SectionHeading dotClass="bg-slate-400" title="Confirmed" />
-        <div className="space-y-3">
-          {CONFIRMED.map((item) => (
-            <QueueRow key={item.id} item={item} accentClass="bg-slate-300" />
-          ))}
-        </div>
+              )}
+              {queue[t.key].map((item) => (
+                <QueueRow key={item.ticket_number} item={item} accentClass={t.bar} tab={t.key} />
+              ))}
+            </div>
+          </div>
+        ))}
       </main>
-    </div>
-  );
-}
-
-function StatCard({
-  value,
-  label,
-  className,
-}: {
-  value: number;
-  label: string;
-  className: string;
-}) {
-  return (
-    <div className={`rounded-xl border px-4 py-5 text-center ${className}`}>
-      <p className="font-serif text-2xl font-bold leading-none">{value}</p>
-      <p className="mt-2 font-sans text-xs">{label}</p>
     </div>
   );
 }
@@ -221,24 +210,66 @@ function SectionHeading({ dotClass, title }: { dotClass: string; title: string }
   );
 }
 
-function QueueRow({ item, accentClass }: { item: QueueItem; accentClass: string }) {
+function QueueRow({
+  item,
+  accentClass,
+  tab,
+}: {
+  item: ProofreaderQueueItem;
+  accentClass: string;
+  tab: ProofreaderQueueTab;
+}) {
+  const stamp =
+    tab === "needs_compiling"
+      ? item.compiled_at
+        ? `Compiled ${formatDate(item.compiled_at)}`
+        : item.updated_at
+          ? `Updated ${formatDate(item.updated_at)}`
+          : ""
+      : tab === "with_author"
+        ? item.sent_for_confirmation_at
+          ? `Sent ${formatDate(item.sent_for_confirmation_at)}`
+          : ""
+        : item.updated_at
+          ? `Approved ${formatDate(item.updated_at)}`
+          : "";
+
   return (
-    <article className="flex items-center justify-between gap-4 overflow-hidden rounded-xl border border-stone-200 bg-white">
+    <Link
+      to="/dashboard/proofreader_proposal/$ticket"
+      params={{ ticket: item.ticket_number }}
+      className="flex items-center justify-between gap-4 overflow-hidden rounded-xl border border-stone-200 bg-white transition-shadow hover:shadow-sm"
+    >
       <span className={`w-1 self-stretch ${accentClass}`} aria-hidden />
       <div className="flex flex-1 items-center justify-between gap-4 px-4 py-4">
         <div>
-          <h3 className="font-serif text-base font-semibold text-[#2C1A0E]">{item.title}</h3>
-          <p className="mt-1 font-sans text-xs text-[#7A6A5A]">
-            {item.author} · {item.meta}
+          <div className="mb-1 flex flex-wrap items-center gap-2">
+            <span className="rounded-md border border-stone-200 bg-stone-50 px-2 py-0.5 font-sans text-xs font-medium text-[#7A6A5A]">
+              {item.ticket_number}
+            </span>
+            {item.is_locked && (
+              <span className="rounded-md border border-stone-300 bg-stone-100 px-2 py-0.5 font-sans text-xs text-stone-600">
+                Locked
+              </span>
+            )}
+            {item.current_version != null && (
+              <span className="font-sans text-xs text-[#9A8A7A]">v{item.current_version}</span>
+            )}
+          </div>
+          <h3 className="font-serif text-base font-semibold text-[#2C1A0E]">
+            {item.title || "Untitled proposal"}
+          </h3>
+          <p className="mt-1 flex items-center gap-1.5 font-sans text-xs text-[#7A6A5A]">
+            <User2 className="h-3.5 w-3.5" />
+            {item.author_name || item.author_email || "Unknown author"}
+            {stamp ? ` · ${stamp}` : ""}
           </p>
         </div>
-        <button
-          type="button"
-          className="shrink-0 font-sans text-sm text-[#7A6A5A] transition-colors hover:text-stone-900"
-        >
-          View
-        </button>
+        <span className="inline-flex shrink-0 items-center gap-1 font-sans text-sm text-[#7A6A5A]">
+          {tab === "needs_compiling" ? "Compile metadata" : "View"}
+          <ChevronRight className="h-4 w-4" />
+        </span>
       </div>
-    </article>
+    </Link>
   );
 }

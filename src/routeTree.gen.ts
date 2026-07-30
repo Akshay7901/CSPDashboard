@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProofreaderQueueRouteImport } from './routes/proofreader.queue'
 import { Route as DashboardReviewerRouteImport } from './routes/dashboard.reviewer'
 import { Route as DashboardProofreaderRouteImport } from './routes/dashboard.proofreader'
 import { Route as DashboardEditorRouteImport } from './routes/dashboard.editor'
@@ -19,6 +20,7 @@ import { Route as DashboardAuthorRouteImport } from './routes/dashboard.author'
 import { Route as DashboardRoleRouteImport } from './routes/dashboard.$role'
 import { Route as ContractCompleteRouteImport } from './routes/contract.complete'
 import { Route as DashboardProposalTicketRouteImport } from './routes/dashboard.proposal.$ticket'
+import { Route as DashboardProofreader_proposalTicketRouteImport } from './routes/dashboard.proofreader_proposal.$ticket'
 import { Route as DashboardAuthor_proposalIdRouteImport } from './routes/dashboard.author_proposal.$id'
 import { Route as DashboardReviewerSubmissionIdRouteImport } from './routes/dashboard.reviewer.submission.$id'
 import { Route as DashboardEditorSubmissionIdRouteImport } from './routes/dashboard.editor.submission.$id'
@@ -31,6 +33,11 @@ const LoginRoute = LoginRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProofreaderQueueRoute = ProofreaderQueueRouteImport.update({
+  id: '/proofreader/queue',
+  path: '/proofreader/queue',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardReviewerRoute = DashboardReviewerRouteImport.update({
@@ -74,6 +81,12 @@ const DashboardProposalTicketRoute = DashboardProposalTicketRouteImport.update({
   path: '/dashboard/proposal/$ticket',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardProofreader_proposalTicketRoute =
+  DashboardProofreader_proposalTicketRouteImport.update({
+    id: '/dashboard/proofreader_proposal/$ticket',
+    path: '/dashboard/proofreader_proposal/$ticket',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const DashboardAuthor_proposalIdRoute =
   DashboardAuthor_proposalIdRouteImport.update({
     id: '/dashboard/author_proposal/$id',
@@ -103,7 +116,9 @@ export interface FileRoutesByFullPath {
   '/dashboard/editor': typeof DashboardEditorRouteWithChildren
   '/dashboard/proofreader': typeof DashboardProofreaderRoute
   '/dashboard/reviewer': typeof DashboardReviewerRouteWithChildren
+  '/proofreader/queue': typeof ProofreaderQueueRoute
   '/dashboard/author_proposal/$id': typeof DashboardAuthor_proposalIdRoute
+  '/dashboard/proofreader_proposal/$ticket': typeof DashboardProofreader_proposalTicketRoute
   '/dashboard/proposal/$ticket': typeof DashboardProposalTicketRoute
   '/dashboard/editor/submission/$id': typeof DashboardEditorSubmissionIdRoute
   '/dashboard/reviewer/submission/$id': typeof DashboardReviewerSubmissionIdRoute
@@ -118,7 +133,9 @@ export interface FileRoutesByTo {
   '/dashboard/editor': typeof DashboardEditorRouteWithChildren
   '/dashboard/proofreader': typeof DashboardProofreaderRoute
   '/dashboard/reviewer': typeof DashboardReviewerRouteWithChildren
+  '/proofreader/queue': typeof ProofreaderQueueRoute
   '/dashboard/author_proposal/$id': typeof DashboardAuthor_proposalIdRoute
+  '/dashboard/proofreader_proposal/$ticket': typeof DashboardProofreader_proposalTicketRoute
   '/dashboard/proposal/$ticket': typeof DashboardProposalTicketRoute
   '/dashboard/editor/submission/$id': typeof DashboardEditorSubmissionIdRoute
   '/dashboard/reviewer/submission/$id': typeof DashboardReviewerSubmissionIdRoute
@@ -134,7 +151,9 @@ export interface FileRoutesById {
   '/dashboard/editor': typeof DashboardEditorRouteWithChildren
   '/dashboard/proofreader': typeof DashboardProofreaderRoute
   '/dashboard/reviewer': typeof DashboardReviewerRouteWithChildren
+  '/proofreader/queue': typeof ProofreaderQueueRoute
   '/dashboard/author_proposal/$id': typeof DashboardAuthor_proposalIdRoute
+  '/dashboard/proofreader_proposal/$ticket': typeof DashboardProofreader_proposalTicketRoute
   '/dashboard/proposal/$ticket': typeof DashboardProposalTicketRoute
   '/dashboard/editor/submission/$id': typeof DashboardEditorSubmissionIdRoute
   '/dashboard/reviewer/submission/$id': typeof DashboardReviewerSubmissionIdRoute
@@ -151,7 +170,9 @@ export interface FileRouteTypes {
     | '/dashboard/editor'
     | '/dashboard/proofreader'
     | '/dashboard/reviewer'
+    | '/proofreader/queue'
     | '/dashboard/author_proposal/$id'
+    | '/dashboard/proofreader_proposal/$ticket'
     | '/dashboard/proposal/$ticket'
     | '/dashboard/editor/submission/$id'
     | '/dashboard/reviewer/submission/$id'
@@ -166,7 +187,9 @@ export interface FileRouteTypes {
     | '/dashboard/editor'
     | '/dashboard/proofreader'
     | '/dashboard/reviewer'
+    | '/proofreader/queue'
     | '/dashboard/author_proposal/$id'
+    | '/dashboard/proofreader_proposal/$ticket'
     | '/dashboard/proposal/$ticket'
     | '/dashboard/editor/submission/$id'
     | '/dashboard/reviewer/submission/$id'
@@ -181,7 +204,9 @@ export interface FileRouteTypes {
     | '/dashboard/editor'
     | '/dashboard/proofreader'
     | '/dashboard/reviewer'
+    | '/proofreader/queue'
     | '/dashboard/author_proposal/$id'
+    | '/dashboard/proofreader_proposal/$ticket'
     | '/dashboard/proposal/$ticket'
     | '/dashboard/editor/submission/$id'
     | '/dashboard/reviewer/submission/$id'
@@ -197,7 +222,9 @@ export interface RootRouteChildren {
   DashboardEditorRoute: typeof DashboardEditorRouteWithChildren
   DashboardProofreaderRoute: typeof DashboardProofreaderRoute
   DashboardReviewerRoute: typeof DashboardReviewerRouteWithChildren
+  ProofreaderQueueRoute: typeof ProofreaderQueueRoute
   DashboardAuthor_proposalIdRoute: typeof DashboardAuthor_proposalIdRoute
+  DashboardProofreader_proposalTicketRoute: typeof DashboardProofreader_proposalTicketRoute
   DashboardProposalTicketRoute: typeof DashboardProposalTicketRoute
 }
 
@@ -215,6 +242,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/proofreader/queue': {
+      id: '/proofreader/queue'
+      path: '/proofreader/queue'
+      fullPath: '/proofreader/queue'
+      preLoaderRoute: typeof ProofreaderQueueRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/reviewer': {
@@ -271,6 +305,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard/proposal/$ticket'
       fullPath: '/dashboard/proposal/$ticket'
       preLoaderRoute: typeof DashboardProposalTicketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/proofreader_proposal/$ticket': {
+      id: '/dashboard/proofreader_proposal/$ticket'
+      path: '/dashboard/proofreader_proposal/$ticket'
+      fullPath: '/dashboard/proofreader_proposal/$ticket'
+      preLoaderRoute: typeof DashboardProofreader_proposalTicketRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/author_proposal/$id': {
@@ -330,7 +371,10 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardEditorRoute: DashboardEditorRouteWithChildren,
   DashboardProofreaderRoute: DashboardProofreaderRoute,
   DashboardReviewerRoute: DashboardReviewerRouteWithChildren,
+  ProofreaderQueueRoute: ProofreaderQueueRoute,
   DashboardAuthor_proposalIdRoute: DashboardAuthor_proposalIdRoute,
+  DashboardProofreader_proposalTicketRoute:
+    DashboardProofreader_proposalTicketRoute,
   DashboardProposalTicketRoute: DashboardProposalTicketRoute,
 }
 export const routeTree = rootRouteImport
