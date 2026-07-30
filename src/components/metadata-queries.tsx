@@ -455,7 +455,7 @@ export function MetadataQueries({
                               onChange={(e) =>
                                 setRowEdits((prev) => ({ ...prev, [key]: e.target.value }))
                               }
-                              className="flex-1 resize-none rounded-md border border-stone-300 bg-white px-2 py-1.5 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100 disabled:bg-stone-50 disabled:text-stone-500 disabled:cursor-not-allowed"
+                              className="flex-1 resize-none rounded-md border border-stone-300 bg-white px-2 py-1.5 font-sans text-sm text-stone-900 focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100 disabled:bg-stone-50 disabled:text-stone-500 disabled:cursor-not-allowed"
                             />
                           ) : (
                             <input
@@ -465,7 +465,7 @@ export function MetadataQueries({
                               onChange={(e) =>
                                 setRowEdits((prev) => ({ ...prev, [key]: e.target.value }))
                               }
-                              className="flex-1 rounded-md border border-stone-300 bg-white px-2 py-1.5 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100 disabled:bg-stone-50 disabled:text-stone-500 disabled:cursor-not-allowed"
+                              className="flex-1 rounded-md border border-stone-300 bg-white px-2 py-1.5 font-sans text-sm text-stone-900 focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100 disabled:bg-stone-50 disabled:text-stone-500 disabled:cursor-not-allowed"
                             />
                           )}
                           <button
