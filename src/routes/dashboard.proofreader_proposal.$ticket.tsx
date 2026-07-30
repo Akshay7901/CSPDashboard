@@ -186,7 +186,11 @@ function ProofreaderProposalPage() {
   const onSave = async () => {
     setSaving(true);
     try {
-      await saveProofreaderMetadata(ticket, values, notes.trim() || undefined);
+      await saveProofreaderMetadata(
+        ticket,
+        { ...values, authors },
+        notes.trim() || undefined,
+      );
       toast.success("Metadata saved");
       await load();
     } catch (err) {
@@ -230,7 +234,7 @@ function ProofreaderProposalPage() {
     setValues(next);
     await saveProofreaderMetadata(
       ticket,
-      next,
+      { ...next, authors },
       notes.trim() || undefined,
     );
   };
