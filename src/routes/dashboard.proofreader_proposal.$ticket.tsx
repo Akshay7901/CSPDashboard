@@ -128,8 +128,17 @@ function ProofreaderProposalPage() {
   const readOnly =
     isLocked || proposalStatus === "author_approved" || metadataStatus !== "draft";
 
+  /**
+   * The proposal reaches the proofreader once the contract is signed, so its
+   * status can be signed / contract_signed / awaiting_author_approval. Gate
+   * sending on the metadata itself instead of a single proposal status, and
+   * fall back to enabled when the API omits proposal_status.
+   */
   const canSend =
-    proposalStatus === "awaiting_author_approval" && metadataStatus === "draft" && !isLocked;
+    !isLocked &&
+    metadataStatus === "draft" &&
+    proposalStatus !== "author_approved" &&
+    proposalStatus !== "declined";
 
   const onSave = async () => {
     setSaving(true);
