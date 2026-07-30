@@ -312,8 +312,6 @@ function ProofreaderProposalPage() {
             </div>
             <span className="font-sans text-sm font-medium text-stone-800">{displayName}</span>
             <span className="h-5 w-px bg-stone-300" />
-            <ChangePasswordButton triggerClassName="inline-flex items-center gap-1.5 font-sans text-sm text-stone-600 hover:text-stone-900 transition-colors" />
-            <span className="h-5 w-px bg-stone-300" />
             <button
               type="button"
               onClick={() => void onLogout()}
