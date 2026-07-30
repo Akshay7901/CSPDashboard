@@ -2378,13 +2378,18 @@ function ProposalDetailPage() {
                         const coverUrl = coverImg?.url || coverImg?.s3_url;
                         const canDeleteCover = isAdmin();
                         const authorsList = metaForm.authors;
-                         const isMetaLocked =
-                           isLocked ||
-                           isProofreaderPhase ||
-                           metadata.is_locked === true ||
-                           (metadata.metadata_status === "sent_to_author" &&
-                             !metadataHasOpenQuery);
-                        const isMetaApproved = metadata.metadata_status === "approved" || !!metadata.approved_at;
+                        const isMetaApproved =
+                          metadata.metadata_status === "approved" || !!metadata.approved_at;
+                        /**
+                         * Admin / DR can only edit metadata once the author has
+                         * finalised (approved) it — before that the proofreader
+                         * and author own the record.
+                         */
+                        const isMetaLocked =
+                          isLocked ||
+                          isProofreaderPhase ||
+                          metadata.is_locked === true ||
+                          !isMetaApproved;
                         return (
                           <div className="space-y-4">
                             <ProofreaderStatusPanel metadata={metadata} />
@@ -2394,7 +2399,7 @@ function ProposalDetailPage() {
                                   ? "Metadata has been locked — no further changes can be made."
                                   : isProofreaderPhase
                                     ? "The proofreader owns this metadata while the proposal is in the Proofreader phase — this panel is read-only."
-                                    : "Metadata has been sent to the author for approval. Editing is disabled until the author responds."}
+                                    : "This metadata is read-only until the author finalises it."}
                               </div>
                             )}
                             {metadata.metadata_status === "sent_to_author" &&
