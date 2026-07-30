@@ -2534,30 +2534,8 @@ function ProposalDetailPage() {
                                   <span>Status: <strong className="text-stone-800">{metadata.metadata_status || "draft"}</strong></span>
                                 )}
                               </div>
-                              <div className="flex flex-wrap items-center gap-2">
-                                {!isMetaLocked && (
-                                  <>
-                                    <button
-                                      type="button"
-                                      onClick={saveMetadataDraft}
-                                      disabled={metaSaving}
-                                      className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
-                                    >
-                                      {metaSaving ? "Saving…" : "Save Draft"}
-                                    </button>
-                                    {!isMetaApproved && !metadataHasOpenQuery && (
-                                      <button
-                                        type="button"
-                                        onClick={sendMetadataToAuthor}
-                                        disabled={metaSendLoading || metaSaving}
-                                        className="inline-flex items-center gap-2 rounded-lg bg-stone-800 px-4 py-2 font-sans text-sm font-semibold text-white shadow-sm transition hover:bg-stone-900 disabled:cursor-not-allowed disabled:opacity-60"
-                                      >
-                                        {metaSendLoading ? "Sending…" : "Send to Author"}
-                                      </button>
-                                    )}
-                                  </>
-                                )}
-                              </div>
+                              {/* Metadata compilation is owned by the proofreader —
+                                  admin / DR no longer save drafts or send to author. */}
                             </div>
 
                             <div id="dr-metadata-queries-section" className="scroll-mt-24">
