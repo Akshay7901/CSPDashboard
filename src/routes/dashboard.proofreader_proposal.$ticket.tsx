@@ -37,32 +37,21 @@ type FieldKey =
   | "display_names"
   | "display_bios"
   | "book_description"
-  | "short_description"
   | "keywords"
   | "website_classification"
-  | "bic"
-  | "bisac"
-  | "thema";
+  | "bic";
 
 const FIELDS: { key: FieldKey; label: string; type: "text" | "textarea"; hint?: string }[] = [
-  { key: "full_title", label: "Full Title", type: "text" },
+  { key: "full_title", label: "Title (full)", type: "text" },
   { key: "title", label: "Title", type: "text" },
   { key: "subtitle", label: "Subtitle", type: "text" },
   { key: "category", label: "Category", type: "text" },
-  {
-    key: "display_names",
-    label: "Author Display Names",
-    type: "text",
-    hint: "Comma separated",
-  },
-  { key: "display_bios", label: "Author Bios", type: "textarea" },
-  { key: "book_description", label: "Book Description", type: "textarea" },
-  { key: "short_description", label: "Short Description", type: "textarea" },
-  { key: "keywords", label: "Keywords", type: "text", hint: "Comma separated" },
-  { key: "website_classification", label: "Website Classification", type: "text" },
-  { key: "bic", label: "BIC", type: "text" },
-  { key: "bisac", label: "BISAC", type: "text" },
-  { key: "thema", label: "Thema", type: "text" },
+  { key: "display_names", label: "Display names", type: "text" },
+  { key: "display_bios", label: "Display bios", type: "textarea" },
+  { key: "book_description", label: "Book description", type: "textarea" },
+  { key: "keywords", label: "Keywords", type: "text" },
+  { key: "website_classification", label: "Website classification", type: "text" },
+  { key: "bic", label: "BIC codes", type: "text" },
 ];
 
 const EMPTY = Object.fromEntries(FIELDS.map((f) => [f.key, ""])) as Record<FieldKey, string>;
@@ -85,11 +74,11 @@ type AuthorEntry = {
 };
 
 const AUTHOR_FIELDS: { key: keyof AuthorEntry; label: string }[] = [
-  { key: "title", label: "Title" },
+  { key: "title", label: "Salutation" },
   { key: "first_name", label: "First name" },
   { key: "last_name", label: "Last name" },
   { key: "email", label: "Email" },
-  { key: "email_2", label: "Secondary email" },
+  { key: "email_2", label: "Email 2" },
   { key: "institution", label: "Institution" },
   { key: "country", label: "Country" },
 ];
