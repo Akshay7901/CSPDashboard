@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { ChevronRight, LogOut, RefreshCw, User2 } from "lucide-react";
+import { toast } from "sonner";
 import cspLogo from "@/assets/csp-logo.png";
 import { portalLogout, getPortalSession } from "@/lib/auth";
 import { ChangePasswordButton } from "@/components/change-password-dialog";
@@ -85,6 +86,7 @@ function ProofreaderDashboard() {
     setQueue(res.data.queue);
     setCounts(res.data.counts);
     setError(res.ok ? null : (res.error ?? "Could not load the queue."));
+    if (!res.ok) toast.error(res.error ?? "Could not load the queue.");
     setLoading(false);
   }, []);
 
@@ -183,12 +185,22 @@ function ProofreaderDashboard() {
           <div key={t.key}>
             <SectionHeading dotClass={t.dot} title={t.label} />
             <div className="space-y-3">
+              {loading && (
+                <div className="space-y-3">
+                  {[0, 1, 2].map((i) => (
+                    <div
+                      key={i}
+                      className="h-24 animate-pulse rounded-xl border border-stone-200 bg-white"
+                    />
+                  ))}
+                </div>
+              )}
               {queue[t.key].length === 0 && !loading && (
                 <p className="rounded-xl border border-dashed border-stone-200 bg-white px-5 py-8 text-center font-sans text-sm text-[#7A6A5A]">
                   Nothing in this list right now.
                 </p>
               )}
-              {queue[t.key].map((item) => (
+              {!loading && queue[t.key].map((item) => (
                 <QueueRow key={item.ticket_number} item={item} accentClass={t.bar} tab={t.key} />
               ))}
             </div>
