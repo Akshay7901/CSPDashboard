@@ -939,6 +939,8 @@ function DecisionReviewerDashboard() {
           </button>
         </div>
 
+        <ProofreaderQueueOverview />
+
         {/* Filter pills */}
         <div className="mb-5 flex flex-wrap gap-2.5">
           {TABS.map(({ key, label, dot }) => {
