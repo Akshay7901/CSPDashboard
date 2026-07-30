@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import cspLogo from "@/assets/csp-logo.png";
 import { getPortalSession, portalLogout } from "@/lib/auth";
 import { initialsFromName, displayNameFromEmail } from "@/lib/proposals";
-import { ChangePasswordButton } from "@/components/change-password-dialog";
 import { getMetadata } from "@/lib/metadataApi";
 import { saveProofreaderMetadata, sendMetadataToAuthor } from "@/lib/proofreaderApi";
 import { MetadataQueries } from "@/components/metadata-queries";
