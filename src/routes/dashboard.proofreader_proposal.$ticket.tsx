@@ -399,6 +399,9 @@ function ProofreaderProposalPage() {
 
             <section className="mt-6 rounded-xl border border-stone-200 bg-white p-6">
               <h2 className="mb-3 font-serif text-lg font-bold text-[#2C1A0E]">Author Queries</h2>
+            </section>
+          </>
+        )}
               <MetadataQueries
                 ticket={ticket}
                 viewer="dr"
