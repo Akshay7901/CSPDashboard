@@ -69,7 +69,7 @@ export async function getProofreaderQueue(): Promise<{
 /** PUT /api/proposals/:ticket/metadata */
 export async function saveProofreaderMetadata(
   ticket: string,
-  fields: Record<string, string>,
+  fields: Record<string, unknown>,
   notes?: string,
 ) {
   const res = await proposalApiFetch(`/${encodeURIComponent(ticket)}/metadata`, {
