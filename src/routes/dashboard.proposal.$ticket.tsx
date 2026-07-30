@@ -599,6 +599,10 @@ function ProposalDetailPage() {
     ticket_number?: string;
     current_version?: number;
     metadata_status?: string;
+    is_locked?: boolean;
+    proofreader_email?: string | null;
+    compiled_at?: string | null;
+    sent_for_confirmation_at?: string | null;
     metadata?: {
       full_title?: string;
       title?: string;
