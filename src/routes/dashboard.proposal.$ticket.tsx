@@ -67,7 +67,6 @@ import {
 } from "@/lib/contractsApi";
 import { ContractPdfModal } from "@/components/contract-pdf-modal";
 import { ContractQueries } from "@/components/contract-queries";
-import { MetadataQueries } from "@/components/metadata-queries";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -2395,7 +2394,6 @@ function ProposalDetailPage() {
                         const isAdminOrDR = role === "admin" || role === "decision_reviewer";
                         return (
                           <div className="space-y-4">
-                            {!isAdminOrDR && <ProofreaderStatusPanel metadata={metadata} />}
                             {isMetaLocked && (
                               <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 font-sans text-sm text-amber-800">
                                 {isLocked
@@ -2405,15 +2403,6 @@ function ProposalDetailPage() {
                                     : "This metadata is read-only until the author finalises it."}
                               </div>
                             )}
-                            {metadata.metadata_status === "sent_to_author" &&
-                              metadataHasOpenQuery &&
-                              !isAdminOrDR && (
-                                <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 font-sans text-sm text-emerald-800">
-                                  The author has raised a query — metadata fields
-                                  are editable so you can update them before
-                                  responding.
-                                </div>
-                              )}
                             <div className="overflow-hidden rounded-xl border border-stone-200 bg-white">
                               <MetaRow label="Title Full" value={metaForm.full_title} onChange={(v) => updateMetaField("full_title", v)} disabled={isMetaLocked} />
                               <MetaRow
@@ -2558,146 +2547,6 @@ function ProposalDetailPage() {
                               )}
                             </div>
 
-                            {!isAdminOrDR && (
-                              <div id="dr-metadata-queries-section" className="scroll-mt-24">
-                                <MetadataQueries
-                                  ticket={ticket}
-                                  viewer="dr"
-                                  onOpenQueryChange={setMetadataHasOpenQuery}
-                                  onAfterRespond={sendMetadataToAuthor}
-                                  fieldLabels={{
-                                    full_title: "Title (full)",
-                                    title: "Title",
-                                    subtitle: "Subtitle",
-                                    category: "Category",
-                                    display_names: "Display names",
-                                    display_bios: "Display bios",
-                                    book_description: "Book description",
-                                    keywords: "Keywords",
-                                    website_classification: "Website classification",
-                                    bic: "BIC codes",
-                                    cover_image: "Cover image",
-                                    authors: "Authors",
-                                    "authors.title": "Salutation",
-                                    "authors.first_name": "First name",
-                                    "authors.last_name": "Last name",
-                                    "authors.email": "Email",
-                                    "authors.email_2": "Email 2",
-                                    "authors.institution": "Institution",
-                                    "authors.country": "Country",
-                                  }}
-                                  fieldValues={{
-                                    full_title: metaForm.full_title,
-                                    title: metaForm.title,
-                                    subtitle: metaForm.subtitle,
-                                    category: metaForm.category,
-                                    display_names: metaForm.display_names,
-                                    display_bios: metaForm.display_bios,
-                                    book_description: metaForm.book_description,
-                                    keywords: metaForm.keywords,
-                                    website_classification:
-                                      metaForm.website_classification,
-                                    bic: metaForm.bic,
-                                    "authors.title": metaForm.authors[0]?.title || "",
-                                    "authors.first_name":
-                                      metaForm.authors[0]?.first_name || "",
-                                    "authors.last_name":
-                                      metaForm.authors[0]?.last_name || "",
-                                    "authors.email": metaForm.authors[0]?.email || "",
-                                    "authors.email_2": metaForm.authors[0]?.email_2 || "",
-                                    "authors.institution":
-                                      metaForm.authors[0]?.institution || "",
-                                    "authors.country": metaForm.authors[0]?.country || "",
-                                  }}
-                                  onSaveFields={async (updates) => {
-                                    const baseMetaForm = metaFormRef.current;
-                                    const topLevelUpdates: Partial<MetaForm> = {};
-                                    let nextAuthors = baseMetaForm.authors.map((author) => ({ ...author }));
-                                    let hasAuthorUpdate = false;
-
-                                    for (const [key, value] of Object.entries(updates)) {
-                                      if (key.startsWith("authors.")) {
-                                        const authorKey = key.slice("authors.".length) as keyof MetadataAuthor;
-                                        if (nextAuthors.length === 0) nextAuthors = [{}];
-                                        nextAuthors[0] = {
-                                          ...nextAuthors[0],
-                                          [authorKey]: value,
-                                        };
-                                        hasAuthorUpdate = true;
-                                      } else {
-                                        topLevelUpdates[key as keyof MetaForm] = value as never;
-                                      }
-                                    }
-
-                                    const merged: MetaForm = {
-                                      ...baseMetaForm,
-                                      ...topLevelUpdates,
-                                      ...(hasAuthorUpdate ? { authors: nextAuthors } : {}),
-                                    };
-                                    metaFormRef.current = merged;
-                                    const token = getPortalToken();
-                                    const session = getPortalSession();
-                                    const payload: Record<string, unknown> = {
-                                      full_title: merged.full_title,
-                                      title: merged.title,
-                                      subtitle: merged.subtitle,
-                                      category: merged.category,
-                                      display_names: merged.display_names,
-                                      display_bios: merged.display_bios,
-                                      book_description: merged.book_description,
-                                      keywords: merged.keywords,
-                                      website_classification:
-                                        merged.website_classification,
-                                      bic: merged.bic,
-                                      authors: merged.authors,
-                                    };
-                                    if (session?.email)
-                                      payload.updated_by = session.email;
-                                    const res = await proposalApiFetch(
-                                      `/${encodeURIComponent(ticket)}/metadata`,
-                                      {
-                                        method: "PUT",
-                                        headers: {
-                                          "Content-Type": "application/json",
-                                          ...(token
-                                            ? { Authorization: `Bearer ${token}` }
-                                            : {}),
-                                        },
-                                        body: JSON.stringify(payload),
-                                      },
-                                    );
-                                    const body = (await res
-                                      .json()
-                                      .catch(() => ({}))) as Record<string, unknown>;
-                                    if (!res.ok) {
-                                      throw new Error(
-                                        (body.error as string) ||
-                                          `Failed to save (${res.status}).`,
-                                      );
-                                    }
-                                    setMetaForm(merged);
-                                    setMetadata((prev) =>
-                                      prev
-                                        ? {
-                                            ...prev,
-                                            current_version:
-                                              (body.current_version as number) ??
-                                              prev.current_version,
-                                            updated_at: new Date().toISOString(),
-                                            metadata: {
-                                              ...(prev.metadata || {}),
-                                              ...topLevelUpdates,
-                                              ...(hasAuthorUpdate
-                                                ? { authors: nextAuthors }
-                                                : {}),
-                                            },
-                                          }
-                                        : prev,
-                                    );
-                                  }}
-                                />
-                              </div>
-                            )}
                           </div>
                         );
                       })()}
