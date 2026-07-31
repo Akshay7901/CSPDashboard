@@ -67,6 +67,7 @@ import {
 } from "@/lib/contractsApi";
 import { ContractPdfModal } from "@/components/contract-pdf-modal";
 import { ContractQueries } from "@/components/contract-queries";
+import { ContributorsPanel } from "@/components/contributors-panel";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -2332,6 +2333,16 @@ function ProposalDetailPage() {
                 <MetaItem icon="calendar" text={formatDate(data.submitted_at)} />
               </div>
             </section>
+
+            {(() => {
+              const r = (getPortalSession()?.role || "").toLowerCase();
+              if (r !== "admin" && r !== "decision_reviewer") return null;
+              return (
+                <div className="mt-6">
+                  <ContributorsPanel ticket={ticket} />
+                </div>
+              );
+            })()}
 
             <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px]">
               {/* Main column */}
