@@ -2543,8 +2543,19 @@ function ProposalDetailPage() {
                                   <span>Status: <strong className="text-stone-800">{metadata.metadata_status || "draft"}</strong></span>
                                 )}
                               </div>
-                              {/* Metadata compilation is owned by the proofreader —
-                                  admin / DR no longer save drafts or send to author. */}
+                              {/* Metadata compilation is owned by the proofreader until
+                                  the author finalises it — after approval admin / DR
+                                  can edit and save drafts. */}
+                              {!isMetaLocked && (
+                                <button
+                                  type="button"
+                                  onClick={saveMetadataDraft}
+                                  disabled={metaSaving}
+                                  className="inline-flex items-center gap-2 rounded-lg border border-stone-300 bg-white px-4 py-2 font-sans text-sm font-semibold text-stone-800 shadow-sm hover:bg-stone-50 disabled:opacity-60"
+                                >
+                                  {metaSaving ? "Saving…" : "Save Draft"}
+                                </button>
+                              )}
                             </div>
 
                             {!isAdminOrDR && (
