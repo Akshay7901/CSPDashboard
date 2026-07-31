@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { Plus, Send, Trash2, RefreshCw } from "lucide-react";
+import { Send, Trash2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import {
   listContributors,
@@ -51,7 +51,6 @@ export function ContributorsPanel({ ticket }: { ticket: string }) {
   const [counts, setCounts] = useState<ContributorCounts>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [open, setOpen] = useState(false);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [confirmRemove, setConfirmRemove] = useState<Contributor | null>(null);
 
@@ -96,7 +95,6 @@ export function ContributorsPanel({ ticket }: { ticket: string }) {
         affiliation: affiliation || undefined,
         notes: form.role || undefined,
       });
-      setOpen(false);
       setForm({ name: "", email: "", affiliation: "", country: "", role: ROLES[0] });
       if (res.email_sent === false) {
         toast.warning("Contributor added but invite email failed");
@@ -149,83 +147,62 @@ export function ContributorsPanel({ ticket }: { ticket: string }) {
             All contributors on this book
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-stone-100 px-2 font-sans text-xs font-semibold text-stone-700">
-            {total}
-          </span>
-          <button
-            type="button"
-            onClick={() => setOpen((v) => !v)}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#0E3D2F]/85 px-3.5 py-2 font-sans text-sm font-semibold text-white hover:bg-[#0E3D2F]"
-          >
-            <Plus className="h-4 w-4" />
-            Add Contributor
-          </button>
-        </div>
+        <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-stone-100 px-2 font-sans text-xs font-semibold text-stone-700">
+          {total}
+        </span>
       </div>
 
-      {open && (
-        <form onSubmit={onAdd} className="border-t border-stone-100 px-6 py-5">
-          <div className="grid gap-3.5 sm:grid-cols-2">
-            <input
-              required
-              placeholder="Full name"
-              value={form.name}
-              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              className={inputCls}
-            />
-            <input
-              required
-              type="email"
-              placeholder="Email"
-              value={form.email}
-              onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-              className={inputCls}
-            />
-            <input
-              placeholder="Institution"
-              value={form.affiliation}
-              onChange={(e) => setForm((f) => ({ ...f, affiliation: e.target.value }))}
-              className={inputCls}
-            />
-            <input
-              placeholder="Country"
-              value={form.country}
-              onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
-              className={inputCls}
-            />
-          </div>
-          <div className="mt-3.5 flex flex-wrap items-center justify-between gap-3">
-            <select
-              value={form.role}
-              onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
-              className={`${inputCls} sm:w-[320px]`}
-            >
-              {ROLES.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
-            </select>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                className="rounded-lg px-4 py-2.5 font-sans text-sm font-semibold text-stone-600 hover:text-stone-900"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={saving}
-                className="rounded-lg bg-[#0E3D2F]/85 px-5 py-2.5 font-sans text-sm font-semibold text-white hover:bg-[#0E3D2F] disabled:opacity-60"
-              >
-                {saving ? "Saving…" : "Save Contributor"}
-              </button>
-            </div>
-          </div>
-        </form>
-      )}
+      <form onSubmit={onAdd} className="border-t border-stone-100 px-6 py-5">
+        <div className="grid gap-3.5 sm:grid-cols-2">
+          <input
+            required
+            placeholder="Full name"
+            value={form.name}
+            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+            className={inputCls}
+          />
+          <input
+            required
+            type="email"
+            placeholder="Email"
+            value={form.email}
+            onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+            className={inputCls}
+          />
+          <input
+            placeholder="Institution"
+            value={form.affiliation}
+            onChange={(e) => setForm((f) => ({ ...f, affiliation: e.target.value }))}
+            className={inputCls}
+          />
+          <input
+            placeholder="Country"
+            value={form.country}
+            onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
+            className={inputCls}
+          />
+        </div>
+        <div className="mt-3.5 flex flex-wrap items-center justify-between gap-3">
+          <select
+            value={form.role}
+            onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
+            className={`${inputCls} sm:w-[320px]`}
+          >
+            {ROLES.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </select>
+          <button
+            type="submit"
+            disabled={saving}
+            className="rounded-lg bg-[#0E3D2F]/85 px-5 py-2.5 font-sans text-sm font-semibold text-white hover:bg-[#0E3D2F] disabled:opacity-60"
+          >
+            {saving ? "Saving…" : "Save Contributor"}
+          </button>
+        </div>
+      </form>
 
       {loading ? (
         <p className="border-t border-stone-100 px-6 py-8 text-center font-sans text-sm text-stone-500">
