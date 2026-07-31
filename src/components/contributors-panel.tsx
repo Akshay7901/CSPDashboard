@@ -95,7 +95,6 @@ export function ContributorsPanel({ ticket }: { ticket: string }) {
         affiliation: affiliation || undefined,
         notes: form.role || undefined,
       });
-      setOpen(false);
       setForm({ name: "", email: "", affiliation: "", country: "", role: ROLES[0] });
       if (res.email_sent === false) {
         toast.warning("Contributor added but invite email failed");
