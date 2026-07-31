@@ -34,6 +34,15 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+function RolePill({ role }: { role?: string | null }) {
+  const label = (role || "Contributor").replace(/\s*—.*$/, "").trim() || "Contributor";
+  return (
+    <span className="inline-flex items-center rounded-full border border-stone-300 bg-white px-3 py-1 font-sans text-[12px] font-medium text-stone-700">
+      {label}
+    </span>
+  );
+}
+
 const inputCls =
   "w-full rounded-lg border border-stone-300 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-900 placeholder:text-stone-400 outline-none focus:border-[#0E3D2F]";
 
@@ -269,7 +278,8 @@ export function ContributorsPanel({ ticket }: { ticket: string }) {
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
-                <StatusBadge status={c.status} />
+                {c.status !== "accepted" && <StatusBadge status={c.status} />}
+                <RolePill role={c.notes} />
               </div>
             </li>
           ))}
