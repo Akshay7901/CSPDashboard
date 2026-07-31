@@ -51,7 +51,6 @@ export function ContributorsPanel({ ticket }: { ticket: string }) {
   const [counts, setCounts] = useState<ContributorCounts>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [open, setOpen] = useState(false);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [confirmRemove, setConfirmRemove] = useState<Contributor | null>(null);
 
