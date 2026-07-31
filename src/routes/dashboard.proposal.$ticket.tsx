@@ -2389,9 +2389,6 @@ function ProposalDetailPage() {
                           isProofreaderPhase ||
                           metadata.is_locked === true ||
                           !isMetaApproved;
-                        const session = getPortalSession();
-                        const role = (session?.role || "").toLowerCase();
-                        const isAdminOrDR = role === "admin" || role === "decision_reviewer";
                         return (
                           <div className="space-y-4">
                             {isMetaLocked && (
