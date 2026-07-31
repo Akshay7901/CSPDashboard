@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { Plus, Send, Trash2, RefreshCw } from "lucide-react";
+import { Send, Trash2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import {
   listContributors,
