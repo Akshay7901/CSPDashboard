@@ -906,8 +906,11 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
         />
       </section>
 
-      <AuthorMetadataPanel
+      <div className="mt-6">
+        <ContributorsPanel ticket={proposal.ticket} />
+      </div>
 
+      <AuthorMetadataPanel
         ticket={proposal.ticket}
         proposalStatus={proposal.status}
         isPostApproval={isPostApproval}
