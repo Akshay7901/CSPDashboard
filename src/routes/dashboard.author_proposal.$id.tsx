@@ -907,6 +907,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
       </section>
 
       <AuthorMetadataPanel
+
         ticket={proposal.ticket}
         proposalStatus={proposal.status}
         isPostApproval={isPostApproval}
