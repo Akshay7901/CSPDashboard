@@ -182,11 +182,11 @@ export function ContributorsPanel({ ticket }: { ticket: string }) {
             className={inputCls}
           />
         </div>
-        <div className="mt-3.5 flex flex-wrap items-center justify-between gap-3">
+        <div className="mt-3.5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
           <select
             value={form.role}
             onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
-            className={`${inputCls} sm:w-[320px]`}
+            className={`${inputCls} min-w-0 max-w-[320px]`}
           >
             {ROLES.map((r) => (
               <option key={r} value={r}>
@@ -197,7 +197,7 @@ export function ContributorsPanel({ ticket }: { ticket: string }) {
           <button
             type="submit"
             disabled={saving}
-            className="rounded-lg bg-[#0E3D2F]/85 px-5 py-2.5 font-sans text-sm font-semibold text-white hover:bg-[#0E3D2F] disabled:opacity-60"
+            className="shrink-0 justify-self-end rounded-lg bg-[#0E3D2F]/85 px-5 py-2.5 font-sans text-sm font-semibold text-white hover:bg-[#0E3D2F] disabled:opacity-60"
           >
             {saving ? "Saving…" : "Save Contributor"}
           </button>
