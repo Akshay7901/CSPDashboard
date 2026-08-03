@@ -907,9 +907,10 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
         />
       </section>
 
-      <div className="mt-6">
-        <ContributorsPanel ticket={proposal.ticket} />
-      </div>
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px]">
+        {/* Main column */}
+        <div className="space-y-6">
+          <ContributorsPanel ticket={proposal.ticket} />
 
       <AuthorMetadataPanel
         ticket={proposal.ticket}
@@ -966,7 +967,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
       {/* Reviewer Feedback — only after the proposal has left the
           "submitted/new" state, otherwise there is nothing to show. */}
       {status !== "submitted" && (
-      <section className="mt-6 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
+      <section className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
         <button
           type="button"
           onClick={() => setReviewerFeedbackOpen((v) => !v)}
@@ -996,7 +997,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
       <ContractIssuedView ticket={proposal.ticket} proposal={proposal} authorFullName={authorFullName} />
 
       {isContractView && (
-        <div className="mt-6 overflow-hidden rounded-xl border border-stone-200">
+        <div className="overflow-hidden rounded-xl border border-stone-200">
           <button
             type="button"
             onClick={() => setShowOriginal((v) => !v)}
@@ -1027,54 +1028,18 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
         </button>
       </div>
 
-      {/* Stats row + Documents sidebar */}
-      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-[1fr_320px]">
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-          <StatCard label="Type" value={kind} />
-          <StatCard
-            label="Word Count"
-            value={wordCount ? Number(wordCount).toLocaleString() : "—"}
-          />
-          <StatCard
-            label="Completion"
-            value={formatMonthYear(completionDate)}
-          />
-        </div>
-
-
-        <aside id="section-documents" className="row-span-2 scroll-mt-24 overflow-hidden rounded-2xl border border-stone-200 bg-stone-50/60">
-          <h3 className="px-5 py-3.5 font-serif text-base font-bold" style={{ color: "#2C1A0E" }}>Documents</h3>
-          {allFiles.length === 0 ? (
-            <p className="border-t border-stone-200 px-5 py-4 text-sm text-stone-500">No documents uploaded.</p>
-          ) : (
-            <ul className="space-y-3 border-t border-stone-200 p-5">
-              {allFiles.map((f, i) => (
-                <li key={`${f.filename}-${i}`}>
-                  <div className="group flex items-start gap-2 rounded-lg border border-transparent p-2 hover:border-stone-200 hover:bg-white">
-                    <FileText className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-stone-900">
-                        {f.filename}
-                      </p>
-                      {f.size_bytes ? (
-                        <p className="text-xs text-stone-500">{formatBytes(f.size_bytes)}</p>
-                      ) : null}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setPreviewFile(f)}
-                      title="Preview"
-                      aria-label={`Preview ${f.filename}`}
-                      className="shrink-0 rounded-md p-1.5 text-stone-500 hover:bg-stone-100 hover:text-stone-900"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </aside>
+      {/* Stats row */}
+      <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <StatCard label="Type" value={kind} />
+        <StatCard
+          label="Word Count"
+          value={wordCount ? Number(wordCount).toLocaleString() : "—"}
+        />
+        <StatCard
+          label="Completion"
+          value={formatMonthYear(completionDate)}
+        />
+      </div>
 
         {/* Main content stack (under stats, beside Documents) */}
         <div className="space-y-5">
