@@ -14,6 +14,7 @@ import { getQueries, raiseQuery } from "@/lib/contractsApi";
 import { ContractPdfModal } from "@/components/contract-pdf-modal";
 import { ContractQueries } from "@/components/contract-queries";
 import { AuthorMetadataPanel } from "@/components/author-metadata-panel";
+import { ContributorsPanel } from "@/components/contributors-panel";
 
 export const Route = createFileRoute("/dashboard/author_proposal/$id")({
   head: () => ({ meta: [{ title: "Proposal Details — Author Portal" }] }),
