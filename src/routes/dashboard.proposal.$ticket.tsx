@@ -3335,7 +3335,15 @@ function ProposalDetailPage() {
                     )}
                   </Card>
                 )}
+
+                {/* Contributors */}
+                {(() => {
+                  const r = (getPortalSession()?.role || "").toLowerCase();
+                  if (r !== "admin" && r !== "decision_reviewer") return null;
+                  return <ContributorsPanel ticket={ticket} />;
+                })()}
               </div>
+
 
               {/* Sidebar */}
               <aside className="space-y-6">
