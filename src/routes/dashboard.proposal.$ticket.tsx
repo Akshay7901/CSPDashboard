@@ -539,6 +539,7 @@ function ProposalDetailPage() {
   const [reviewersLoading, setReviewersLoading] = useState(false);
   const [reviewersError, setReviewersError] = useState<string | null>(null);
   const [selectedReviewerId, setSelectedReviewerId] = useState<number | null>(null);
+  const [preselectedReviewerId, setPreselectedReviewerId] = useState<number | null>(null);
   const [reviewDueDate, setReviewDueDate] = useState("");
   const [reviewerNotes, setReviewerNotes] = useState("");
   const [assigning, setAssigning] = useState(false);
@@ -2034,7 +2035,20 @@ function ProposalDetailPage() {
         setReviewersError((body.error as string) || `Failed to load reviewers (${res.status}).`);
         return;
       }
-      setReviewers((body.peer_reviewers as PeerReviewer[]) || []);
+      const list = (body.peer_reviewers as PeerReviewer[]) || [];
+      setReviewers(list);
+      // Preselect a reviewer: the one already assigned to this proposal,
+      // otherwise the available reviewer with the lightest workload.
+      const prevEmail = (assignedReviewer?.reviewer_email || "").toLowerCase();
+      const previous = prevEmail
+        ? list.find((r) => (r.email || "").toLowerCase() === prevEmail)
+        : undefined;
+      const lightest = [...list].sort(
+        (a, b) => (a.assigned_proposals_count ?? 0) - (b.assigned_proposals_count ?? 0),
+      )[0];
+      const pick = previous || lightest;
+      setPreselectedReviewerId(pick?.id ?? null);
+      setSelectedReviewerId(pick?.id ?? null);
     } catch {
       setReviewersError("Network error. Please try again.");
     } finally {
@@ -3862,7 +3876,13 @@ function ProposalDetailPage() {
                                   {r.email}
                                 </p>
                               </div>
-                              <span
+                              <div className="flex shrink-0 items-center gap-1.5">
+                              {preselectedReviewerId === r.id && (
+                                 <span className="shrink-0 rounded-full bg-[#0E3D2F]/10 px-2.5 py-0.5 font-sans text-[11px] font-medium text-[#0E3D2F] ring-1 ring-[#0E3D2F]/20">
+                                   Preselected
+                                 </span>
+                               )}
+                               <span
                                 className={`shrink-0 rounded-full px-2.5 py-0.5 font-sans text-[11px] font-medium ring-1 ${
                                   count > 0
                                     ? "bg-amber-50 text-amber-800 ring-amber-200"
@@ -3871,6 +3891,7 @@ function ProposalDetailPage() {
                               >
                                 {count > 0 ? `${count} active` : "Available"}
                               </span>
+                              </div>
                             </div>
                           </div>
                         </label>
