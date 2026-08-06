@@ -48,6 +48,7 @@ import { portalLogout, getPortalSession, getPortalToken, isAdmin } from "@/lib/a
 import { deleteCoverImage as apiDeleteCoverImage } from "@/lib/metadataApi";
 import { formatDate, initialsFromName, displayNameFromEmail, getStatusMeta } from "@/lib/proposals";
 import { proposalApiFetch } from "@/lib/proposalApi";
+import { getDefaultReviewerEmail } from "@/lib/defaultReviewer";
 import {
   listInternalNotes,
   createInternalNote,
