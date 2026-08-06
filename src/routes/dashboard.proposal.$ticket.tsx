@@ -539,6 +539,7 @@ function ProposalDetailPage() {
   const [reviewersLoading, setReviewersLoading] = useState(false);
   const [reviewersError, setReviewersError] = useState<string | null>(null);
   const [selectedReviewerId, setSelectedReviewerId] = useState<number | null>(null);
+  const [preselectedReviewerId, setPreselectedReviewerId] = useState<number | null>(null);
   const [reviewDueDate, setReviewDueDate] = useState("");
   const [reviewerNotes, setReviewerNotes] = useState("");
   const [assigning, setAssigning] = useState(false);
