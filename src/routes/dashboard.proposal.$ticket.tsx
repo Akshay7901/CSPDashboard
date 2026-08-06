@@ -2034,7 +2034,20 @@ function ProposalDetailPage() {
         setReviewersError((body.error as string) || `Failed to load reviewers (${res.status}).`);
         return;
       }
-      setReviewers((body.peer_reviewers as PeerReviewer[]) || []);
+      const list = (body.peer_reviewers as PeerReviewer[]) || [];
+      setReviewers(list);
+      // Preselect a reviewer: the one already assigned to this proposal,
+      // otherwise the available reviewer with the lightest workload.
+      const prevEmail = (assignedReviewer?.reviewer_email || "").toLowerCase();
+      const previous = prevEmail
+        ? list.find((r) => (r.email || "").toLowerCase() === prevEmail)
+        : undefined;
+      const lightest = [...list].sort(
+        (a, b) => (a.assigned_proposals_count ?? 0) - (b.assigned_proposals_count ?? 0),
+      )[0];
+      const pick = previous || lightest;
+      setPreselectedReviewerId(pick?.id ?? null);
+      setSelectedReviewerId(pick?.id ?? null);
     } catch {
       setReviewersError("Network error. Please try again.");
     } finally {
