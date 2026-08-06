@@ -2043,10 +2043,11 @@ function ProposalDetailPage() {
       const previous = prevEmail
         ? list.find((r) => (r.email || "").toLowerCase() === prevEmail)
         : undefined;
-      const lightest = [...list].sort(
-        (a, b) => (a.assigned_proposals_count ?? 0) - (b.assigned_proposals_count ?? 0),
-      )[0];
-      const pick = previous || lightest;
+      const defEmail = getDefaultReviewerEmail();
+      const preferred = defEmail
+        ? list.find((r) => (r.email || "").toLowerCase() === defEmail)
+        : undefined;
+      const pick = previous || preferred;
       setPreselectedReviewerId(pick?.id ?? null);
       setSelectedReviewerId(pick?.id ?? null);
     } catch {
