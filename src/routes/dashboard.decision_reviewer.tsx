@@ -34,6 +34,7 @@ import {
   type ProofreaderQueueTab,
 } from "@/lib/proofreaderApi";
 import { ChangePasswordButton } from "@/components/change-password-dialog";
+import { getDefaultReviewerEmail, setDefaultReviewerEmail } from "@/lib/defaultReviewer";
 
 type PeerReviewer = {
   id: number;
@@ -296,6 +297,10 @@ function DecisionReviewerDashboard() {
   const navigate = useNavigate();
   const matchRoute = useMatchRoute();
   const [userEmail, setUserEmail] = useState<string>("");
+  const [defaultReviewerEmail, setDefaultReviewerEmailState] = useState<string>("");
+  useEffect(() => {
+    setDefaultReviewerEmailState(getDefaultReviewerEmail());
+  }, []);
   const [userName, setUserName] = useState<string>("");
   const [activeFilter, setActiveFilter] = useState<TabKey>("all");
   const [search, setSearch] = useState("");
