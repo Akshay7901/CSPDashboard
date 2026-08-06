@@ -2337,11 +2337,6 @@ function ProposalDetailPage() {
             <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px]">
               {/* Main column */}
               <div className="space-y-6">
-                {(() => {
-                  const r = (getPortalSession()?.role || "").toLowerCase();
-                  if (r !== "admin" && r !== "decision_reviewer") return null;
-                  return <ContributorsPanel ticket={ticket} />;
-                })()}
                 {hasSignedContract && (
                   <Card className="overflow-hidden border-stone-200">
                     {/* Header */}
@@ -3340,7 +3335,15 @@ function ProposalDetailPage() {
                     )}
                   </Card>
                 )}
+
+                {/* Contributors */}
+                {(() => {
+                  const r = (getPortalSession()?.role || "").toLowerCase();
+                  if (r !== "admin" && r !== "decision_reviewer") return null;
+                  return <ContributorsPanel ticket={ticket} />;
+                })()}
               </div>
+
 
               {/* Sidebar */}
               <aside className="space-y-6">
