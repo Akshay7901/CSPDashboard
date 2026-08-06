@@ -34,6 +34,7 @@ import {
   type ProofreaderQueueTab,
 } from "@/lib/proofreaderApi";
 import { ChangePasswordButton } from "@/components/change-password-dialog";
+import { getDefaultReviewerEmail, setDefaultReviewerEmail } from "@/lib/defaultReviewer";
 
 type PeerReviewer = {
   id: number;
@@ -296,6 +297,10 @@ function DecisionReviewerDashboard() {
   const navigate = useNavigate();
   const matchRoute = useMatchRoute();
   const [userEmail, setUserEmail] = useState<string>("");
+  const [defaultReviewerEmail, setDefaultReviewerEmailState] = useState<string>("");
+  useEffect(() => {
+    setDefaultReviewerEmailState(getDefaultReviewerEmail());
+  }, []);
   const [userName, setUserName] = useState<string>("");
   const [activeFilter, setActiveFilter] = useState<TabKey>("all");
   const [search, setSearch] = useState("");
@@ -1315,7 +1320,27 @@ function DecisionReviewerDashboard() {
                           )}
                         </div>
                       </div>
-                      <button
+                       <div className="flex items-center gap-1.5">
+                       <button
+                         type="button"
+                         onClick={() => {
+                           const next = defaultReviewerEmail === (r.email || "").toLowerCase()
+                             ? ""
+                             : r.email;
+                           setDefaultReviewerEmail(next);
+                           setDefaultReviewerEmailState(next.toLowerCase());
+                         }}
+                         className={`rounded-full px-2.5 py-1 font-sans text-[11px] font-semibold ring-1 transition ${
+                           defaultReviewerEmail === (r.email || "").toLowerCase()
+                             ? "bg-[#0E3D2F]/10 text-[#0E3D2F] ring-[#0E3D2F]/20"
+                             : "bg-white text-stone-500 ring-stone-200 hover:bg-stone-50"
+                         }`}
+                       >
+                         {defaultReviewerEmail === (r.email || "").toLowerCase()
+                           ? "Default ✓"
+                           : "Set default"}
+                       </button>
+                       <button
                         type="button"
                         onClick={() => removeReviewer(r.id)}
                         disabled={deletingId === r.id}
@@ -1324,6 +1349,7 @@ function DecisionReviewerDashboard() {
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
+                       </div>
                     </li>
                   ))}
                 </ul>
