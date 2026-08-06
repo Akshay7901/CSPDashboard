@@ -3876,7 +3876,12 @@ function ProposalDetailPage() {
                                   {r.email}
                                 </p>
                               </div>
-                              <span
+                               {preselectedReviewerId === r.id && (
+                                 <span className="shrink-0 rounded-full bg-[#0E3D2F]/10 px-2.5 py-0.5 font-sans text-[11px] font-medium text-[#0E3D2F] ring-1 ring-[#0E3D2F]/20">
+                                   Preselected
+                                 </span>
+                               )}
+                               <span
                                 className={`shrink-0 rounded-full px-2.5 py-0.5 font-sans text-[11px] font-medium ring-1 ${
                                   count > 0
                                     ? "bg-amber-50 text-amber-800 ring-amber-200"
