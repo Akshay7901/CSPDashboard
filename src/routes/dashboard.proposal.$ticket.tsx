@@ -3876,7 +3876,8 @@ function ProposalDetailPage() {
                                   {r.email}
                                 </p>
                               </div>
-                               {preselectedReviewerId === r.id && (
+                              <div className="flex shrink-0 items-center gap-1.5">
+                              {preselectedReviewerId === r.id && (
                                  <span className="shrink-0 rounded-full bg-[#0E3D2F]/10 px-2.5 py-0.5 font-sans text-[11px] font-medium text-[#0E3D2F] ring-1 ring-[#0E3D2F]/20">
                                    Preselected
                                  </span>
@@ -3890,6 +3891,7 @@ function ProposalDetailPage() {
                               >
                                 {count > 0 ? `${count} active` : "Available"}
                               </span>
+                              </div>
                             </div>
                           </div>
                         </label>
