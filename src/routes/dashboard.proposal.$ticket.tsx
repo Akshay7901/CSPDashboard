@@ -1834,7 +1834,7 @@ function ProposalDetailPage() {
   useEffect(() => {
     if (commentsSeeded) return;
     // Prefer the Decision Reviewer's own saved draft (if any) over the
-    // peer reviewer's submitted review, so reloads restore the DR's edits.
+    // proposal reviewer's submitted review, so reloads restore the DR's edits.
     const sourceReview = drReview || primaryReview;
     if (!sourceReview) return;
     const rd = (sourceReview.review_data || {}) as Record<string, unknown>;
@@ -3388,7 +3388,7 @@ function ProposalDetailPage() {
                         : isReviewReturned
                         ? "Review returned — add notes and send to author"
                         : assignedReviewer
-                          ? "With peer reviewer"
+                          ? "With proposal reviewer"
                           : "Awaiting initial assessment"}
                     </p>
                   </div>
@@ -3449,7 +3449,7 @@ function ProposalDetailPage() {
                         onClick={openReviewers}
                         className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-white px-3 py-1.5 font-sans text-xs font-semibold text-indigo-700 transition-colors hover:bg-indigo-50"
                       >
-                        Reassign peer reviewer
+                        Reassign proposal reviewer
                       </button>
                     </div>
                   )}
@@ -3601,7 +3601,7 @@ function ProposalDetailPage() {
                         <Check className="mt-0.5 h-4 w-4 text-white" />
                         <div>
                           <p className="font-sans text-sm font-semibold">Move to Review</p>
-                          <p className="font-sans text-xs text-white/80">Assign a peer reviewer</p>
+                          <p className="font-sans text-xs text-white/80">Assign a proposal reviewer</p>
                         </div>
                       </button>
                     )}
@@ -3847,7 +3847,7 @@ function ProposalDetailPage() {
               )}
               {!reviewersLoading && !reviewersError && reviewers.length === 0 && (
                 <p className="mt-4 px-3 py-6 text-center font-sans text-sm text-stone-500">
-                  No peer reviewers found.
+                  No proposal reviewers found.
                 </p>
               )}
               {!reviewersLoading && !reviewersError && reviewers.length > 0 && (

@@ -256,7 +256,7 @@ function EditorDashboard() {
             className="inline-flex items-center gap-2 rounded-xl border border-[#0E3D2F] bg-[#0E3D2F] px-4 py-2.5 font-sans text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#0a2e23]"
           >
             <Users className="h-4 w-4" />
-            Peer Reviewers
+            Proposal Reviewers
             <span className="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-white/20 px-1.5 py-0.5 font-sans text-xs font-medium">
               {reviewers.length}
             </span>
@@ -427,9 +427,9 @@ function EditorDashboard() {
           >
             <div className="flex items-start justify-between border-b border-stone-200 px-6 py-4">
               <div>
-                <h2 className="font-serif text-2xl font-bold text-stone-900">Peer Reviewers</h2>
+                <h2 className="font-serif text-2xl font-bold text-stone-900">Proposal Reviewers</h2>
                 <p className="mt-1 font-sans text-sm text-stone-600">
-                  Add and manage peer reviewers for proposals
+                  Add and manage proposal reviewers for proposals
                 </p>
               </div>
               <button
@@ -476,7 +476,7 @@ function EditorDashboard() {
             <div className="max-h-[40vh] overflow-y-auto">
               {reviewers.length === 0 ? (
                 <p className="px-6 py-10 text-center font-sans text-sm text-stone-500">
-                  No peer reviewers added yet.
+                  No proposal reviewers added yet.
                 </p>
               ) : (
                 <ul>

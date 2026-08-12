@@ -352,7 +352,7 @@ function DecisionReviewerDashboard() {
     }
   };
 
-  // Reassign / assign peer reviewer modal
+  // Reassign / assign proposal reviewer modal
   const [assignFor, setAssignFor] = useState<ProposalRow | null>(null);
   const [assignSelectedId, setAssignSelectedId] = useState<number | null>(null);
   const [assignNote, setAssignNote] = useState("");
@@ -508,7 +508,7 @@ function DecisionReviewerDashboard() {
       });
       const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
       if (!res.ok) {
-        setReviewersError((data.error as string) || "Failed to load peer reviewers.");
+        setReviewersError((data.error as string) || "Failed to load proposal reviewers.");
         return;
       }
       setReviewers((data.peer_reviewers as PeerReviewer[]) || []);
@@ -633,7 +633,7 @@ function DecisionReviewerDashboard() {
       });
       const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
       if (!res.ok) {
-        setReviewersError((data.error as string) || "Unable to create peer reviewer.");
+        setReviewersError((data.error as string) || "Unable to create proposal reviewer.");
         return;
       }
       setReviewersInfo(
@@ -650,7 +650,7 @@ function DecisionReviewerDashboard() {
   };
 
   const removeReviewer = async (id: number) => {
-    if (!confirm("Delete this peer reviewer?")) return;
+    if (!confirm("Delete this proposal reviewer?")) return;
     setDeletingId(id);
     setReviewersError(null);
     setReviewersInfo(null);
@@ -664,7 +664,7 @@ function DecisionReviewerDashboard() {
         const msg =
           (data.message as string) ||
           (data.error as string) ||
-          "Unable to delete peer reviewer.";
+          "Unable to delete proposal reviewer.";
         setReviewersError(msg);
         return;
       }
@@ -935,7 +935,7 @@ function DecisionReviewerDashboard() {
             className="inline-flex items-center gap-2 rounded-xl border border-[#0E3D2F] bg-[#0E3D2F] px-4 py-2.5 font-sans text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#0a2e23]"
           >
             <Users className="h-4 w-4" />
-            Peer Reviewers
+            Proposal Reviewers
             {reviewers.length > 0 && (
               <span className="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-white/20 px-1.5 py-0.5 font-sans text-xs font-medium">
                 {reviewers.length}
@@ -1229,9 +1229,9 @@ function DecisionReviewerDashboard() {
           >
             <div className="flex items-start justify-between border-b border-stone-200 px-6 py-4">
               <div>
-                <h2 className="font-serif text-2xl font-bold text-stone-900">Peer Reviewers</h2>
+                <h2 className="font-serif text-2xl font-bold text-stone-900">Proposal Reviewers</h2>
                 <p className="mt-1 font-sans text-sm text-stone-600">
-                  Add and manage peer reviewers. New reviewers receive an email OTP to set
+                  Add and manage proposal reviewers. New reviewers receive an email OTP to set
                   their password on first login.
                 </p>
               </div>
@@ -1290,11 +1290,11 @@ function DecisionReviewerDashboard() {
             <div className="max-h-[40vh] overflow-y-auto">
               {reviewersLoading ? (
                 <p className="px-6 py-10 text-center font-sans text-sm text-stone-500">
-                  Loading peer reviewers…
+                  Loading proposal reviewers…
                 </p>
               ) : reviewers.length === 0 ? (
                 <p className="px-6 py-10 text-center font-sans text-sm text-stone-500">
-                  No peer reviewers yet.
+                  No proposal reviewers yet.
                 </p>
               ) : (
                 <ul>
@@ -1371,7 +1371,7 @@ function DecisionReviewerDashboard() {
             <div className="flex items-start justify-between border-b border-stone-200 px-6 py-4">
               <div>
                 <h2 className="font-serif text-2xl font-bold text-stone-900">
-                  {assignFor.currentReviewerEmail ? "Reassign peer reviewer" : "Assign peer reviewer"}
+                  {assignFor.currentReviewerEmail ? "Reassign proposal reviewer" : "Assign proposal reviewer"}
                 </h2>
                 <p className="mt-1 font-sans text-sm text-stone-600">
                   Proposal <span className="font-semibold">{assignFor.id}</span>
@@ -1399,11 +1399,11 @@ function DecisionReviewerDashboard() {
             <div className="max-h-[45vh] overflow-y-auto px-6 py-4">
               {reviewersLoading ? (
                 <p className="py-10 text-center font-sans text-sm text-stone-500">
-                  Loading peer reviewers…
+                  Loading proposal reviewers…
                 </p>
               ) : reviewers.length === 0 ? (
                 <p className="py-10 text-center font-sans text-sm text-stone-500">
-                  No peer reviewers available. Add one from the Peer Reviewers panel first.
+                  No proposal reviewers available. Add one from the Proposal Reviewers panel first.
                 </p>
               ) : (
                 <ul className="space-y-2">
