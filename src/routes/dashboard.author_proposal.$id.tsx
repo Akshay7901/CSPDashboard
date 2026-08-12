@@ -1632,6 +1632,7 @@ function ContractIssuedView({
   const [queryError, setQueryError] = useState<string | null>(null);
   const [querySuccess, setQuerySuccess] = useState(false);
   const [proposalStatus, setProposalStatus] = useState<string>("");
+  const [unansweredQuery, setUnansweredQuery] = useState(false);
   const [signDisabledDialogOpen, setSignDisabledDialogOpen] = useState(false);
   const awaitingKey = `csp:awaiting-signature:${ticket}`;
   const [awaitingSignature, setAwaitingSignature] = useState<boolean>(() => {
@@ -1692,6 +1693,14 @@ function ContractIssuedView({
           setProposalStatus(body.proposal_status || "");
           const qs = body.queries || [];
           setQueriesCount(qs.length);
+          const answered = new Set(
+            qs
+              .filter((q) => q.type === "response" && q.parent_query_id)
+              .map((q) => q.parent_query_id as number),
+          );
+          setUnansweredQuery(
+            qs.some((q) => q.type === "query" && !answered.has(q.id)),
+          );
           const hasResponded = qs.some((q) => q.type === "response");
           if (hasResponded) {
             setShowQueries(true);
@@ -1741,7 +1750,9 @@ function ContractIssuedView({
     !isSigned &&
     !isDeclined;
   const hasOpenQuery =
-    proposalStatus === "queries_raised" || proposalStatus === "question_raised";
+    unansweredQuery ||
+    proposalStatus === "queries_raised" ||
+    proposalStatus === "question_raised";
   const signDisabled = !canSign || hasOpenQuery;
 
   const submitQuery = async () => {
