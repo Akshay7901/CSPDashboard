@@ -40,7 +40,7 @@ const FIELD_DEFS: { key: string; label: string; multiline?: boolean }[] = [
   { key: "category", label: "Category" },
   { key: "display_names", label: "Display names" },
   { key: "display_bios", label: "Display bios", multiline: true },
-  { key: "book_description", label: "Book description", multiline: true },
+  { key: "book_description", label: "Book description (Blurb)", multiline: true },
   { key: "keywords", label: "Keywords" },
   { key: "website_classification", label: "Website classification" },
   { key: "bic", label: "BIC codes" },
