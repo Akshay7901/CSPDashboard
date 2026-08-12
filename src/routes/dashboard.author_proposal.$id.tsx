@@ -2539,8 +2539,10 @@ function ProgressStepper({
     timeline && timeline.length > 0
       ? timeline.map((t) => {
           const isDeclineStage = /declin|reject/i.test(t.stage_name) || /declin|reject/i.test(t.display_name);
+          const rawLabel = t.display_name || t.stage_name;
+          const label = rawLabel.replace(/\bPeer Review\b/g, "Proposal Review");
           return {
-            label: t.display_name || t.stage_name,
+            label,
             done: !!t.is_completed,
             current: !!t.is_current,
             failed: isDeclineStage && (!!t.is_completed || !!t.is_current),
