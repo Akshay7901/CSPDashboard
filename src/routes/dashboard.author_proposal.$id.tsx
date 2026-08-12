@@ -2377,8 +2377,7 @@ function ContractIssuedView({
                         align="center"
                         className="max-w-[260px] text-center"
                       >
-                        Contract signing has been disabled because an open query is waiting for the
-                        editor’s response.
+                        Contract signing option has been disabled when the author has issued a query.
                       </TooltipContent>
                     )}
                   </Tooltip>
@@ -2453,8 +2452,7 @@ function ContractIssuedView({
                 Contract signing is paused
               </AlertDialogTitle>
               <AlertDialogDescription className="font-sans text-sm leading-relaxed text-stone-600">
-                You have an open query on this proposal. The contract signing option has been
-                disabled until the editor responds to your query.
+                Contract signing option has been disabled when the author has issued a query.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
