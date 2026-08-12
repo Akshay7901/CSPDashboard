@@ -15,6 +15,15 @@ import { ContractPdfModal } from "@/components/contract-pdf-modal";
 import { ContractQueries } from "@/components/contract-queries";
 import { AuthorMetadataPanel } from "@/components/author-metadata-panel";
 import { ContributorsPanel } from "@/components/contributors-panel";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/dashboard/author_proposal/$id")({
   head: () => ({ meta: [{ title: "Proposal Details — Author Portal" }] }),
