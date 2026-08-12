@@ -1632,6 +1632,7 @@ function ContractIssuedView({
   const [queryError, setQueryError] = useState<string | null>(null);
   const [querySuccess, setQuerySuccess] = useState(false);
   const [proposalStatus, setProposalStatus] = useState<string>("");
+  const [signDisabledDialogOpen, setSignDisabledDialogOpen] = useState(false);
   const awaitingKey = `csp:awaiting-signature:${ticket}`;
   const [awaitingSignature, setAwaitingSignature] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
