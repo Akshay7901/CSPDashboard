@@ -2318,6 +2318,28 @@ function ContractIssuedView({
             </button>
           </p>
         )}
+
+        <AlertDialog open={signDisabledDialogOpen} onOpenChange={setSignDisabledDialogOpen}>
+          <AlertDialogContent className="max-w-md">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="font-serif text-lg text-[#2C1A0E]">
+                Contract signing is paused
+              </AlertDialogTitle>
+              <AlertDialogDescription className="font-sans text-sm leading-relaxed text-stone-600">
+                You have an open query on this proposal. The contract signing option has been
+                disabled until the editor responds to your query.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                asChild
+                className="rounded-lg border border-stone-300 bg-white px-4 py-2 font-sans text-sm font-semibold text-stone-700 hover:bg-stone-50"
+              >
+                <button type="button">Got it</button>
+              </AlertDialogCancel>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       {queryOpen && (
