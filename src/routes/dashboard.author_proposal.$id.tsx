@@ -1,15 +1,28 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ChevronLeft, ChevronDown, FileText, Check, X, Calendar, Send, Save, AlertCircle, Upload, Paperclip, Download, HelpCircle, CheckCircle2, LogOut, Eye } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronDown,
+  FileText,
+  Check,
+  X,
+  Calendar,
+  Send,
+  Save,
+  AlertCircle,
+  Upload,
+  Paperclip,
+  Download,
+  HelpCircle,
+  CheckCircle2,
+  LogOut,
+  Eye,
+} from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
 import { initialsFromName, type StatusKey } from "@/lib/proposals";
 import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
 import { proposalApiFetch } from "@/lib/proposalApi";
-import {
-  getContract,
-  getSigningUrl,
-  type ContractDetail,
-} from "@/lib/contractsApi";
+import { getContract, getSigningUrl, type ContractDetail } from "@/lib/contractsApi";
 import { getQueries, raiseQuery } from "@/lib/contractsApi";
 import { ContractPdfModal } from "@/components/contract-pdf-modal";
 import { ContractQueries } from "@/components/contract-queries";
@@ -24,6 +37,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export const Route = createFileRoute("/dashboard/author_proposal/$id")({
   head: () => ({ meta: [{ title: "Proposal Details — Author Portal" }] }),
@@ -157,19 +171,14 @@ function ReviewerCommentsList({ ticket }: { ticket: string }) {
     reviews[0];
   const rd = (primary?.review_data || {}) as Record<string, unknown>;
   const drNote = typeof rd.dr_note === "string" ? rd.dr_note.trim() : "";
-  const recommendation =
-    typeof rd.recommendation === "string" ? rd.recommendation.trim() : "";
+  const recommendation = typeof rd.recommendation === "string" ? rd.recommendation.trim() : "";
   const recLabel = recommendation
-    ? recommendation
-        .replace(/_/g, " ")
-        .replace(/\b\w/g, (c) => c.toUpperCase())
+    ? recommendation.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
     : "";
   const recTone = (() => {
     const r = recommendation.toLowerCase();
-    if (r === "proceed" || r === "accept")
-      return "bg-emerald-50 text-emerald-700 ring-emerald-200";
-    if (r === "reject" || r === "decline")
-      return "bg-rose-50 text-rose-700 ring-rose-200";
+    if (r === "proceed" || r === "accept") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
+    if (r === "reject" || r === "decline") return "bg-rose-50 text-rose-700 ring-rose-200";
     if (r.includes("revision") || r.includes("info"))
       return "bg-amber-50 text-amber-800 ring-amber-200";
     return "bg-stone-100 text-stone-700 ring-stone-200";
@@ -186,43 +195,48 @@ function ReviewerCommentsList({ ticket }: { ticket: string }) {
       severity: SECTION_SEVERITY[key] || "General",
       page: SECTION_PAGES[key] || "",
     };
-  }).filter(Boolean) as { key: string; label: string; text: string; severity: string; page: string }[];
+  }).filter(Boolean) as {
+    key: string;
+    label: string;
+    text: string;
+    severity: string;
+    page: string;
+  }[];
 
-  const header =
-    (drNote || recLabel) && (
-      <div className="mt-4 rounded-xl border border-violet-200 bg-violet-50/70 p-5">
-        {recLabel && (
-          <div className="flex items-center gap-2">
-            <span className="font-sans text-[11px] font-bold uppercase tracking-wider text-violet-700">
-              Editor's Recommendation
-            </span>
-            <span
-              className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-sans text-xs font-semibold ring-1 ${recTone}`}
-            >
-              {recLabel}
-            </span>
-          </div>
-        )}
-        {drNote && (
-          <>
-            <p className="mt-3 font-sans text-[11px] font-bold uppercase tracking-wider text-violet-700">
-              Note from your editor
-            </p>
-            <p className="mt-1.5 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
-              {drNote}
-            </p>
-          </>
-        )}
-      </div>
-    );
+  const header = (drNote || recLabel) && (
+    <div className="mt-4 rounded-xl border border-violet-200 bg-violet-50/70 p-5">
+      {recLabel && (
+        <div className="flex items-center gap-2">
+          <span className="font-sans text-[11px] font-bold uppercase tracking-wider text-violet-700">
+            Editor's Recommendation
+          </span>
+          <span
+            className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-sans text-xs font-semibold ring-1 ${recTone}`}
+          >
+            {recLabel}
+          </span>
+        </div>
+      )}
+      {drNote && (
+        <>
+          <p className="mt-3 font-sans text-[11px] font-bold uppercase tracking-wider text-violet-700">
+            Note from your editor
+          </p>
+          <p className="mt-1.5 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
+            {drNote}
+          </p>
+        </>
+      )}
+    </div>
+  );
 
   if (items.length === 0) {
     if (notFound || !primary) {
       return (
         <div className="mt-4 rounded-xl border border-dashed border-stone-300 bg-white/60 p-5 text-center">
           <p className="font-sans text-sm text-stone-600">
-            No detailed peer reviewer comments were attached to your proposal.
-            Refer to the overall assessment above and your editor's note below.
+            No detailed peer reviewer comments were attached to your proposal. Refer to the overall
+            assessment above and your editor's note below.
           </p>
         </div>
       );
@@ -237,9 +251,7 @@ function ReviewerCommentsList({ ticket }: { ticket: string }) {
         <div key={it.key} className="rounded-xl border border-stone-200 bg-white p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2.5">
-              <span className="font-serif text-[15px] font-bold text-[#2C1A0E]">
-                {it.label}
-              </span>
+              <span className="font-serif text-[15px] font-bold text-[#2C1A0E]">{it.label}</span>
             </div>
           </div>
           <p className="mt-2 whitespace-pre-line font-sans text-[14px] leading-relaxed text-stone-700">
@@ -294,14 +306,23 @@ function statusFromTimeline(timeline?: TimelineStage[]): StatusKey | undefined {
   const current = timeline.find((t) => t.is_current);
   if (!current) return undefined;
   const name = `${current.stage_name || ""} ${current.display_name || ""}`.toLowerCase();
-  if (name.includes("contract") || name.includes("sign") || name.includes("approval") || name.includes("awaiting author")) return "contract";
-  if (name.includes("peer review") || name.includes("under review") || name.includes("in review")) return "in_review";
+  if (
+    name.includes("contract") ||
+    name.includes("sign") ||
+    name.includes("approval") ||
+    name.includes("awaiting author")
+  )
+    return "contract";
+  if (name.includes("peer review") || name.includes("under review") || name.includes("in review"))
+    return "in_review";
   if (name.includes("review returned") || name.includes("feedback")) return "review_returned";
   if (name.includes("declin") || name.includes("reject")) return "declined";
   if (name.includes("major revision")) return "major_revisions";
-  if (name.includes("revision") || name.includes("more info") || name.includes("additional info")) return "revisions";
+  if (name.includes("revision") || name.includes("more info") || name.includes("additional info"))
+    return "revisions";
   if (name.includes("query") || name.includes("question")) return "question";
-  if (name.includes("confirm") || name.includes("final") || name.includes("publish")) return "signed";
+  if (name.includes("confirm") || name.includes("final") || name.includes("publish"))
+    return "signed";
   if (name.includes("submit") || name.includes("new")) return "submitted";
   return undefined;
 }
@@ -544,18 +565,13 @@ function AuthorProposalDetails() {
             timeline: (body.timeline as TimelineStage[]) || [],
             cd,
             infoRequests:
-              (body.info_requests as InfoRequest[]) ||
-              (body.request_info as InfoRequest[]) ||
-              [],
+              (body.info_requests as InfoRequest[]) || (body.request_info as InfoRequest[]) || [],
           });
           setLoading(false);
         }
         // Fetch info-requests (revision requests) from the dedicated endpoint.
         try {
-          const r2 = await proposalApiFetch(
-            `/${encodeURIComponent(id)}/request-info`,
-            { headers },
-          );
+          const r2 = await proposalApiFetch(`/${encodeURIComponent(id)}/request-info`, { headers });
           const b2 = (await r2.json().catch(() => ({}))) as Record<string, unknown>;
           if (!cancelled && r2.ok) {
             const raw = (b2.requests as Array<Record<string, unknown>>) || [];
@@ -599,7 +615,8 @@ function AuthorProposalDetails() {
                 note: (r.note as string | undefined) ?? (r.message as string | undefined),
                 resubmission_deadline: r.resubmission_deadline as string | undefined,
                 deadline: r.deadline as string | undefined,
-                created_at: (r.requested_at as string | undefined) ?? (r.created_at as string | undefined),
+                created_at:
+                  (r.requested_at as string | undefined) ?? (r.created_at as string | undefined),
                 items,
                 response: r.responded_at
                   ? {
@@ -677,18 +694,14 @@ function AuthorProposalDetails() {
           Back to dashboard
         </Link>
 
-        {loading && (
-          <p className="mt-6 text-sm text-stone-500">Loading proposal…</p>
-        )}
+        {loading && <p className="mt-6 text-sm text-stone-500">Loading proposal…</p>}
         {loadError && (
           <div className="mt-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             {loadError}
           </div>
         )}
 
-        {!loading && !loadError && proposal && (
-          <ProposalBody proposal={proposal} />
-        )}
+        {!loading && !loadError && proposal && <ProposalBody proposal={proposal} />}
       </div>
     </main>
   );
@@ -760,11 +773,12 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
       if (timer) clearTimeout(timer);
     };
   }, [proposal.ticket]);
-  const baseStatus = statusFromTimeline(proposal.timeline) || normalizeStatus(proposal.status, proposal.displayStatus);
+  const baseStatus =
+    statusFromTimeline(proposal.timeline) ||
+    normalizeStatus(proposal.status, proposal.displayStatus);
   // If the author has already approved the metadata, keep the "approved"
   // status even though the underlying contract is signed.
-  const status: StatusKey =
-    contractSigned && baseStatus !== "approved" ? "signed" : baseStatus;
+  const status: StatusKey = contractSigned && baseStatus !== "approved" ? "signed" : baseStatus;
   const rawApprovalStatus = [proposal.internalStatus, proposal.status, proposal.displayStatus]
     .filter(Boolean)
     .join(" ")
@@ -778,8 +792,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
     rawApprovalStatus.includes("confirmed & finalised") ||
     rawApprovalStatus.includes("confirmed & finalized");
   const tint = STATUS_TINT[status];
-  const isContractView =
-    status === "contract" || status === "signed" || status === "approved";
+  const isContractView = status === "contract" || status === "signed" || status === "approved";
   // Default to showing the full proposal details even in later states
   // (contract / signed / approved) so authors can always see the underlying
   // proposal information without having to expand it manually.
@@ -794,11 +807,13 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
       const cv = (cd as any).author_cv;
       const cvUrl = (cd as any).author_cv_url;
       if (cv && typeof cv === "object" && cv.url) {
-        return [{
-          url: cv.url,
-          filename: cv.filename || cv.url.split("/").pop() || "Author CV",
-          size_bytes: cv.size_bytes,
-        }];
+        return [
+          {
+            url: cv.url,
+            filename: cv.filename || cv.url.split("/").pop() || "Author CV",
+            size_bytes: cv.size_bytes,
+          },
+        ];
       }
       if (typeof cvUrl === "string" && cvUrl) {
         return [{ url: cvUrl, filename: cvUrl.split("/").pop() || "Author CV" }];
@@ -819,9 +834,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
   };
   const authorFullName =
     cd.corresponding_author_name ||
-    [cd.author_title, cd.author_first_name, cd.author_last_name]
-      .filter(Boolean)
-      .join(" ") ||
+    [cd.author_title, cd.author_first_name, cd.author_last_name].filter(Boolean).join(" ") ||
     "—";
 
   const wordCount = cd.estimated_word_count ?? cd.word_count;
@@ -833,9 +846,15 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
   const audienceText = cd.target_audience || cd.marketing_info;
   const whyNeededText = cd.unique_selling_points || cd.marketing_info;
   const reviewersRaw = cd.recommended_reviewers || cd.referees_reviewers;
-  const keywordTags: string[] = cd.secondary_subjects && cd.secondary_subjects.length > 0
-    ? cd.secondary_subjects
-    : (cd.keywords ? cd.keywords.split(/[,;]+/).map((s) => s.trim()).filter(Boolean) : []);
+  const keywordTags: string[] =
+    cd.secondary_subjects && cd.secondary_subjects.length > 0
+      ? cd.secondary_subjects
+      : cd.keywords
+        ? cd.keywords
+            .split(/[,;]+/)
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [];
   const coAuthorsList: Array<Record<string, unknown>> = (() => {
     if (Array.isArray(cd.co_authors) && cd.co_authors.length > 0) {
       return cd.co_authors as Array<Record<string, unknown>>;
@@ -857,12 +876,12 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
 
   return (
     <>
-      <InfoRequestPanel
-        ticket={proposal.ticket}
-        infoRequests={proposal.infoRequests}
-      />
+      <InfoRequestPanel ticket={proposal.ticket} infoRequests={proposal.infoRequests} />
       {/* Hero card: title + status pill + stepper */}
-      <section id="section-hero" className="mt-6 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm scroll-mt-24">
+      <section
+        id="section-hero"
+        className="mt-6 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm scroll-mt-24"
+      >
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             {(() => {
@@ -883,13 +902,21 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                 </p>
               );
             })()}
-            <h1 className="font-serif text-2xl font-bold leading-tight md:text-3xl" style={{ color: "#2C1A0E" }}>
+            <h1
+              className="font-serif text-2xl font-bold leading-tight md:text-3xl"
+              style={{ color: "#2C1A0E" }}
+            >
               {cd.main_title || proposal.ticket}
             </h1>
             {cd.sub_title && (
-              <p className="mt-1.5 font-sans text-sm font-medium" style={{ color: "#A6814A" }}>{cd.sub_title}</p>
+              <p className="mt-1.5 font-sans text-sm font-medium" style={{ color: "#A6814A" }}>
+                {cd.sub_title}
+              </p>
             )}
-            <p className="mt-2 inline-flex items-center gap-1.5 font-sans text-xs" style={{ color: "#7A6A5A" }}>
+            <p
+              className="mt-2 inline-flex items-center gap-1.5 font-sans text-xs"
+              style={{ color: "#7A6A5A" }}
+            >
               <Calendar className="h-4 w-4" />
               Submitted {formatDate(proposal.submittedAt)}
             </p>
@@ -933,20 +960,17 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
             full_title:
               ((cd as Record<string, unknown>).full_title as string | undefined) ||
               [cd.main_title, cd.sub_title].filter(Boolean).join(": "),
-            title:
-              ((cd as Record<string, unknown>).title as string | undefined) ||
-              cd.main_title,
+            title: ((cd as Record<string, unknown>).title as string | undefined) || cd.main_title,
             subtitle:
-              ((cd as Record<string, unknown>).subtitle as string | undefined) ||
-              cd.sub_title,
+              ((cd as Record<string, unknown>).subtitle as string | undefined) || cd.sub_title,
             category: cd.book_type,
             display_names: cd.corresponding_author_name || authorFullName,
             display_bios: cd.biography,
-            book_description:
-              cd.detailed_description || cd.short_description || cd.overview,
-            keywords: Array.isArray(cd.secondary_subjects) && cd.secondary_subjects.length
-              ? cd.secondary_subjects.join(", ")
-              : cd.keywords,
+            book_description: cd.detailed_description || cd.short_description || cd.overview,
+            keywords:
+              Array.isArray(cd.secondary_subjects) && cd.secondary_subjects.length
+                ? cd.secondary_subjects.join(", ")
+                : cd.keywords,
             website_classification: cd.subject,
             authors: [
               {
@@ -975,34 +999,36 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
       {/* Reviewer Feedback — only after the proposal has left the
           "submitted/new" state, otherwise there is nothing to show. */}
       {status !== "submitted" && (
-      <section className="mt-6 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
-        <button
-          type="button"
-          onClick={() => setReviewerFeedbackOpen((v) => !v)}
-          aria-expanded={reviewerFeedbackOpen}
-          className="flex w-full items-center justify-between gap-3 px-6 py-4 text-left transition-colors hover:bg-stone-50"
-        >
-          <div>
-            <h2 className="font-serif text-lg font-bold text-[#2C1A0E]">
-              Reviewer Feedback
-            </h2>
-            <p className="mt-1 font-sans text-xs text-[#7A6A5A]">
-              Editor's recommendation and peer reviewer comments on your proposal.
-            </p>
-          </div>
-          <ChevronDown
-            className={`h-5 w-5 shrink-0 text-[#7A6A5A] transition-transform ${reviewerFeedbackOpen ? "rotate-180" : ""}`}
-          />
-        </button>
-        {reviewerFeedbackOpen && (
-          <div className="border-t border-stone-200 px-6 py-5">
-            <ReviewerCommentsList ticket={proposal.ticket} />
-          </div>
-        )}
-      </section>
+        <section className="mt-6 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
+          <button
+            type="button"
+            onClick={() => setReviewerFeedbackOpen((v) => !v)}
+            aria-expanded={reviewerFeedbackOpen}
+            className="flex w-full items-center justify-between gap-3 px-6 py-4 text-left transition-colors hover:bg-stone-50"
+          >
+            <div>
+              <h2 className="font-serif text-lg font-bold text-[#2C1A0E]">Reviewer Feedback</h2>
+              <p className="mt-1 font-sans text-xs text-[#7A6A5A]">
+                Editor's recommendation and peer reviewer comments on your proposal.
+              </p>
+            </div>
+            <ChevronDown
+              className={`h-5 w-5 shrink-0 text-[#7A6A5A] transition-transform ${reviewerFeedbackOpen ? "rotate-180" : ""}`}
+            />
+          </button>
+          {reviewerFeedbackOpen && (
+            <div className="border-t border-stone-200 px-6 py-5">
+              <ReviewerCommentsList ticket={proposal.ticket} />
+            </div>
+          )}
+        </section>
       )}
 
-      <ContractIssuedView ticket={proposal.ticket} proposal={proposal} authorFullName={authorFullName} />
+      <ContractIssuedView
+        ticket={proposal.ticket}
+        proposal={proposal}
+        authorFullName={authorFullName}
+      />
 
       {isContractView && (
         <div className="mt-6 overflow-hidden rounded-xl border border-stone-200">
@@ -1013,349 +1039,420 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
             aria-expanded={showOriginal}
           >
             {showOriginal ? "Hide original proposal details" : "View original proposal details"}
-            <ChevronDown className={`h-4 w-4 text-[#7A6A5A] transition-transform ${showOriginal ? "rotate-180" : ""}`} />
+            <ChevronDown
+              className={`h-4 w-4 text-[#7A6A5A] transition-transform ${showOriginal ? "rotate-180" : ""}`}
+            />
           </button>
         </div>
       )}
 
       {(!isContractView || showOriginal) && (
         <div id="original-proposal-details">
-      {/* Tabs */}
-      <div className="mt-6 inline-flex gap-1 rounded-xl border border-stone-200 bg-white p-1 shadow-sm">
-        <button
-          className="rounded-lg px-5 py-1.5 font-sans text-sm font-medium text-white"
-          style={{ backgroundColor: "#00422F" }}
-        >
-          Proposal Details
-        </button>
-        <button
-          className="rounded-lg px-5 py-1.5 font-sans text-sm font-medium transition-colors hover:text-stone-900"
-          style={{ color: "#7A6A5A" }}
-        >
-          Status History
-        </button>
-      </div>
-
-      {/* Stats row + Documents sidebar */}
-      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-[1fr_320px]">
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-          <StatCard label="Type" value={kind} />
-          <StatCard
-            label="Word Count"
-            value={wordCount ? Number(wordCount).toLocaleString() : "—"}
-          />
-          <StatCard
-            label="Completion"
-            value={formatMonthYear(completionDate)}
-          />
-        </div>
-
-
-        <aside id="section-documents" className="row-span-2 scroll-mt-24 overflow-hidden rounded-2xl border border-stone-200 bg-stone-50/60">
-          <h3 className="px-5 py-3.5 font-serif text-base font-bold" style={{ color: "#2C1A0E" }}>Documents</h3>
-          {allFiles.length === 0 ? (
-            <p className="border-t border-stone-200 px-5 py-4 text-sm text-stone-500">No documents uploaded.</p>
-          ) : (
-            <ul className="space-y-3 border-t border-stone-200 p-5">
-              {allFiles.map((f, i) => (
-                <li key={`${f.filename}-${i}`}>
-                  <div className="group flex items-start gap-2 rounded-lg border border-transparent p-2 hover:border-stone-200 hover:bg-white">
-                    <FileText className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-stone-900">
-                        {f.filename}
-                      </p>
-                      {f.size_bytes ? (
-                        <p className="text-xs text-stone-500">{formatBytes(f.size_bytes)}</p>
-                      ) : null}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setPreviewFile(f)}
-                      title="Preview"
-                      aria-label={`Preview ${f.filename}`}
-                      className="shrink-0 rounded-md p-1.5 text-stone-500 hover:bg-stone-100 hover:text-stone-900"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </aside>
-
-        {/* Main content stack (under stats, beside Documents) */}
-        <div className="space-y-5">
-          {/* Primary author card */}
-          <Card title="Primary Author / Editor" id="section-author">
-            <div className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
-              <Field label="Name" value={authorFullName} />
-              <Field label="Email" value={cd.email || "—"} />
-              {cd.institution && <Field label="Institution" value={cd.institution} />}
-              {cd.country && <Field label="Country" value={cd.country} />}
-              {cd.job_title && <Field label="Job Title" value={cd.job_title} />}
-              {cd.phone && <Field label="Phone" value={cd.phone} />}
-              {cd.secondary_email && <Field label="Secondary Email" value={cd.secondary_email} />}
-            </div>
-            {cd.address && (
-              <div className="mt-6 border-t border-stone-200 pt-5">
-                <p className="font-sans text-xs font-medium" style={{ color: "#7A6A5A" }}>Mailing Address</p>
-                <p className="mt-0.5 font-sans text-sm font-medium" style={{ color: "#2C1A0E" }}>{cd.address}</p>
-              </div>
-            )}
-            {cd.biography && (
-              <div className="mt-5 border-t border-stone-200 pt-5">
-                <p className="font-sans text-xs font-medium" style={{ color: "#7A6A5A" }}>Biography</p>
-                <p className="mt-0.5 whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed" style={{ color: "#2C1A0E" }}>
-                  {cd.biography}
-                </p>
-              </div>
-            )}
-          </Card>
-
-          {/* Additional Authors / Editors */}
-          {coAuthorsList.length > 0 && (
-            <Card
-              title="Additional Authors / Editors"
-              subtitle={`${coAuthorsList.length} co-author${coAuthorsList.length > 1 ? "s" : ""}`}
-              id="section-co-authors"
+          {/* Tabs */}
+          <div className="mt-6 inline-flex gap-1 rounded-xl border border-stone-200 bg-white p-1 shadow-sm">
+            <button
+              className="rounded-lg px-5 py-1.5 font-sans text-sm font-medium text-white"
+              style={{ backgroundColor: "#00422F" }}
             >
-              <div className="space-y-6">
-                {coAuthorsList.map((ca, i) => {
-                  const name = (ca.name as string) || [ca.first_name, ca.last_name].filter(Boolean).join(" ") || `Co-author ${i + 1}`;
-                  return (
-                    <div key={i} className="border-t border-stone-200 pt-5 first:border-t-0 first:pt-0">
-                      <div className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
-                        <Field label="Name" value={String(name)} />
-                        {ca.email ? <Field label="Email" value={String(ca.email)} /> : null}
-                        {ca.institution ? <Field label="Institution" value={String(ca.institution)} /> : null}
-                        {ca.country ? <Field label="Country" value={String(ca.country)} /> : null}
-                      </div>
-                      {ca.address ? (
-                        <div className="mt-4">
-                          <p className="font-sans text-xs font-medium" style={{ color: "#7A6A5A" }}>Mailing Address</p>
-                          <p className="mt-0.5 font-sans text-sm font-medium" style={{ color: "#2C1A0E" }}>{String(ca.address)}</p>
-                        </div>
-                      ) : null}
-                      {ca.biography ? (
-                        <div className="mt-4">
-                          <p className="font-sans text-xs font-medium" style={{ color: "#7A6A5A" }}>Biography</p>
-                          <p className="mt-0.5 whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed" style={{ color: "#2C1A0E" }}>{String(ca.biography)}</p>
-                        </div>
-                      ) : null}
-                    </div>
-                  );
-                })}
-              </div>
-            </Card>
-          )}
+              Proposal Details
+            </button>
+            <button
+              className="rounded-lg px-5 py-1.5 font-sans text-sm font-medium transition-colors hover:text-stone-900"
+              style={{ color: "#7A6A5A" }}
+            >
+              Status History
+            </button>
+          </div>
 
-          {/* Summary & Description */}
-          {(overviewText || keyFeaturesText || audienceText || keywordTags.length > 0) && (
-            <Card title="Summary & Description" id="section-summary">
-              <p className="-mt-2 font-sans text-sm font-medium" style={{ color: "#A6814A" }}>
-                {[cd.subject, cd.secondary_subjects?.join(" / ")]
-                  .filter(Boolean)
-                  .join(" · ") || "—"}
-              </p>
-              <div className="mt-5 space-y-4">
-                {overviewText && (
-                  <SubCard label="Overview">
-                    <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed" style={{ color: "#2C1A0E" }}>
-                      {overviewText}
-                    </p>
-                    {keywordTags.length > 0 && (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {keywordTags.map((t) => (
-                          <span
-                            key={t}
-                            className="rounded-full bg-amber-100/70 px-3 py-1 text-xs font-medium text-amber-900"
-                          >
-                            {t}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </SubCard>
-                )}
-                {keyFeaturesText && keyFeaturesText !== overviewText && (
-                  <SubCard label="Key Features & Unique Contribution">
-                    <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed" style={{ color: "#2C1A0E" }}>
-                      {keyFeaturesText}
-                    </p>
-                  </SubCard>
-                )}
-                {cd.unique_selling_points && (
-                  <SubCard label="Unique Selling Points">
-                    <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed" style={{ color: "#2C1A0E" }}>
-                      {cd.unique_selling_points}
-                    </p>
-                  </SubCard>
-                )}
-                {audienceText && (
-                  <SubCard label="Intended Audience">
-                    <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed" style={{ color: "#2C1A0E" }}>
-                      {audienceText}
-                    </p>
-                  </SubCard>
-                )}
-                {cd.language && (
-                  <SubCard label="Contains Non-English Content">
-                    <p className="font-sans text-sm font-medium" style={{ color: "#2C1A0E" }}>
-                      {cd.language.toLowerCase() === "english" ? "No" : `Yes (${cd.language})`}
-                    </p>
-                  </SubCard>
-                )}
-              </div>
-            </Card>
-          )}
-
-          {/* TOC */}
-          {cd.table_of_contents && (
-            <Card title="Table of Contents" id="section-toc">
-              <TocList raw={cd.table_of_contents} />
-            </Card>
-          )}
-
-          {/* Marketing & Promotion */}
-          {(whyNeededText ||
-            cd.competing_titles ||
-            cd.primary_market ||
-            cd.unique_contribution ||
-            cd.conferences ||
-            cd.promotional_channels ||
-            cd.marketing_info) && (
-            <Card title="Marketing & Promotion" id="section-market">
-              <div className="space-y-4">
-                {cd.primary_market && (
-                  <SubCard label="Primary Market">
-                    <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
-                      {cd.primary_market}
-                    </p>
-                  </SubCard>
-                )}
-                {whyNeededText && (
-                  <SubCard label="Why is this book needed?">
-                    <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
-                      {whyNeededText}
-                    </p>
-                  </SubCard>
-                )}
-                {cd.competing_titles && (
-                  <SubCard label="Competing Titles">
-                    <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
-                      {cd.competing_titles}
-                    </p>
-                  </SubCard>
-                )}
-                {cd.unique_contribution && (
-                  <SubCard label="Unique Contribution vs Competing Titles">
-                    <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
-                      {cd.unique_contribution}
-                    </p>
-                  </SubCard>
-                )}
-                {cd.conferences && (
-                  <SubCard label="Relevant Conferences / Academic Events">
-                    <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
-                      {cd.conferences}
-                    </p>
-                  </SubCard>
-                )}
-                {cd.promotional_channels && (
-                  <SubCard label="Promotional Channels">
-                    <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
-                      {cd.promotional_channels}
-                    </p>
-                  </SubCard>
-                )}
-                {cd.marketing_info &&
-                  cd.marketing_info !== cd.competing_titles &&
-                  cd.marketing_info !== cd.primary_market &&
-                  cd.marketing_info !== whyNeededText &&
-                  cd.marketing_info !== audienceText && (
-                    <SubCard label="Additional Marketing Notes">
-                      <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
-                        {cd.marketing_info}
-                      </p>
-                    </SubCard>
-                  )}
-              </div>
-            </Card>
-          )}
-
-          {/* Suggested reviewers */}
-          {reviewersRaw && (
-            <Card title="Suggested Reviewers" subtitle="Nominated for consideration" id="section-reviewers">
-              <ReviewersList raw={reviewersRaw} />
-            </Card>
-          )}
-
-          {/* Manuscript details / extras */}
-          <Card title="Manuscript Details" id="section-manuscript">
+          {/* Stats row + Documents sidebar */}
+          <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-[1fr_320px]">
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              <MiniStat
+              <StatCard label="Type" value={kind} />
+              <StatCard
                 label="Word Count"
-                value={
-                  typeof wordCount === "number"
-                    ? wordCount.toLocaleString()
-                    : wordCount
-                      ? String(wordCount)
-                      : "—"
-                }
+                value={wordCount ? Number(wordCount).toLocaleString() : "—"}
               />
-              <MiniStat
-                label="illustrations/figures/tables"
-                value={illustrationCount !== undefined && illustrationCount !== null ? String(illustrationCount) : "—"}
-              />
-              <MiniStat
-                label="Languages"
-                value={cd.language || "—"}
-              />
-
-              <MiniStat
-                label="Est. Completion"
-                value={completionDate || "—"}
-              />
-              <MiniStat
-                label="Previously published"
-                value={fmtBool(cd.under_review_elsewhere ?? cd.is_previously_published)}
-              />
-              {cd.permissions_required !== undefined && (
-                <MiniStat label="Permissions Required" value={fmtBool(cd.permissions_required)} />
-              )}
+              <StatCard label="Completion" value={formatMonthYear(completionDate)} />
             </div>
-          </Card>
 
-          {/* Additional Comments & Permissions */}
-          {hasNotes && (
-            <Card title="Additional Comments & Permissions" subtitle="Copyright, permissions, special considerations" id="section-notes">
-              <div className="space-y-4">
-                {cd.additional_info && (
-                  <SubCard label="Additional Notes from Author">
-                    <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
-                      {cd.additional_info}
+            <aside
+              id="section-documents"
+              className="row-span-2 scroll-mt-24 overflow-hidden rounded-2xl border border-stone-200 bg-stone-50/60"
+            >
+              <h3
+                className="px-5 py-3.5 font-serif text-base font-bold"
+                style={{ color: "#2C1A0E" }}
+              >
+                Documents
+              </h3>
+              {allFiles.length === 0 ? (
+                <p className="border-t border-stone-200 px-5 py-4 text-sm text-stone-500">
+                  No documents uploaded.
+                </p>
+              ) : (
+                <ul className="space-y-3 border-t border-stone-200 p-5">
+                  {allFiles.map((f, i) => (
+                    <li key={`${f.filename}-${i}`}>
+                      <div className="group flex items-start gap-2 rounded-lg border border-transparent p-2 hover:border-stone-200 hover:bg-white">
+                        <FileText className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold text-stone-900">
+                            {f.filename}
+                          </p>
+                          {f.size_bytes ? (
+                            <p className="text-xs text-stone-500">{formatBytes(f.size_bytes)}</p>
+                          ) : null}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setPreviewFile(f)}
+                          title="Preview"
+                          aria-label={`Preview ${f.filename}`}
+                          className="shrink-0 rounded-md p-1.5 text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </aside>
+
+            {/* Main content stack (under stats, beside Documents) */}
+            <div className="space-y-5">
+              {/* Primary author card */}
+              <Card title="Primary Author / Editor" id="section-author">
+                <div className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
+                  <Field label="Name" value={authorFullName} />
+                  <Field label="Email" value={cd.email || "—"} />
+                  {cd.institution && <Field label="Institution" value={cd.institution} />}
+                  {cd.country && <Field label="Country" value={cd.country} />}
+                  {cd.job_title && <Field label="Job Title" value={cd.job_title} />}
+                  {cd.phone && <Field label="Phone" value={cd.phone} />}
+                  {cd.secondary_email && (
+                    <Field label="Secondary Email" value={cd.secondary_email} />
+                  )}
+                </div>
+                {cd.address && (
+                  <div className="mt-6 border-t border-stone-200 pt-5">
+                    <p className="font-sans text-xs font-medium" style={{ color: "#7A6A5A" }}>
+                      Mailing Address
                     </p>
-                  </SubCard>
-                )}
-                {typeof cd.permissions_required === "string" && cd.permissions_required && (
-                  <SubCard label="Permissions Required from Copyright Holders">
-                    <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
-                      {cd.permissions_required}
+                    <p
+                      className="mt-0.5 font-sans text-sm font-medium"
+                      style={{ color: "#2C1A0E" }}
+                    >
+                      {cd.address}
                     </p>
-                  </SubCard>
+                  </div>
                 )}
-              </div>
-            </Card>
-          )}
+                {cd.biography && (
+                  <div className="mt-5 border-t border-stone-200 pt-5">
+                    <p className="font-sans text-xs font-medium" style={{ color: "#7A6A5A" }}>
+                      Biography
+                    </p>
+                    <p
+                      className="mt-0.5 whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed"
+                      style={{ color: "#2C1A0E" }}
+                    >
+                      {cd.biography}
+                    </p>
+                  </div>
+                )}
+              </Card>
 
-          {/* Dynamic: every other key present in current_data */}
-          <DynamicProposalFields data={cd as unknown as Record<string, unknown>} />
+              {/* Additional Authors / Editors */}
+              {coAuthorsList.length > 0 && (
+                <Card
+                  title="Additional Authors / Editors"
+                  subtitle={`${coAuthorsList.length} co-author${coAuthorsList.length > 1 ? "s" : ""}`}
+                  id="section-co-authors"
+                >
+                  <div className="space-y-6">
+                    {coAuthorsList.map((ca, i) => {
+                      const name =
+                        (ca.name as string) ||
+                        [ca.first_name, ca.last_name].filter(Boolean).join(" ") ||
+                        `Co-author ${i + 1}`;
+                      return (
+                        <div
+                          key={i}
+                          className="border-t border-stone-200 pt-5 first:border-t-0 first:pt-0"
+                        >
+                          <div className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
+                            <Field label="Name" value={String(name)} />
+                            {ca.email ? <Field label="Email" value={String(ca.email)} /> : null}
+                            {ca.institution ? (
+                              <Field label="Institution" value={String(ca.institution)} />
+                            ) : null}
+                            {ca.country ? (
+                              <Field label="Country" value={String(ca.country)} />
+                            ) : null}
+                          </div>
+                          {ca.address ? (
+                            <div className="mt-4">
+                              <p
+                                className="font-sans text-xs font-medium"
+                                style={{ color: "#7A6A5A" }}
+                              >
+                                Mailing Address
+                              </p>
+                              <p
+                                className="mt-0.5 font-sans text-sm font-medium"
+                                style={{ color: "#2C1A0E" }}
+                              >
+                                {String(ca.address)}
+                              </p>
+                            </div>
+                          ) : null}
+                          {ca.biography ? (
+                            <div className="mt-4">
+                              <p
+                                className="font-sans text-xs font-medium"
+                                style={{ color: "#7A6A5A" }}
+                              >
+                                Biography
+                              </p>
+                              <p
+                                className="mt-0.5 whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed"
+                                style={{ color: "#2C1A0E" }}
+                              >
+                                {String(ca.biography)}
+                              </p>
+                            </div>
+                          ) : null}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </Card>
+              )}
 
+              {/* Summary & Description */}
+              {(overviewText || keyFeaturesText || audienceText || keywordTags.length > 0) && (
+                <Card title="Summary & Description" id="section-summary">
+                  <p className="-mt-2 font-sans text-sm font-medium" style={{ color: "#A6814A" }}>
+                    {[cd.subject, cd.secondary_subjects?.join(" / ")].filter(Boolean).join(" · ") ||
+                      "—"}
+                  </p>
+                  <div className="mt-5 space-y-4">
+                    {overviewText && (
+                      <SubCard label="Overview">
+                        <p
+                          className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed"
+                          style={{ color: "#2C1A0E" }}
+                        >
+                          {overviewText}
+                        </p>
+                        {keywordTags.length > 0 && (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {keywordTags.map((t) => (
+                              <span
+                                key={t}
+                                className="rounded-full bg-amber-100/70 px-3 py-1 text-xs font-medium text-amber-900"
+                              >
+                                {t}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </SubCard>
+                    )}
+                    {keyFeaturesText && keyFeaturesText !== overviewText && (
+                      <SubCard label="Key Features & Unique Contribution">
+                        <p
+                          className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed"
+                          style={{ color: "#2C1A0E" }}
+                        >
+                          {keyFeaturesText}
+                        </p>
+                      </SubCard>
+                    )}
+                    {cd.unique_selling_points && (
+                      <SubCard label="Unique Selling Points">
+                        <p
+                          className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed"
+                          style={{ color: "#2C1A0E" }}
+                        >
+                          {cd.unique_selling_points}
+                        </p>
+                      </SubCard>
+                    )}
+                    {audienceText && (
+                      <SubCard label="Intended Audience">
+                        <p
+                          className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed"
+                          style={{ color: "#2C1A0E" }}
+                        >
+                          {audienceText}
+                        </p>
+                      </SubCard>
+                    )}
+                    {cd.language && (
+                      <SubCard label="Contains Non-English Content">
+                        <p className="font-sans text-sm font-medium" style={{ color: "#2C1A0E" }}>
+                          {cd.language.toLowerCase() === "english" ? "No" : `Yes (${cd.language})`}
+                        </p>
+                      </SubCard>
+                    )}
+                  </div>
+                </Card>
+              )}
+
+              {/* TOC */}
+              {cd.table_of_contents && (
+                <Card title="Table of Contents" id="section-toc">
+                  <TocList raw={cd.table_of_contents} />
+                </Card>
+              )}
+
+              {/* Marketing & Promotion */}
+              {(whyNeededText ||
+                cd.competing_titles ||
+                cd.primary_market ||
+                cd.unique_contribution ||
+                cd.conferences ||
+                cd.promotional_channels ||
+                cd.marketing_info) && (
+                <Card title="Marketing & Promotion" id="section-market">
+                  <div className="space-y-4">
+                    {cd.primary_market && (
+                      <SubCard label="Primary Market">
+                        <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
+                          {cd.primary_market}
+                        </p>
+                      </SubCard>
+                    )}
+                    {whyNeededText && (
+                      <SubCard label="Why is this book needed?">
+                        <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
+                          {whyNeededText}
+                        </p>
+                      </SubCard>
+                    )}
+                    {cd.competing_titles && (
+                      <SubCard label="Competing Titles">
+                        <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
+                          {cd.competing_titles}
+                        </p>
+                      </SubCard>
+                    )}
+                    {cd.unique_contribution && (
+                      <SubCard label="Unique Contribution vs Competing Titles">
+                        <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
+                          {cd.unique_contribution}
+                        </p>
+                      </SubCard>
+                    )}
+                    {cd.conferences && (
+                      <SubCard label="Relevant Conferences / Academic Events">
+                        <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
+                          {cd.conferences}
+                        </p>
+                      </SubCard>
+                    )}
+                    {cd.promotional_channels && (
+                      <SubCard label="Promotional Channels">
+                        <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
+                          {cd.promotional_channels}
+                        </p>
+                      </SubCard>
+                    )}
+                    {cd.marketing_info &&
+                      cd.marketing_info !== cd.competing_titles &&
+                      cd.marketing_info !== cd.primary_market &&
+                      cd.marketing_info !== whyNeededText &&
+                      cd.marketing_info !== audienceText && (
+                        <SubCard label="Additional Marketing Notes">
+                          <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
+                            {cd.marketing_info}
+                          </p>
+                        </SubCard>
+                      )}
+                  </div>
+                </Card>
+              )}
+
+              {/* Suggested reviewers */}
+              {reviewersRaw && (
+                <Card
+                  title="Suggested Reviewers"
+                  subtitle="Nominated for consideration"
+                  id="section-reviewers"
+                >
+                  <ReviewersList raw={reviewersRaw} />
+                </Card>
+              )}
+
+              {/* Manuscript details / extras */}
+              <Card title="Manuscript Details" id="section-manuscript">
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                  <MiniStat
+                    label="Word Count"
+                    value={
+                      typeof wordCount === "number"
+                        ? wordCount.toLocaleString()
+                        : wordCount
+                          ? String(wordCount)
+                          : "—"
+                    }
+                  />
+                  <MiniStat
+                    label="illustrations/figures/tables"
+                    value={
+                      illustrationCount !== undefined && illustrationCount !== null
+                        ? String(illustrationCount)
+                        : "—"
+                    }
+                  />
+                  <MiniStat label="Languages" value={cd.language || "—"} />
+
+                  <MiniStat label="Est. Completion" value={completionDate || "—"} />
+                  <MiniStat
+                    label="Previously published"
+                    value={fmtBool(cd.under_review_elsewhere ?? cd.is_previously_published)}
+                  />
+                  {cd.permissions_required !== undefined && (
+                    <MiniStat
+                      label="Permissions Required"
+                      value={fmtBool(cd.permissions_required)}
+                    />
+                  )}
+                </div>
+              </Card>
+
+              {/* Additional Comments & Permissions */}
+              {hasNotes && (
+                <Card
+                  title="Additional Comments & Permissions"
+                  subtitle="Copyright, permissions, special considerations"
+                  id="section-notes"
+                >
+                  <div className="space-y-4">
+                    {cd.additional_info && (
+                      <SubCard label="Additional Notes from Author">
+                        <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
+                          {cd.additional_info}
+                        </p>
+                      </SubCard>
+                    )}
+                    {typeof cd.permissions_required === "string" && cd.permissions_required && (
+                      <SubCard label="Permissions Required from Copyright Holders">
+                        <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
+                          {cd.permissions_required}
+                        </p>
+                      </SubCard>
+                    )}
+                  </div>
+                </Card>
+              )}
+
+              {/* Dynamic: every other key present in current_data */}
+              <DynamicProposalFields data={cd as unknown as Record<string, unknown>} />
+            </div>
+          </div>
         </div>
-      </div>
-      </div>
       )}
       {previewFile && (
         <div
@@ -1420,8 +1517,12 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-stone-200 bg-stone-50/60 px-4 py-4 text-center">
-      <p className="font-sans text-xs font-medium" style={{ color: "#7A6A5A" }}>{label}</p>
-      <p className="mt-1 font-sans text-sm font-bold" style={{ color: "#2C1A0E" }}>{value}</p>
+      <p className="font-sans text-xs font-medium" style={{ color: "#7A6A5A" }}>
+        {label}
+      </p>
+      <p className="mt-1 font-sans text-sm font-bold" style={{ color: "#2C1A0E" }}>
+        {value}
+      </p>
     </div>
   );
 }
@@ -1514,9 +1615,7 @@ function renderDynamicValue(value: unknown): ReactNode {
         </a>
       );
     }
-    return (
-      <span className="whitespace-pre-wrap break-words">{value}</span>
-    );
+    return <span className="whitespace-pre-wrap break-words">{value}</span>;
   }
   if (Array.isArray(value)) {
     if (value.length === 0) return "—";
@@ -1557,10 +1656,7 @@ function DynamicProposalFields({ data }: { data: Record<string, unknown> }) {
       <div className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
         {entries.map(([k, v]) => (
           <div key={k}>
-            <p
-              className="font-sans text-xs font-medium"
-              style={{ color: "#7A6A5A" }}
-            >
+            <p className="font-sans text-xs font-medium" style={{ color: "#7A6A5A" }}>
               {humanizeKey(k)}
             </p>
             <div
@@ -1579,8 +1675,12 @@ function DynamicProposalFields({ data }: { data: Record<string, unknown> }) {
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border border-stone-200 bg-stone-50/60 px-4 py-3">
-      <p className="font-sans text-xs font-medium" style={{ color: "#7A6A5A" }}>{label}</p>
-      <p className="mt-0.5 font-sans text-sm font-medium" style={{ color: "#2C1A0E" }}>{value}</p>
+      <p className="font-sans text-xs font-medium" style={{ color: "#7A6A5A" }}>
+        {label}
+      </p>
+      <p className="mt-0.5 font-sans text-sm font-medium" style={{ color: "#2C1A0E" }}>
+        {value}
+      </p>
     </div>
   );
 }
@@ -1597,10 +1697,19 @@ function Card({
   id?: string;
 }) {
   return (
-    <section id={id} className="scroll-mt-24 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
+    <section
+      id={id}
+      className="scroll-mt-24 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm"
+    >
       <div className="px-5 py-3.5 md:px-5">
-        <h2 className="font-serif text-base font-bold" style={{ color: "#2C1A0E" }}>{title}</h2>
-        {subtitle && <p className="mt-1 font-sans text-xs font-medium" style={{ color: "#7A6A5A" }}>{subtitle}</p>}
+        <h2 className="font-serif text-base font-bold" style={{ color: "#2C1A0E" }}>
+          {title}
+        </h2>
+        {subtitle && (
+          <p className="mt-1 font-sans text-xs font-medium" style={{ color: "#7A6A5A" }}>
+            {subtitle}
+          </p>
+        )}
       </div>
       <div className="border-t border-stone-200 px-6 py-6 md:px-7">{children}</div>
     </section>
@@ -1740,8 +1849,7 @@ function ContractIssuedView({
     (cstatus === "sent" || dsStatus === "sent" || dsStatus === "delivered") &&
     !isSigned &&
     !isDeclined;
-  const hasOpenQuery =
-    proposalStatus === "queries_raised" || proposalStatus === "question_raised";
+  const hasOpenQuery = proposalStatus === "queries_raised" || proposalStatus === "question_raised";
   const signDisabled = !canSign || hasOpenQuery;
 
   const submitQuery = async () => {
@@ -1779,9 +1887,7 @@ function ContractIssuedView({
 
   const issuedAt = contract.docusign_sent_at || contract.created_at;
   const contractTypeLabel =
-    contract.contract_type === "editor"
-      ? "Edited Collection Agreement"
-      : "Publishing Agreement";
+    contract.contract_type === "editor" ? "Edited Collection Agreement" : "Publishing Agreement";
 
   const editorNote =
     contract.note_to_author ||
@@ -1800,9 +1906,15 @@ function ContractIssuedView({
     { label: "If Two Authors — Copies Each", value: contract.if_two_author_copies },
     { label: "If 3–4 Authors — Copies Each", value: contract.if_three_or_four_author_copies },
     { label: "Copies Sold Revenue", value: formatPercentValue(contract.copies_sold_revenue) },
-    { label: "Secondary Rights Revenue", value: formatPercentValue(contract.secondary_rights_revenue) },
+    {
+      label: "Secondary Rights Revenue",
+      value: formatPercentValue(contract.secondary_rights_revenue),
+    },
     { label: "Publishing Agreement", value: contract.publishing_agreement },
-  ].filter((row): row is { label: string; value: string | number } => row.value !== undefined && row.value !== null && String(row.value).trim() !== "");
+  ].filter(
+    (row): row is { label: string; value: string | number } =>
+      row.value !== undefined && row.value !== null && String(row.value).trim() !== "",
+  );
 
   const formatLabel =
     contract.contract_type === "editor"
@@ -1856,32 +1968,29 @@ function ContractIssuedView({
     }
   };
 
-  return (
-    isSigned ? (
-      <section className="mt-6 overflow-hidden rounded-2xl border-2 border-violet-200 bg-white shadow-sm">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4 border-b border-violet-200 bg-gradient-to-br from-violet-50 to-violet-100/40 px-6 py-5">
-          <div className="min-w-0 flex-1">
-            <p className="mb-1 inline-flex items-center gap-1.5 font-sans text-xs font-bold uppercase tracking-wider text-emerald-600">
-              <Check className="h-3.5 w-3.5" strokeWidth={3} />
-              Contract Signed
-            </p>
-            <h2 className="font-serif text-xl font-bold leading-snug text-[#2C1A0E]">
-              Thank you — your contract is confirmed
-            </h2>
-            <p className="mt-1.5 font-sans text-sm text-violet-600">
-              Issued {formatDate(issuedAt)}
-            </p>
-          </div>
-          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-emerald-600 px-2.5 py-1 font-sans text-xs font-semibold text-white">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-200" />
+  return isSigned ? (
+    <section className="mt-6 overflow-hidden rounded-2xl border-2 border-violet-200 bg-white shadow-sm">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4 border-b border-violet-200 bg-gradient-to-br from-violet-50 to-violet-100/40 px-6 py-5">
+        <div className="min-w-0 flex-1">
+          <p className="mb-1 inline-flex items-center gap-1.5 font-sans text-xs font-bold uppercase tracking-wider text-emerald-600">
+            <Check className="h-3.5 w-3.5" strokeWidth={3} />
             Contract Signed
-          </span>
+          </p>
+          <h2 className="font-serif text-xl font-bold leading-snug text-[#2C1A0E]">
+            Thank you — your contract is confirmed
+          </h2>
+          <p className="mt-1.5 font-sans text-sm text-violet-600">Issued {formatDate(issuedAt)}</p>
         </div>
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-emerald-600 px-2.5 py-1 font-sans text-xs font-semibold text-white">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-200" />
+          Contract Signed
+        </span>
+      </div>
 
-        {/* Document Card */}
-        <div className="bg-stone-50/40 p-6 sm:p-10 md:p-14">
-          <div className="mx-auto w-full max-w-lg rounded-xl bg-white p-8 shadow-sm">
+      {/* Document Card */}
+      <div className="bg-stone-50/40 p-6 sm:p-10 md:p-14">
+        <div className="mx-auto w-full max-w-lg rounded-xl bg-white p-8 shadow-sm">
           {/* Contract Heading */}
           <div className="mb-8 text-center">
             <p className="mb-5 font-sans text-[11px] font-semibold uppercase tracking-[0.3em] text-teal-700/70">
@@ -1946,39 +2055,33 @@ function ContractIssuedView({
             </div>
           </div>
         </div>
-        </div>
+      </div>
 
-        {/* Download link below card */}
-        <div className="bg-stone-50/40 px-6 pb-6 text-center">
-          <button
-            type="button"
-            onClick={() => setPdfOpen(true)}
-            className="font-sans text-xs text-slate-400 hover:text-slate-600 hover:underline"
-          >
-            Download full contract for complete terms and conditions
-          </button>
-        </div>
+      {/* Download link below card */}
+      <div className="bg-stone-50/40 px-6 pb-6 text-center">
+        <button
+          type="button"
+          onClick={() => setPdfOpen(true)}
+          className="font-sans text-xs text-slate-400 hover:text-slate-600 hover:underline"
+        >
+          Download full contract for complete terms and conditions
+        </button>
+      </div>
 
-        {/* Welcome Footer (inside card) */}
-        <div className="flex items-start gap-2.5 border-t border-emerald-900/20 bg-emerald-900/5 px-6 py-4">
-          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#00422F]" strokeWidth={2} />
-          <div className="min-w-0">
-            <p className="font-sans text-sm font-semibold text-[#00422F]">
-              Contract signed
-            </p>
-            <p className="mt-0.5 font-sans text-xs text-[#7A6A5A]">
-              A member of our team will be in touch with you shortly to discuss the next steps
-            </p>
-          </div>
+      {/* Welcome Footer (inside card) */}
+      <div className="flex items-start gap-2.5 border-t border-emerald-900/20 bg-emerald-900/5 px-6 py-4">
+        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#00422F]" strokeWidth={2} />
+        <div className="min-w-0">
+          <p className="font-sans text-sm font-semibold text-[#00422F]">Contract signed</p>
+          <p className="mt-0.5 font-sans text-xs text-[#7A6A5A]">
+            A member of our team will be in touch with you shortly to discuss the next steps
+          </p>
         </div>
+      </div>
 
-        <ContractPdfModal
-          open={pdfOpen}
-          ticket={ticket}
-          onClose={() => setPdfOpen(false)}
-        />
-      </section>
-    ) : (
+      <ContractPdfModal open={pdfOpen} ticket={ticket} onClose={() => setPdfOpen(false)} />
+    </section>
+  ) : (
     <section
       className={`mt-6 overflow-hidden rounded-2xl border-2 shadow-sm ${
         isSigned
@@ -2033,7 +2136,9 @@ function ContractIssuedView({
       {/* Step 1 — Feedback (hidden once contract is signed) */}
       <div>
         <div className="flex items-center gap-3 border-b border-stone-200 bg-stone-50/60 px-6 py-3">
-          <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-sans text-xs font-bold text-white ${isSigned ? "bg-emerald-600" : "bg-violet-600"}`}>
+          <span
+            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-sans text-xs font-bold text-white ${isSigned ? "bg-emerald-600" : "bg-violet-600"}`}
+          >
             {isSigned ? <Check className="h-3.5 w-3.5" /> : "1"}
           </span>
           <h3 className="font-sans text-sm font-semibold text-[#2C1A0E]">
@@ -2052,25 +2157,24 @@ function ContractIssuedView({
               </p>
             </div>
           )}
-
         </div>
       </div>
 
       {/* Step 2 — Sign */}
       <div className="px-6 py-6 md:px-8">
         {!isSigned && (
-        <div className="flex items-center gap-3">
-          <span
-            className={`flex h-8 w-8 items-center justify-center rounded-full font-sans text-sm font-bold text-white ${
-              isSigned ? "bg-emerald-600" : "bg-violet-600"
-            }`}
-          >
-            {isSigned ? <Check className="h-4 w-4" /> : "2"}
-          </span>
-          <h3 className="font-serif text-base font-bold text-[#2C1A0E]">
-            Review and sign your publishing contract
-          </h3>
-        </div>
+          <div className="flex items-center gap-3">
+            <span
+              className={`flex h-8 w-8 items-center justify-center rounded-full font-sans text-sm font-bold text-white ${
+                isSigned ? "bg-emerald-600" : "bg-violet-600"
+              }`}
+            >
+              {isSigned ? <Check className="h-4 w-4" /> : "2"}
+            </span>
+            <h3 className="font-serif text-base font-bold text-[#2C1A0E]">
+              Review and sign your publishing contract
+            </h3>
+          </div>
         )}
 
         {!isSigned && editorNote && (
@@ -2085,14 +2189,16 @@ function ContractIssuedView({
         )}
 
         {/* Contract preview */}
-        <div className={`${isSigned ? "mt-2" : "mt-6"} rounded-2xl border border-stone-200 bg-white p-6 md:p-8`}>
+        <div
+          className={`${isSigned ? "mt-2" : "mt-6"} rounded-2xl border border-stone-200 bg-white p-6 md:p-8`}
+        >
           <p className="text-center font-sans text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">
             Cambridge Scholars Publishing
           </p>
           {isSigned ? (
             <p className="mx-auto mt-3 max-w-md text-center font-serif text-[13px] italic leading-relaxed text-stone-600">
-              This agreement is made between Cambridge Scholars Publishing and the Author
-              named below for the work described herein.
+              This agreement is made between Cambridge Scholars Publishing and the Author named
+              below for the work described herein.
             </p>
           ) : (
             <div className="mx-auto mt-4 max-w-xs space-y-1.5">
@@ -2112,7 +2218,9 @@ function ContractIssuedView({
           <dl className="mt-4 divide-y divide-stone-100">
             <PreviewRow label="Author" value={contract.recipient_name || authorFullName} />
             <PreviewRow label="Title" value={truncate(contractTitle, 36)} />
-            {contractSubtitle && <PreviewRow label="Subtitle" value={truncate(contractSubtitle, 42)} />}
+            {contractSubtitle && (
+              <PreviewRow label="Subtitle" value={truncate(contractSubtitle, 42)} />
+            )}
             <PreviewRow label="Format" value={formatLabel} />
             <PreviewRow label="Expected Completion" value={expectedCompletion} />
             {contractFieldRows.map((row) => (
@@ -2133,10 +2241,10 @@ function ContractIssuedView({
 
           {isSigned ? (
             <p className="mt-6 font-serif text-[13px] leading-relaxed text-stone-600">
-              The Publisher and the Author have agreed to the terms governing rights,
-              royalties, manuscript delivery, editorial standards, and publication of the
-              Work as set out in the full agreement. Both parties have executed this
-              contract electronically via DocuSign.
+              The Publisher and the Author have agreed to the terms governing rights, royalties,
+              manuscript delivery, editorial standards, and publication of the Work as set out in
+              the full agreement. Both parties have executed this contract electronically via
+              DocuSign.
             </p>
           ) : (
             <div className="mt-6 space-y-1.5">
@@ -2188,9 +2296,7 @@ function ContractIssuedView({
                 <Check className="h-3.5 w-3.5" />
               </span>
               <div className="min-w-0">
-                <p className="font-serif text-base font-bold text-emerald-900">
-                  Contract signed
-                </p>
+                <p className="font-serif text-base font-bold text-emerald-900">Contract signed</p>
                 <p className="mt-1 font-sans text-sm leading-relaxed text-emerald-800/90">
                   A member of our team will be in touch with you shortly to discuss the next steps
                 </p>
@@ -2226,46 +2332,65 @@ function ContractIssuedView({
                     Waiting for DocuSign to confirm your signature…
                   </p>
                   <p className="mt-1 font-sans text-xs leading-relaxed text-violet-800/90">
-                    You can safely close the DocuSign tab once you finish signing — this page
-                    will update to "Contract Signed" automatically within a few seconds. If
-                    the DocuSign page shows an error or completion screen after signing, your
-                    signature is still recorded; just return here to confirm.
+                    You can safely close the DocuSign tab once you finish signing — this page will
+                    update to "Contract Signed" automatically within a few seconds. If the DocuSign
+                    page shows an error or completion screen after signing, your signature is still
+                    recorded; just return here to confirm.
                   </p>
                 </div>
               </div>
             )}
             {!isSigned && (
               <p className="text-center font-sans text-sm text-stone-700">
-                Once you have read the feedback above, please sign your contract to confirm
-                your agreement with Cambridge Scholars Publishing.
+                Once you have read the feedback above, please sign your contract to confirm your
+                agreement with Cambridge Scholars Publishing.
               </p>
             )}
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-stretch sm:justify-center">
               {canSign && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (hasOpenQuery) {
-                      setSignDisabledDialogOpen(true);
-                      return;
-                    }
-                    void handleSign();
-                  }}
-                  disabled={signLoading}
-                  className={`inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-6 py-3 font-sans text-sm font-bold shadow-sm transition disabled:opacity-60 sm:flex-none sm:min-w-[220px] ${
-                    hasOpenQuery
-                      ? "cursor-not-allowed bg-violet-300 text-white hover:bg-violet-300"
-                      : "bg-violet-600 text-white hover:bg-violet-700"
-                  }`}
-                >
-                  <CheckCircle2 className="h-4 w-4" />
-                  {signLoading ? "Opening…" : "Sign my contract"}
-                </button>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (hasOpenQuery) {
+                            setSignDisabledDialogOpen(true);
+                            return;
+                          }
+                          void handleSign();
+                        }}
+                        disabled={signLoading}
+                        className={`inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-6 py-3 font-sans text-sm font-bold shadow-sm transition disabled:opacity-60 sm:flex-none sm:min-w-[220px] ${
+                          hasOpenQuery
+                            ? "cursor-not-allowed bg-violet-300 text-white hover:bg-violet-300"
+                            : "bg-violet-600 text-white hover:bg-violet-700"
+                        }`}
+                      >
+                        <CheckCircle2 className="h-4 w-4" />
+                        {signLoading ? "Opening…" : "Sign my contract"}
+                      </button>
+                    </TooltipTrigger>
+                    {hasOpenQuery && (
+                      <TooltipContent
+                        side="top"
+                        align="center"
+                        className="max-w-[260px] text-center"
+                      >
+                        Contract signing has been disabled because an open query is waiting for the
+                        editor’s response.
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
               )}
               {isSigned && (
                 <span className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-50 px-6 py-3 font-sans text-sm font-bold text-emerald-700 ring-1 ring-emerald-200 sm:flex-none sm:min-w-[220px]">
                   <CheckCircle2 className="h-4 w-4" />
-                  Signed{contract.docusign_completed_at ? ` · ${formatDate(contract.docusign_completed_at)}` : ""}
+                  Signed
+                  {contract.docusign_completed_at
+                    ? ` · ${formatDate(contract.docusign_completed_at)}`
+                    : ""}
                 </span>
               )}
               <button
@@ -2277,8 +2402,7 @@ function ContractIssuedView({
                 }}
                 className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-emerald-300 bg-white px-5 py-3 font-sans text-sm font-bold text-emerald-700 transition hover:bg-emerald-50 sm:flex-none"
               >
-                <HelpCircle className="h-4 w-4" />
-                I have a question
+                <HelpCircle className="h-4 w-4" />I have a question
               </button>
             </div>
           </div>
@@ -2296,7 +2420,10 @@ function ContractIssuedView({
         )}
 
         {(showQueries || queriesCount > 0) && (
-          <div id="author-queries-section" className="mt-5 rounded-2xl border border-stone-200 bg-white p-5 scroll-mt-24">
+          <div
+            id="author-queries-section"
+            className="mt-5 rounded-2xl border border-stone-200 bg-white p-5 scroll-mt-24"
+          >
             <ContractQueries
               ticket={ticket}
               viewer="author"
@@ -2369,8 +2496,7 @@ function ContractIssuedView({
             </div>
             <div className="space-y-4 px-5 py-4">
               <p className="font-sans text-sm text-stone-600">
-                Your question will be sent to the editor. Signing will be paused until they
-                respond.
+                Your question will be sent to the editor. Signing will be paused until they respond.
               </p>
               <div className="space-y-1.5">
                 <label className="block font-sans text-xs font-semibold uppercase tracking-[0.1em] text-stone-500">
@@ -2437,13 +2563,8 @@ function ContractIssuedView({
         </div>
       )}
 
-      <ContractPdfModal
-        ticket={ticket}
-        open={pdfOpen}
-        onClose={() => setPdfOpen(false)}
-      />
+      <ContractPdfModal ticket={ticket} open={pdfOpen} onClose={() => setPdfOpen(false)} />
     </section>
-    )
   );
 }
 
@@ -2471,7 +2592,12 @@ function formatPercentValue(value?: string | number): string | undefined {
 function SubCard({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="border-t border-stone-200 pt-5 first:border-t-0 first:pt-0">
-      <p className="font-sans text-xs font-semibold uppercase tracking-wide" style={{ color: "#7A6A5A" }}>{label}</p>
+      <p
+        className="font-sans text-xs font-semibold uppercase tracking-wide"
+        style={{ color: "#7A6A5A" }}
+      >
+        {label}
+      </p>
       <div className="mt-2">{children}</div>
     </div>
   );
@@ -2480,8 +2606,12 @@ function SubCard({ label, children }: { label: string; children: React.ReactNode
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="font-sans text-xs font-medium" style={{ color: "#7A6A5A" }}>{label}</p>
-      <p className="mt-0.5 font-sans text-sm font-medium" style={{ color: "#2C1A0E" }}>{value}</p>
+      <p className="font-sans text-xs font-medium" style={{ color: "#7A6A5A" }}>
+        {label}
+      </p>
+      <p className="mt-0.5 font-sans text-sm font-medium" style={{ color: "#2C1A0E" }}>
+        {value}
+      </p>
     </div>
   );
 }
@@ -2525,15 +2655,25 @@ function ReviewersList({ raw }: { raw: string }) {
   return (
     <ol>
       {blocks.map((block, i) => {
-        const lines = block.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+        const lines = block
+          .split(/\r?\n/)
+          .map((l) => l.trim())
+          .filter(Boolean);
         return (
-          <li key={i} className="flex gap-4 border-t border-stone-200 py-4 first:border-t-0 first:pt-0">
-            <span className="font-sans text-sm font-semibold" style={{ color: "#7A6A5A" }}>{i + 1}.</span>
+          <li
+            key={i}
+            className="flex gap-4 border-t border-stone-200 py-4 first:border-t-0 first:pt-0"
+          >
+            <span className="font-sans text-sm font-semibold" style={{ color: "#7A6A5A" }}>
+              {i + 1}.
+            </span>
             <div className="space-y-0.5">
               {lines.map((l, j) => (
                 <p
                   key={j}
-                  className={j === 0 ? "font-sans text-sm font-bold" : "font-sans text-xs font-medium"}
+                  className={
+                    j === 0 ? "font-sans text-sm font-bold" : "font-sans text-xs font-medium"
+                  }
                   style={{ color: j === 0 ? "#2C1A0E" : "#7A6A5A" }}
                 >
                   {l}
@@ -2546,7 +2686,6 @@ function ReviewersList({ raw }: { raw: string }) {
     </ol>
   );
 }
-
 
 function ProgressStepper({
   timeline,
@@ -2577,10 +2716,17 @@ function ProgressStepper({
   }
 
   // Prefer the timeline returned by the API; fall back to a 4-stage default.
-  const stages: { label: string; done: boolean; current: boolean; failed: boolean; anchor: string }[] =
+  const stages: {
+    label: string;
+    done: boolean;
+    current: boolean;
+    failed: boolean;
+    anchor: string;
+  }[] =
     timeline && timeline.length > 0
       ? timeline.map((t) => {
-          const isDeclineStage = /declin|reject/i.test(t.stage_name) || /declin|reject/i.test(t.display_name);
+          const isDeclineStage =
+            /declin|reject/i.test(t.stage_name) || /declin|reject/i.test(t.display_name);
           const rawLabel = t.display_name || t.stage_name;
           const label = rawLabel.replace(/\bPeer Review\b/g, "Proposal Review");
           return {
@@ -2595,7 +2741,14 @@ function ProgressStepper({
           { label: "New", done: true, current: false, failed: false, anchor: "section-hero" },
           {
             label: "Proposal Review",
-            done: ["review_returned", "contract", "signed", "approved", "declined", "major_revisions"].includes(status),
+            done: [
+              "review_returned",
+              "contract",
+              "signed",
+              "approved",
+              "declined",
+              "major_revisions",
+            ].includes(status),
             current: status === "in_review",
             failed: false,
             anchor: "section-reviewers",
@@ -2608,7 +2761,15 @@ function ProgressStepper({
             anchor: "section-summary",
           },
           {
-            label: declined ? "Declined" : status === "approved" ? "Approved" : status === "signed" ? "Signed" : status === "contract" ? "Contract" : "Decision",
+            label: declined
+              ? "Declined"
+              : status === "approved"
+                ? "Approved"
+                : status === "signed"
+                  ? "Signed"
+                  : status === "contract"
+                    ? "Contract"
+                    : "Decision",
             done: ["signed", "approved", "declined"].includes(status),
             current: status === "contract",
             failed: declined,
@@ -2674,11 +2835,7 @@ function ProgressStepper({
                 )}
               </button>
               {i < stages.length - 1 && (
-                <div
-                  className={`h-[3px] flex-1 ${
-                    s.done ? "bg-[#0f3a2e]" : "bg-stone-200"
-                  }`}
-                />
+                <div className={`h-[3px] flex-1 ${s.done ? "bg-[#0f3a2e]" : "bg-stone-200"}`} />
               )}
             </div>
             <button
@@ -2785,13 +2942,16 @@ function InfoRequestPanel({
       fd.append("file", file);
       fd.append("field_key", fieldKey);
       fd.append("request_id", String(req.id ?? ""));
-      const res = await proposalApiFetch(
-        `/${encodeURIComponent(ticket)}/request-info/upload`,
-        { method: "POST", headers: authHeaders(false), body: fd },
-      );
+      const res = await proposalApiFetch(`/${encodeURIComponent(ticket)}/request-info/upload`, {
+        method: "POST",
+        headers: authHeaders(false),
+        body: fd,
+      });
       const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
       if (!res.ok) {
-        setError((body.error as string) || (body.message as string) || `Upload failed (${res.status}).`);
+        setError(
+          (body.error as string) || (body.message as string) || `Upload failed (${res.status}).`,
+        );
         return;
       }
       const url = (body.s3_url as string) || "";
@@ -2821,24 +2981,24 @@ function InfoRequestPanel({
     setSuccess(null);
     try {
       const updated_fields = buildUpdatedFields();
-      const res = await proposalApiFetch(
-        `/${encodeURIComponent(ticket)}/request-info/save`,
-        {
-          method: "POST",
-          headers: authHeaders(),
-          body: JSON.stringify({ request_id: req.id, updated_fields }),
-        },
-      );
+      const res = await proposalApiFetch(`/${encodeURIComponent(ticket)}/request-info/save`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ request_id: req.id, updated_fields }),
+      });
       const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
       if (!res.ok) {
-        setError((body.error as string) || (body.message as string) || `Failed to save (${res.status}).`);
+        setError(
+          (body.error as string) || (body.message as string) || `Failed to save (${res.status}).`,
+        );
         return;
       }
       const saved = Array.isArray(body.saved_fields) ? (body.saved_fields as string[]) : [];
-      const labelFor = (k: string) =>
-        items.find((it) => it.key === k)?.label || k;
+      const labelFor = (k: string) => items.find((it) => it.key === k)?.label || k;
       if (saved.length > 0) {
-        setSuccess(`Draft saved — ${saved.length} field${saved.length === 1 ? "" : "s"}: ${saved.map(labelFor).join(", ")}.`);
+        setSuccess(
+          `Draft saved — ${saved.length} field${saved.length === 1 ? "" : "s"}: ${saved.map(labelFor).join(", ")}.`,
+        );
       } else {
         setSuccess((body.message as string) || "Draft saved.");
       }
@@ -2852,28 +3012,29 @@ function InfoRequestPanel({
   const doSubmit = async () => {
     const updated_fields = buildUpdatedFields();
     if (!note.trim() && Object.keys(updated_fields).length === 0) {
-      setError("Please add a response, fill in at least one item, or upload a file before submitting.");
+      setError(
+        "Please add a response, fill in at least one item, or upload a file before submitting.",
+      );
       return;
     }
     setBusy("submit");
     setError(null);
     setSuccess(null);
     try {
-      const res = await proposalApiFetch(
-        `/${encodeURIComponent(ticket)}/request-info/respond`,
-        {
-          method: "POST",
-          headers: authHeaders(),
-          body: JSON.stringify({
-            request_id: req.id,
-            response_note: note.trim(),
-            updated_fields,
-          }),
-        },
-      );
+      const res = await proposalApiFetch(`/${encodeURIComponent(ticket)}/request-info/respond`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({
+          request_id: req.id,
+          response_note: note.trim(),
+          updated_fields,
+        }),
+      });
       const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
       if (!res.ok) {
-        setError((body.error as string) || (body.message as string) || `Failed to submit (${res.status}).`);
+        setError(
+          (body.error as string) || (body.message as string) || `Failed to submit (${res.status}).`,
+        );
         return;
       }
       setSuccess((body.message as string) || "Response submitted to the editor.");
@@ -2887,7 +3048,6 @@ function InfoRequestPanel({
       setBusy("");
     }
   };
-
 
   const deadline = req.resubmission_deadline || req.deadline;
 
@@ -2957,7 +3117,8 @@ function InfoRequestPanel({
 
         {isAlreadySubmitted && (
           <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 font-sans text-sm text-emerald-700">
-            You submitted a response on {formatDate(req.response?.submitted_at)}. You can update it below if needed.
+            You submitted a response on {formatDate(req.response?.submitted_at)}. You can update it
+            below if needed.
           </div>
         )}
 
@@ -2966,21 +3127,16 @@ function InfoRequestPanel({
           <div className="space-y-8">
             {items.map((it, idx) => {
               const isDone =
-                (it.key && !!uploads[it.key]) ||
-                (it.response_text || "").trim().length > 0;
+                (it.key && !!uploads[it.key]) || (it.response_text || "").trim().length > 0;
               const isSupportingDocs =
                 it.key === "supporting_materials" ||
-                /supporting|material|document|file|attachment/i.test(
-                  it.label || "",
-                );
+                /supporting|material|document|file|attachment/i.test(it.label || "");
               return (
                 <div key={(it.key || "") + idx} className="relative">
                   <div className="mb-4 flex items-center gap-2">
                     <div
                       className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold transition-colors ${
-                        isDone
-                          ? "bg-emerald-600 text-white"
-                          : "bg-stone-900 text-white"
+                        isDone ? "bg-emerald-600 text-white" : "bg-stone-900 text-white"
                       }`}
                     >
                       {isDone ? "✓" : idx + 1}
