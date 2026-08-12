@@ -15,6 +15,15 @@ import { ContractPdfModal } from "@/components/contract-pdf-modal";
 import { ContractQueries } from "@/components/contract-queries";
 import { AuthorMetadataPanel } from "@/components/author-metadata-panel";
 import { ContributorsPanel } from "@/components/contributors-panel";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/dashboard/author_proposal/$id")({
   head: () => ({ meta: [{ title: "Proposal Details — Author Portal" }] }),
@@ -1623,6 +1632,7 @@ function ContractIssuedView({
   const [queryError, setQueryError] = useState<string | null>(null);
   const [querySuccess, setQuerySuccess] = useState(false);
   const [proposalStatus, setProposalStatus] = useState<string>("");
+  const [signDisabledDialogOpen, setSignDisabledDialogOpen] = useState(false);
   const awaitingKey = `csp:awaiting-signature:${ticket}`;
   const [awaitingSignature, setAwaitingSignature] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
@@ -2231,12 +2241,22 @@ function ContractIssuedView({
               </p>
             )}
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-stretch sm:justify-center">
-              {canSign && !hasOpenQuery && (
+              {canSign && (
                 <button
                   type="button"
-                  onClick={handleSign}
+                  onClick={() => {
+                    if (hasOpenQuery) {
+                      setSignDisabledDialogOpen(true);
+                      return;
+                    }
+                    void handleSign();
+                  }}
                   disabled={signLoading}
-                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-violet-600 px-6 py-3 font-sans text-sm font-bold text-white shadow-sm transition hover:bg-violet-700 disabled:opacity-60 sm:flex-none sm:min-w-[220px]"
+                  className={`inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-6 py-3 font-sans text-sm font-bold shadow-sm transition disabled:opacity-60 sm:flex-none sm:min-w-[220px] ${
+                    hasOpenQuery
+                      ? "cursor-not-allowed bg-violet-300 text-white hover:bg-violet-300"
+                      : "bg-violet-600 text-white hover:bg-violet-700"
+                  }`}
                 >
                   <CheckCircle2 className="h-4 w-4" />
                   {signLoading ? "Opening…" : "Sign my contract"}
@@ -2298,6 +2318,28 @@ function ContractIssuedView({
             </button>
           </p>
         )}
+
+        <AlertDialog open={signDisabledDialogOpen} onOpenChange={setSignDisabledDialogOpen}>
+          <AlertDialogContent className="max-w-md">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="font-serif text-lg text-[#2C1A0E]">
+                Contract signing is paused
+              </AlertDialogTitle>
+              <AlertDialogDescription className="font-sans text-sm leading-relaxed text-stone-600">
+                You have an open query on this proposal. The contract signing option has been
+                disabled until the editor responds to your query.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                asChild
+                className="rounded-lg border border-stone-300 bg-white px-4 py-2 font-sans text-sm font-semibold text-stone-700 hover:bg-stone-50"
+              >
+                <button type="button">Got it</button>
+              </AlertDialogCancel>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       {queryOpen && (
