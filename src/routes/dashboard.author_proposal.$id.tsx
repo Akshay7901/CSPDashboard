@@ -2377,8 +2377,7 @@ function ContractIssuedView({
                         align="center"
                         className="max-w-[260px] text-center"
                       >
-                        Contract signing has been disabled because an open query is waiting for the
-                        editor’s response.
+                        Contract signing option has been disabled when the author has issued a query.
                       </TooltipContent>
                     )}
                   </Tooltip>
