@@ -2241,12 +2241,22 @@ function ContractIssuedView({
               </p>
             )}
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-stretch sm:justify-center">
-              {canSign && !hasOpenQuery && (
+              {canSign && (
                 <button
                   type="button"
-                  onClick={handleSign}
+                  onClick={() => {
+                    if (hasOpenQuery) {
+                      setSignDisabledDialogOpen(true);
+                      return;
+                    }
+                    void handleSign();
+                  }}
                   disabled={signLoading}
-                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-violet-600 px-6 py-3 font-sans text-sm font-bold text-white shadow-sm transition hover:bg-violet-700 disabled:opacity-60 sm:flex-none sm:min-w-[220px]"
+                  className={`inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-6 py-3 font-sans text-sm font-bold shadow-sm transition disabled:opacity-60 sm:flex-none sm:min-w-[220px] ${
+                    hasOpenQuery
+                      ? "cursor-not-allowed bg-violet-300 text-white hover:bg-violet-300"
+                      : "bg-violet-600 text-white hover:bg-violet-700"
+                  }`}
                 >
                   <CheckCircle2 className="h-4 w-4" />
                   {signLoading ? "Opening…" : "Sign my contract"}
