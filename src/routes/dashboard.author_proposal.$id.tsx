@@ -2550,7 +2550,7 @@ function ProgressStepper({
       : [
           { label: "New", done: true, current: false, failed: false, anchor: "section-hero" },
           {
-            label: "Peer Review",
+            label: "Proposal Review",
             done: ["review_returned", "contract", "signed", "approved", "declined", "major_revisions"].includes(status),
             current: status === "in_review",
             failed: false,
