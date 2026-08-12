@@ -2449,7 +2449,7 @@ function ProposalDetailPage() {
                               <MetaRow label="Category Auth/Ed" value={metaForm.category} onChange={(v) => updateMetaField("category", v)} disabled={isMetaLocked} />
                               <MetaRow label="Display Names" value={metaForm.display_names} onChange={(v) => updateMetaField("display_names", v)} disabled={isMetaLocked} />
                               <MetaRow label="Display Bios" value={metaForm.display_bios} onChange={(v) => updateMetaField("display_bios", v)} multiline disabled={isMetaLocked} />
-                              <MetaRow label="Book Description" value={metaForm.book_description} onChange={(v) => updateMetaField("book_description", v)} multiline disabled={isMetaLocked} />
+                              <MetaRow label="Book Description (Blurb)" value={metaForm.book_description} onChange={(v) => updateMetaField("book_description", v)} multiline disabled={isMetaLocked} />
                               <MetaRow label="Keywords" value={metaForm.keywords} onChange={(v) => updateMetaField("keywords", v)} disabled={isMetaLocked} />
                               <MetaRow label="Website Classification" value={metaForm.website_classification} onChange={(v) => updateMetaField("website_classification", v)} disabled={isMetaLocked} />
                               <MetaRow label="BIC Codes" value={metaForm.bic} onChange={(v) => updateMetaField("bic", v)} disabled={isMetaLocked} />
