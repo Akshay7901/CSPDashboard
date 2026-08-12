@@ -165,7 +165,7 @@ function ReviewerDashboard() {
         }
         const proposals = Array.from(merged.values());
 
-        // API already scopes the list to the logged-in peer reviewer.
+        // API already scopes the list to the logged-in proposal reviewer.
         // Assignments in the list payload may omit reviewer_email, so trust the server filter.
         const mine = proposals.filter((p) => (p.assignments || []).length > 0);
         void email;
