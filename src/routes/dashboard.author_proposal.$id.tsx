@@ -2248,25 +2248,41 @@ function ContractIssuedView({
             )}
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-stretch sm:justify-center">
               {canSign && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (hasOpenQuery) {
-                      setSignDisabledDialogOpen(true);
-                      return;
-                    }
-                    void handleSign();
-                  }}
-                  disabled={signLoading}
-                  className={`inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-6 py-3 font-sans text-sm font-bold shadow-sm transition disabled:opacity-60 sm:flex-none sm:min-w-[220px] ${
-                    hasOpenQuery
-                      ? "cursor-not-allowed bg-violet-300 text-white hover:bg-violet-300"
-                      : "bg-violet-600 text-white hover:bg-violet-700"
-                  }`}
-                >
-                  <CheckCircle2 className="h-4 w-4" />
-                  {signLoading ? "Opening…" : "Sign my contract"}
-                </button>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (hasOpenQuery) {
+                            setSignDisabledDialogOpen(true);
+                            return;
+                          }
+                          void handleSign();
+                        }}
+                        disabled={signLoading}
+                        className={`inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-6 py-3 font-sans text-sm font-bold shadow-sm transition disabled:opacity-60 sm:flex-none sm:min-w-[220px] ${
+                          hasOpenQuery
+                            ? "cursor-not-allowed bg-violet-300 text-white hover:bg-violet-300"
+                            : "bg-violet-600 text-white hover:bg-violet-700"
+                        }`}
+                      >
+                        <CheckCircle2 className="h-4 w-4" />
+                        {signLoading ? "Opening…" : "Sign my contract"}
+                      </button>
+                    </TooltipTrigger>
+                    {hasOpenQuery && (
+                      <TooltipContent
+                        side="top"
+                        align="center"
+                        className="max-w-[260px] text-center"
+                      >
+                        Contract signing has been disabled because an open query
+                        is waiting for the editor’s response.
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
               )}
               {isSigned && (
                 <span className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-50 px-6 py-3 font-sans text-sm font-bold text-emerald-700 ring-1 ring-emerald-200 sm:flex-none sm:min-w-[220px]">
