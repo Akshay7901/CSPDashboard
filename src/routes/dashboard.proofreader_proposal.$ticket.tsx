@@ -77,7 +77,11 @@ function MetaRow({
         {label}
       </div>
       <div className="border-l border-stone-200 px-4 py-3">
-        {multiline ? (
+        {disabled ? (
+          <p className="whitespace-pre-wrap break-words px-1 py-1.5 font-sans text-sm text-stone-800">
+            {value?.trim() ? value : <span className="text-stone-400">—</span>}
+          </p>
+        ) : multiline ? (
           <textarea
             rows={5}
             disabled={disabled}
