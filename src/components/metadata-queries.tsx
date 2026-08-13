@@ -628,6 +628,61 @@ export function MetadataQueries({
           </div>
         </form>
       )}
+
+      {confirmSend && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 px-4">
+          <div className="w-full max-w-md rounded-2xl border border-stone-200 bg-white p-5 shadow-xl">
+            <h4 className="font-serif text-lg font-bold text-stone-900">
+              Apply metadata changes?
+            </h4>
+            <p className="mt-2 font-sans text-sm text-stone-600">
+              Sending this reply will also update{" "}
+              {Object.keys(confirmSend.updates).length}{" "}
+              {Object.keys(confirmSend.updates).length === 1 ? "field" : "fields"} in
+              the metadata record. Do you want to apply these changes or discard them
+              and send the reply only?
+            </p>
+            <ul className="mt-3 space-y-1 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2">
+              {Object.entries(confirmSend.updates).map(([k, v]) => (
+                <li key={k} className="font-sans text-xs text-stone-700">
+                  <span className="font-semibold">{fieldLabels?.[k] || k}:</span>{" "}
+                  <span className="text-stone-600">{v || "—"}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-5 flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() => setConfirmSend(null)}
+                className="rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-xs font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() => {
+                  setRowEdits({});
+                  setFieldEdits({});
+                  void onRespond(confirmSend.ids, false);
+                }}
+                className="rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-xs font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-50"
+              >
+                Discard changes & send reply
+              </button>
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() => void onRespond(confirmSend.ids, true)}
+                className="rounded-lg bg-emerald-700 px-3 py-2 font-sans text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
+              >
+                {submitting ? "Sending…" : "Apply changes & send"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
