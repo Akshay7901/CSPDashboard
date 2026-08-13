@@ -104,6 +104,29 @@ export function MetadataQueries({
     [appliedStorageKey],
   );
 
+  const clearAppliedForFields = useCallback(
+    (fields: string[]) => {
+      const fieldSet = new Set(fields);
+      setAppliedKeys((prev) => {
+        const next = Object.fromEntries(
+          Object.entries(prev).filter(([key]) => {
+            const field = key.split(":")[1];
+            return !field || !fieldSet.has(field);
+          }),
+        );
+        try {
+          if (typeof window !== "undefined") {
+            window.sessionStorage.setItem(appliedStorageKey, JSON.stringify(next));
+          }
+        } catch {
+          // ignore disabled storage
+        }
+        return next;
+      });
+    },
+    [appliedStorageKey],
+  );
+
   const reload = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -514,23 +537,7 @@ export function MetadataQueries({
                           <button
                             type="button"
                             disabled={isApplying || !current.trim() || isApplied}
-                            onClick={async () => {
-                              if (!onSaveFields) return;
-                              setApplyingKeys((prev) => ({ ...prev, [key]: true }));
-                              setError(null);
-                              try {
-                                await onSaveFields({ [fkey]: current });
-                                markApplied(key);
-                              } catch (e) {
-                                setError((e as Error).message);
-                              } finally {
-                                setApplyingKeys((prev) => {
-                                  const next = { ...prev };
-                                  delete next[key];
-                                  return next;
-                                });
-                              }
-                            }}
+                            onClick={() => markApplied(key)}
                             className={`rounded-md px-3 py-1.5 font-sans text-xs font-semibold transition ${
                               isApplied
                                 ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-300"
@@ -691,6 +698,7 @@ export function MetadataQueries({
                 type="button"
                 disabled={submitting}
                 onClick={() => {
+                  clearAppliedForFields(Object.keys(confirmSend.updates));
                   setRowEdits({});
                   setFieldEdits({});
                   void onRespond(confirmSend.ids, false);
