@@ -85,18 +85,12 @@ function ProofreaderDashboard() {
     with_author: [],
     confirmed: [],
   });
-  const [counts, setCounts] = useState<Record<ProofreaderQueueTab, number>>({
-    needs_compiling: 0,
-    with_author: 0,
-    confirmed: 0,
-  });
   const [queryTickets, setQueryTickets] = useState<Set<string>>(new Set());
 
   const load = useCallback(async () => {
     setLoading(true);
     const res = await getProofreaderQueue();
     setQueue(res.data.queue);
-    setCounts(res.data.counts);
     setError(res.ok ? null : (res.error ?? "Could not load the queue."));
     if (!res.ok) toast.error(res.error ?? "Could not load the queue.");
     setLoading(false);
