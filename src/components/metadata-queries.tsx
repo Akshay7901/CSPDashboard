@@ -75,12 +75,12 @@ export function MetadataQueries({
   const [fieldEdits, setFieldEdits] = useState<Record<string, string>>({});
   const [rowEdits, setRowEdits] = useState<Record<string, string>>({});
   const appliedStorageKey = `metadata_queries_applied:${viewer}:${ticket}`;
-  const [applyingKeys, setApplyingKeys] = useState<Record<string, boolean>>({});
   const [appliedKeys, setAppliedKeys] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     try {
-      const raw = typeof window !== "undefined" ? window.sessionStorage.getItem(appliedStorageKey) : null;
+      const raw =
+        typeof window !== "undefined" ? window.sessionStorage.getItem(appliedStorageKey) : null;
       setAppliedKeys(raw ? (JSON.parse(raw) as Record<string, boolean>) : {});
     } catch {
       setAppliedKeys({});
@@ -91,6 +91,29 @@ export function MetadataQueries({
     (key: string) => {
       setAppliedKeys((prev) => {
         const next = { ...prev, [key]: true };
+        try {
+          if (typeof window !== "undefined") {
+            window.sessionStorage.setItem(appliedStorageKey, JSON.stringify(next));
+          }
+        } catch {
+          // ignore disabled storage
+        }
+        return next;
+      });
+    },
+    [appliedStorageKey],
+  );
+
+  const clearAppliedForFields = useCallback(
+    (fields: string[]) => {
+      const fieldSet = new Set(fields);
+      setAppliedKeys((prev) => {
+        const next = Object.fromEntries(
+          Object.entries(prev).filter(([key]) => {
+            const field = key.split(":")[1];
+            return !field || !fieldSet.has(field);
+          }),
+        );
         try {
           if (typeof window !== "undefined") {
             window.sessionStorage.setItem(appliedStorageKey, JSON.stringify(next));
@@ -137,9 +160,7 @@ export function MetadataQueries({
     // seen — we only want to react to genuinely new activity.
     const firstTime = Object.keys(seen).length === 0 && !didInitialSeenRef.current;
     const relevantType = viewer === "author" ? "response" : "query";
-    const newRelevant = thread.filter(
-      (t) => t.type === relevantType && !seen[`${t.type}-${t.id}`],
-    );
+    const newRelevant = thread.filter((t) => t.type === relevantType && !seen[`${t.type}-${t.id}`]);
     // Update the seen map with every current entry.
     const nextSeen: Record<string, true> = { ...seen };
     for (const t of thread) nextSeen[`${t.type}-${t.id}`] = true;
@@ -160,8 +181,7 @@ export function MetadataQueries({
     const latest = newRelevant[newRelevant.length - 1];
     const latestKey = latest ? `${latest.type}-${latest.id}` : null;
     window.setTimeout(() => {
-      const target =
-        (latestKey && entryRefs.current[latestKey]) || rootRef.current;
+      const target = (latestKey && entryRefs.current[latestKey]) || rootRef.current;
       if (target && typeof target.scrollIntoView === "function") {
         target.scrollIntoView({ behavior: "smooth", block: "center" });
       }
@@ -197,9 +217,7 @@ export function MetadataQueries({
     thread.some(
       (t) =>
         t.type === "query" &&
-        !thread.some(
-          (r) => r.type === "response" && r.parent_query_id === t.id,
-        ),
+        !thread.some((r) => r.type === "response" && r.parent_query_id === t.id),
     );
 
   useEffect(() => {
@@ -213,8 +231,7 @@ export function MetadataQueries({
   const updateDraft = (idx: number, patch: Partial<DraftRow>) => {
     setDrafts((prev) => prev.map((d, i) => (i === idx ? { ...d, ...patch } : d)));
   };
-  const addDraftRow = () =>
-    setDrafts((prev) => [...prev, { field: "", text: "" }]);
+  const addDraftRow = () => setDrafts((prev) => [...prev, { field: "", text: "" }]);
   const removeDraftRow = (idx: number) =>
     setDrafts((prev) =>
       prev.length === 1 ? [{ field: "", text: "" }] : prev.filter((_, i) => i !== idx),
@@ -228,11 +245,7 @@ export function MetadataQueries({
     setError(null);
     try {
       for (const d of valid) {
-        await raiseMetadataQuery(
-          ticket,
-          d.text.trim(),
-          d.field ? [d.field] : [],
-        );
+        await raiseMetadataQuery(ticket, d.text.trim(), d.field ? [d.field] : []);
       }
       setDrafts([{ field: "", text: "" }]);
       await reload();
@@ -322,9 +335,7 @@ export function MetadataQueries({
       .map((t) => t.parent_query_id as number),
   );
 
-  const hasOpenQuery = thread.some(
-    (t) => t.type === "query" && !answered.has(t.id),
-  );
+  const hasOpenQuery = thread.some((t) => t.type === "query" && !answered.has(t.id));
 
   useEffect(() => {
     onOpenQueryChange?.(hasOpenQuery);
@@ -338,9 +349,7 @@ export function MetadataQueries({
     <div
       ref={rootRef}
       className={`rounded-2xl border bg-white transition ${
-        flashCta
-          ? "border-amber-400 shadow-[0_0_0_4px_rgba(251,191,36,0.25)]"
-          : "border-stone-200"
+        flashCta ? "border-amber-400 shadow-[0_0_0_4px_rgba(251,191,36,0.25)]" : "border-stone-200"
       }`}
     >
       <div className="flex items-center justify-between gap-3 border-b border-stone-200 px-5 py-3.5">
@@ -390,9 +399,7 @@ export function MetadataQueries({
                 entryRefs.current[entryKey] = el;
               }}
               className={`rounded-xl border px-4 py-3 transition ${
-                isQuery
-                  ? "border-amber-200 bg-amber-50/60"
-                  : "border-emerald-200 bg-emerald-50/60"
+                isQuery ? "border-amber-200 bg-amber-50/60" : "border-emerald-200 bg-emerald-50/60"
               } ${
                 isHighlighted
                   ? "ring-4 ring-amber-300 shadow-[0_0_0_4px_rgba(251,191,36,0.25)]"
@@ -402,13 +409,10 @@ export function MetadataQueries({
               <div className="flex items-center justify-between gap-2">
                 <p className="font-sans text-xs font-semibold uppercase tracking-[0.1em] text-stone-600">
                   {isQuery ? "Query" : "Response"} ·{" "}
-                  {entry.raised_by_name ||
-                    displayNameFromEmail(entry.raised_by || "")}
+                  {entry.raised_by_name || displayNameFromEmail(entry.raised_by || "")}
                   {entry.raised_by_role ? ` (${entry.raised_by_role})` : ""}
                 </p>
-                <p className="font-sans text-xs text-stone-500">
-                  {formatDate(entry.created_at)}
-                </p>
+                <p className="font-sans text-xs text-stone-500">{formatDate(entry.created_at)}</p>
               </div>
               {isQuery && entry.fields && entry.fields.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1.5">
@@ -429,159 +433,135 @@ export function MetadataQueries({
             </div>
           );
         })}
-        {viewer === "dr" && hasOpenQuery && (() => {
-          const openQueries = thread.filter(
-            (t) => t.type === "query" && !answered.has(t.id),
-          );
-          const openIds = openQueries.map((q) => q.id);
-          const unionFields = Array.from(
-            new Set(openQueries.flatMap((q) => q.fields || [])),
-          );
-          return (
-            <div className="space-y-3 rounded-xl border border-emerald-200 bg-emerald-50/40 px-4 py-3">
-              <p className="font-sans text-xs font-semibold uppercase tracking-[0.1em] text-emerald-800">
-                Respond to {openIds.length} open {openIds.length === 1 ? "query" : "queries"}
-              </p>
-              {onSaveFields && (() => {
-                const rows: { qid: number; fkey: string; queryText: string }[] = [];
-                for (const q of openQueries) {
-                  for (const fkey of q.fields || []) {
-                    rows.push({ qid: q.id, fkey, queryText: q.text });
-                  }
-                }
-                if (rows.length === 0) return null;
-                return (
-                  <div className="space-y-2 rounded-lg border border-stone-200 bg-white px-3 py-2">
-                    <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.1em] text-stone-500">
-                      Apply requested metadata changes
-                    </p>
-                    {rows.map(({ qid, fkey, queryText }) => {
-                      const key = `${qid}:${fkey}`;
-                      if (fkey === "cover_image" || fkey === "authors") {
-                        return (
-                          <p key={key} className="font-sans text-xs text-stone-500">
-                            <span className="font-medium text-stone-700">
-                              {fieldLabels?.[fkey] || fkey}:
-                            </span>{" "}
-                            {queryText} — edit in the metadata form above.
-                          </p>
-                        );
+        {viewer === "dr" &&
+          hasOpenQuery &&
+          (() => {
+            const openQueries = thread.filter((t) => t.type === "query" && !answered.has(t.id));
+            const openIds = openQueries.map((q) => q.id);
+            const unionFields = Array.from(new Set(openQueries.flatMap((q) => q.fields || [])));
+            return (
+              <div className="space-y-3 rounded-xl border border-emerald-200 bg-emerald-50/40 px-4 py-3">
+                <p className="font-sans text-xs font-semibold uppercase tracking-[0.1em] text-emerald-800">
+                  Respond to {openIds.length} open {openIds.length === 1 ? "query" : "queries"}
+                </p>
+                {onSaveFields &&
+                  (() => {
+                    const rows: { qid: number; fkey: string; queryText: string }[] = [];
+                    for (const q of openQueries) {
+                      for (const fkey of q.fields || []) {
+                        rows.push({ qid: q.id, fkey, queryText: q.text });
                       }
-                      const requested = (queryText || "").trim();
-                      const current =
-                        rowEdits[key] ??
-                        (requested.length > 0
-                          ? requested
-                          : (fieldValues?.[fkey] ?? "").toString());
-                      const isApplying = !!applyingKeys[key];
-                      const savedValue = (fieldValues?.[fkey] ?? "").toString().trim();
-                      const isApplied =
-                        !!appliedKeys[key] ||
-                        (savedValue.length > 0 &&
-                          requested.length > 0 &&
-                          savedValue === requested);
-                      const multiline =
-                        fkey === "display_bios" || fkey === "book_description";
-                      return (
-                        <div
-                          key={key}
-                          className={`flex flex-col gap-2 sm:flex-row sm:items-start ${isApplied ? "opacity-70" : ""}`}
-                        >
-                          <label className="font-sans text-xs font-medium text-stone-700 sm:w-32 sm:pt-2">
-                            {fieldLabels?.[fkey] || fkey}
-                          </label>
-                          {multiline ? (
-                            <textarea
-                              rows={2}
-                              value={current}
-                              disabled={isApplied}
-                              onChange={(e) =>
-                                setRowEdits((prev) => ({ ...prev, [key]: e.target.value }))
-                              }
-                              className="flex-1 resize-none rounded-md border border-stone-300 bg-white px-2 py-1.5 font-sans text-sm text-stone-900 focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100 disabled:bg-stone-50 disabled:text-stone-500 disabled:cursor-not-allowed"
-                            />
-                          ) : (
-                            <input
-                              type="text"
-                              value={current}
-                              disabled={isApplied}
-                              onChange={(e) =>
-                                setRowEdits((prev) => ({ ...prev, [key]: e.target.value }))
-                              }
-                              className="flex-1 rounded-md border border-stone-300 bg-white px-2 py-1.5 font-sans text-sm text-stone-900 focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100 disabled:bg-stone-50 disabled:text-stone-500 disabled:cursor-not-allowed"
-                            />
-                          )}
-                          <button
-                            type="button"
-                            disabled={isApplying || !current.trim() || isApplied}
-                            onClick={async () => {
-                              if (!onSaveFields) return;
-                              setApplyingKeys((prev) => ({ ...prev, [key]: true }));
-                              setError(null);
-                              try {
-                                await onSaveFields({ [fkey]: current });
-                                markApplied(key);
-                              } catch (e) {
-                                setError((e as Error).message);
-                              } finally {
-                                setApplyingKeys((prev) => {
-                                  const next = { ...prev };
-                                  delete next[key];
-                                  return next;
-                                });
-                              }
-                            }}
-                            className={`rounded-md px-3 py-1.5 font-sans text-xs font-semibold transition ${
-                              isApplied
-                                ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-300"
-                                : "bg-[#5B2EBA] text-white hover:bg-[#4a2599] disabled:opacity-50"
-                            }`}
-                          >
-                            {isApplying
-                              ? "Applying…"
-                              : isApplied
-                                ? "Applied ✓"
-                                : "Apply"}
-                          </button>
-                        </div>
-                      );
-                    })}
-                    <p className="font-sans text-[11px] text-stone-500">
-                      These edits will be saved when you click <span className="font-semibold">Send Response</span> below.
-                    </p>
-                  </div>
-                );
-              })()}
-              <textarea
-                value={responseText}
-                onChange={(e) => setResponseText(e.target.value)}
-                rows={3}
-                placeholder="Type one response — it will be sent for all open queries…"
-                className="w-full resize-none rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-sm text-stone-900 placeholder:text-stone-400 focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
-              />
-              <button
-                type="button"
-                disabled={submitting || !responseText.trim()}
-                onClick={() => {
-                  const updates = pendingFieldUpdates();
-                  if (Object.keys(updates).length > 0) {
-                    setConfirmSend({ ids: openIds, updates });
-                  } else {
-                    void onRespond(openIds, true);
-                  }
-                }}
-                className={`inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-3 py-1.5 font-sans text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-50 ${
-                  flashCta ? "ring-4 ring-amber-300 animate-pulse" : ""
-                }`}
-              >
-                <Send className="h-3.5 w-3.5" />
-                {submitting
-                  ? "Sending…"
-                  : "Send Response & Metadata"}
-              </button>
-            </div>
-          );
-        })()}
+                    }
+                    if (rows.length === 0) return null;
+                    return (
+                      <div className="space-y-2 rounded-lg border border-stone-200 bg-white px-3 py-2">
+                        <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.1em] text-stone-500">
+                          Apply requested metadata changes
+                        </p>
+                        {rows.map(({ qid, fkey, queryText }) => {
+                          const key = `${qid}:${fkey}`;
+                          if (fkey === "cover_image" || fkey === "authors") {
+                            return (
+                              <p key={key} className="font-sans text-xs text-stone-500">
+                                <span className="font-medium text-stone-700">
+                                  {fieldLabels?.[fkey] || fkey}:
+                                </span>{" "}
+                                {queryText} — edit in the metadata form above.
+                              </p>
+                            );
+                          }
+                          const requested = (queryText || "").trim();
+                          const current =
+                            rowEdits[key] ??
+                            (requested.length > 0
+                              ? requested
+                              : (fieldValues?.[fkey] ?? "").toString());
+                          const savedValue = (fieldValues?.[fkey] ?? "").toString().trim();
+                          const isApplied =
+                            !!appliedKeys[key] ||
+                            (savedValue.length > 0 &&
+                              requested.length > 0 &&
+                              savedValue === requested);
+                          const multiline = fkey === "display_bios" || fkey === "book_description";
+                          return (
+                            <div
+                              key={key}
+                              className={`flex flex-col gap-2 sm:flex-row sm:items-start ${isApplied ? "opacity-70" : ""}`}
+                            >
+                              <label className="font-sans text-xs font-medium text-stone-700 sm:w-32 sm:pt-2">
+                                {fieldLabels?.[fkey] || fkey}
+                              </label>
+                              {multiline ? (
+                                <textarea
+                                  rows={2}
+                                  value={current}
+                                  disabled={isApplied}
+                                  onChange={(e) =>
+                                    setRowEdits((prev) => ({ ...prev, [key]: e.target.value }))
+                                  }
+                                  className="flex-1 resize-none rounded-md border border-stone-300 bg-white px-2 py-1.5 font-sans text-sm text-stone-900 focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100 disabled:bg-stone-50 disabled:text-stone-500 disabled:cursor-not-allowed"
+                                />
+                              ) : (
+                                <input
+                                  type="text"
+                                  value={current}
+                                  disabled={isApplied}
+                                  onChange={(e) =>
+                                    setRowEdits((prev) => ({ ...prev, [key]: e.target.value }))
+                                  }
+                                  className="flex-1 rounded-md border border-stone-300 bg-white px-2 py-1.5 font-sans text-sm text-stone-900 focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100 disabled:bg-stone-50 disabled:text-stone-500 disabled:cursor-not-allowed"
+                                />
+                              )}
+                              <button
+                                type="button"
+                                disabled={!current.trim() || isApplied}
+                                onClick={() => markApplied(key)}
+                                className={`rounded-md px-3 py-1.5 font-sans text-xs font-semibold transition ${
+                                  isApplied
+                                    ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-300"
+                                    : "bg-[#5B2EBA] text-white hover:bg-[#4a2599] disabled:opacity-50"
+                                }`}
+                              >
+                                {isApplied ? "Applied ✓" : "Apply"}
+                              </button>
+                            </div>
+                          );
+                        })}
+                        <p className="font-sans text-[11px] text-stone-500">
+                          These edits will be saved when you click{" "}
+                          <span className="font-semibold">Send Response</span> below.
+                        </p>
+                      </div>
+                    );
+                  })()}
+                <textarea
+                  value={responseText}
+                  onChange={(e) => setResponseText(e.target.value)}
+                  rows={3}
+                  placeholder="Type one response — it will be sent for all open queries…"
+                  className="w-full resize-none rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-sm text-stone-900 placeholder:text-stone-400 focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100"
+                />
+                <button
+                  type="button"
+                  disabled={submitting || !responseText.trim()}
+                  onClick={() => {
+                    const updates = pendingFieldUpdates();
+                    if (Object.keys(updates).length > 0) {
+                      setConfirmSend({ ids: openIds, updates });
+                    } else {
+                      void onRespond(openIds, true);
+                    }
+                  }}
+                  className={`inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-3 py-1.5 font-sans text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-50 ${
+                    flashCta ? "ring-4 ring-amber-300 animate-pulse" : ""
+                  }`}
+                >
+                  <Send className="h-3.5 w-3.5" />
+                  {submitting ? "Sending…" : "Send Response & Metadata"}
+                </button>
+              </div>
+            );
+          })()}
         {error && (
           <p className="rounded-lg bg-rose-50 px-3 py-2 font-sans text-xs text-rose-700 ring-1 ring-rose-200">
             {error}
@@ -592,8 +572,8 @@ export function MetadataQueries({
       {viewer === "author" && canRaise && hasOpenQuery && (
         <div className="border-t border-stone-200 px-5 py-4">
           <p className="rounded-lg bg-amber-50 px-3 py-2 font-sans text-xs text-amber-800 ring-1 ring-amber-200">
-            You have an open query awaiting a response. You can raise a new query
-            once the publisher has responded.
+            You have an open query awaiting a response. You can raise a new query once the publisher
+            has responded.
           </p>
         </div>
       )}
@@ -660,15 +640,11 @@ export function MetadataQueries({
       {confirmSend && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 px-4">
           <div className="w-full max-w-md rounded-2xl border border-stone-200 bg-white p-5 shadow-xl">
-            <h4 className="font-serif text-lg font-bold text-stone-900">
-              Apply metadata changes?
-            </h4>
+            <h4 className="font-serif text-lg font-bold text-stone-900">Apply metadata changes?</h4>
             <p className="mt-2 font-sans text-sm text-stone-600">
-              Sending this reply will also update{" "}
-              {Object.keys(confirmSend.updates).length}{" "}
-              {Object.keys(confirmSend.updates).length === 1 ? "field" : "fields"} in
-              the metadata record. Do you want to apply these changes or discard them
-              and send the reply only?
+              Sending this reply will also update {Object.keys(confirmSend.updates).length}{" "}
+              {Object.keys(confirmSend.updates).length === 1 ? "field" : "fields"} in the metadata
+              record. Do you want to apply these changes or discard them and send the reply only?
             </p>
             <ul className="mt-3 space-y-1 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2">
               {Object.entries(confirmSend.updates).map(([k, v]) => (
@@ -691,6 +667,7 @@ export function MetadataQueries({
                 type="button"
                 disabled={submitting}
                 onClick={() => {
+                  clearAppliedForFields(Object.keys(confirmSend.updates));
                   setRowEdits({});
                   setFieldEdits({});
                   void onRespond(confirmSend.ids, false);
