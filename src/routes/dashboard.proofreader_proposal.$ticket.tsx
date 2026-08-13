@@ -147,7 +147,15 @@ function ProofreaderProposalPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const res = await getMetadata(ticket);
+    let res: Awaited<ReturnType<typeof getMetadata>>;
+    try {
+      res = await getMetadata(ticket);
+    } catch {
+      setError("Could not reach the metadata service. Please try again.");
+      toast.error("Could not reach the metadata service.");
+      setLoading(false);
+      return;
+    }
     if (!res.ok || !res.data) {
       setError(res.error ?? "Could not load metadata.");
       toast.error(res.error ?? "Could not load metadata.");
