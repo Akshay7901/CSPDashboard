@@ -11,6 +11,10 @@ import {
   type ProofreaderQueueItem,
   type ProofreaderQueueTab,
 } from "@/lib/proofreaderApi";
+import { getMetadataQueries } from "@/lib/metadataApi";
+
+/** Queue tabs shown in the UI: API tabs plus a locally-derived query state. */
+type UiTab = ProofreaderQueueTab | "query_raised";
 
 export const Route = createFileRoute("/dashboard/proofreader")({
   head: () => ({
@@ -34,7 +38,7 @@ export const Route = createFileRoute("/dashboard/proofreader")({
 });
 
 const TABS: {
-  key: ProofreaderQueueTab;
+  key: UiTab;
   label: string;
   dot: string;
   card: string;
@@ -55,6 +59,13 @@ const TABS: {
     bar: "bg-blue-500",
   },
   {
+    key: "query_raised",
+    label: "Query Raised",
+    dot: "bg-amber-500",
+    card: "border-amber-200 bg-amber-50/70 text-amber-700",
+    bar: "bg-amber-500",
+  },
+  {
     key: "confirmed",
     label: "Author Approved",
     dot: "bg-emerald-500",
@@ -66,7 +77,7 @@ const TABS: {
 function ProofreaderDashboard() {
   const navigate = useNavigate();
   const [displayName, setDisplayName] = useState("");
-  const [tab, setTab] = useState<ProofreaderQueueTab>("needs_compiling");
+  const [tab, setTab] = useState<UiTab>("needs_compiling");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [queue, setQueue] = useState<Record<ProofreaderQueueTab, ProofreaderQueueItem[]>>({
@@ -79,6 +90,7 @@ function ProofreaderDashboard() {
     with_author: 0,
     confirmed: 0,
   });
+  const [queryTickets, setQueryTickets] = useState<Set<string>>(new Set());
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -88,6 +100,36 @@ function ProofreaderDashboard() {
     setError(res.ok ? null : (res.error ?? "Could not load the queue."));
     if (!res.ok) toast.error(res.error ?? "Could not load the queue.");
     setLoading(false);
+
+    // The queue API has no "query raised" state, so derive it: a proposal
+    // has an open query when the author raised one that has no response yet.
+    const all = [
+      ...res.data.queue.needs_compiling,
+      ...res.data.queue.with_author,
+      ...res.data.queue.confirmed,
+    ];
+    const flagged = await Promise.all(
+      all.map(async (item) => {
+        const status = (item.proposal_status || "").toLowerCase();
+        if (status === "queries_raised" || status === "query_raised") {
+          return item.ticket_number;
+        }
+        try {
+          const body = await getMetadataQueries(item.ticket_number);
+          const thread = body.queries || [];
+          const answered = new Set(
+            thread
+              .filter((t) => t.type === "response" && t.parent_query_id)
+              .map((t) => t.parent_query_id as number),
+          );
+          const open = thread.some((t) => t.type === "query" && !answered.has(t.id));
+          return open ? item.ticket_number : null;
+        } catch {
+          return null;
+        }
+      }),
+    );
+    setQueryTickets(new Set(flagged.filter((t): t is string => !!t)));
   }, []);
 
   useEffect(() => {
@@ -104,6 +146,20 @@ function ProofreaderDashboard() {
     await portalLogout();
     navigate({ to: "/login" });
   };
+
+  const listFor = (key: UiTab): ProofreaderQueueItem[] => {
+    if (key === "query_raised") {
+      return [
+        ...queue.needs_compiling,
+        ...queue.with_author,
+        ...queue.confirmed,
+      ].filter((i) => queryTickets.has(i.ticket_number));
+    }
+    return queue[key].filter((i) => !queryTickets.has(i.ticket_number));
+  };
+
+  const countFor = (key: UiTab): number =>
+    key === "query_raised" ? queryTickets.size : listFor(key).length;
 
   return (
     <div className="min-h-screen bg-[#FBF9F6]">
@@ -151,7 +207,7 @@ function ProofreaderDashboard() {
           </div>
         </div>
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {TABS.map((t) => (
             <button
               key={t.key}
@@ -161,7 +217,7 @@ function ProofreaderDashboard() {
                 tab === t.key ? "ring-2 ring-offset-2 ring-stone-300" : "hover:shadow-sm"
               }`}
             >
-              <p className="font-serif text-2xl font-bold leading-none">{counts[t.key]}</p>
+              <p className="font-serif text-2xl font-bold leading-none">{countFor(t.key)}</p>
               <p className="mt-2 font-sans text-xs">{t.label}</p>
             </button>
           ))}
@@ -187,14 +243,21 @@ function ProofreaderDashboard() {
                   ))}
                 </div>
               )}
-              {queue[t.key].length === 0 && !loading && (
+              {listFor(t.key).length === 0 && !loading && (
                 <p className="rounded-xl border border-dashed border-stone-200 bg-white px-5 py-8 text-center font-sans text-sm text-[#7A6A5A]">
                   Nothing in this list right now.
                 </p>
               )}
-              {!loading && queue[t.key].map((item) => (
-                <QueueRow key={item.ticket_number} item={item} accentClass={t.bar} tab={t.key} />
-              ))}
+              {!loading &&
+                listFor(t.key).map((item) => (
+                  <QueueRow
+                    key={item.ticket_number}
+                    item={item}
+                    accentClass={t.bar}
+                    tab={t.key}
+                    hasQuery={queryTickets.has(item.ticket_number)}
+                  />
+                ))}
             </div>
           </div>
         ))}
