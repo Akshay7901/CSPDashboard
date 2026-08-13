@@ -75,7 +75,6 @@ export function MetadataQueries({
   const [fieldEdits, setFieldEdits] = useState<Record<string, string>>({});
   const [rowEdits, setRowEdits] = useState<Record<string, string>>({});
   const appliedStorageKey = `metadata_queries_applied:${viewer}:${ticket}`;
-  const [applyingKeys, setApplyingKeys] = useState<Record<string, boolean>>({});
   const [appliedKeys, setAppliedKeys] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -496,7 +495,6 @@ export function MetadataQueries({
                         (requested.length > 0
                           ? requested
                           : (fieldValues?.[fkey] ?? "").toString());
-                      const isApplying = !!applyingKeys[key];
                       const savedValue = (fieldValues?.[fkey] ?? "").toString().trim();
                       const isApplied =
                         !!appliedKeys[key] ||
@@ -536,7 +534,7 @@ export function MetadataQueries({
                           )}
                           <button
                             type="button"
-                            disabled={isApplying || !current.trim() || isApplied}
+                             disabled={!current.trim() || isApplied}
                             onClick={() => markApplied(key)}
                             className={`rounded-md px-3 py-1.5 font-sans text-xs font-semibold transition ${
                               isApplied
@@ -544,11 +542,7 @@ export function MetadataQueries({
                                 : "bg-[#5B2EBA] text-white hover:bg-[#4a2599] disabled:opacity-50"
                             }`}
                           >
-                            {isApplying
-                              ? "Applying…"
-                              : isApplied
-                                ? "Applied ✓"
-                                : "Apply"}
+                             {isApplied ? "Applied ✓" : "Apply"}
                           </button>
                         </div>
                       );
