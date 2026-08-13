@@ -244,7 +244,27 @@ export function MetadataQueries({
     }
   };
 
-  const onRespond = async (queryIds: number[]) => {
+  const [confirmSend, setConfirmSend] = useState<null | {
+    ids: number[];
+    updates: Record<string, string>;
+  }>(null);
+
+  /** Compute the field updates that would be saved alongside a response. */
+  const pendingFieldUpdates = useCallback(() => {
+    const updates: Record<string, string> = {};
+    if (!onSaveFields) return updates;
+    for (const [k, v] of Object.entries(fieldEdits)) {
+      if ((fieldValues?.[k] ?? "") !== v) updates[k] = v;
+    }
+    for (const [rowKey, v] of Object.entries(rowEdits)) {
+      const fkey = rowKey.split(":")[1];
+      if (!fkey || fkey === "cover_image" || fkey === "authors") continue;
+      if ((fieldValues?.[fkey] ?? "") !== v) updates[fkey] = v;
+    }
+    return updates;
+  }, [onSaveFields, fieldEdits, rowEdits, fieldValues]);
+
+  const onRespond = async (queryIds: number[], applyFields = true) => {
     if (!responseText.trim()) return;
     if (queryIds.length === 0) return;
     setSubmitting(true);
@@ -252,17 +272,8 @@ export function MetadataQueries({
     try {
       // Persist any field updates first so the metadata snapshot reflects
       // the change before the response is recorded.
-      if (onSaveFields) {
-        const updates: Record<string, string> = {};
-        for (const [k, v] of Object.entries(fieldEdits)) {
-          if ((fieldValues?.[k] ?? "") !== v) updates[k] = v;
-        }
-        // Also persist any inline row edits made under the open queries.
-        for (const [rowKey, v] of Object.entries(rowEdits)) {
-          const fkey = rowKey.split(":")[1];
-          if (!fkey || fkey === "cover_image" || fkey === "authors") continue;
-          if ((fieldValues?.[fkey] ?? "") !== v) updates[fkey] = v;
-        }
+      if (onSaveFields && applyFields) {
+        const updates = pendingFieldUpdates();
         if (Object.keys(updates).length > 0) {
           await onSaveFields(updates);
         }
@@ -274,6 +285,7 @@ export function MetadataQueries({
       setResponseText("");
       setFieldEdits({});
       setRowEdits({});
+      setConfirmSend(null);
       await reload();
       onChanged?.();
     } catch (e) {
