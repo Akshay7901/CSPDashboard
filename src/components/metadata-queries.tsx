@@ -264,7 +264,7 @@ export function MetadataQueries({
     return updates;
   }, [onSaveFields, fieldEdits, rowEdits, fieldValues]);
 
-  /** Seed the inline field editors with the current saved field values. */
+  /** Seed the inline field editors with the value the author requested. */
   useEffect(() => {
     if (!onSaveFields || !fieldValues) return;
     const nextRowEdits: Record<string, string> = {};
@@ -274,7 +274,9 @@ export function MetadataQueries({
         if (fkey === "cover_image" || fkey === "authors") continue;
         const key = `${q.id}:${fkey}`;
         if (rowEdits[key] === undefined) {
-          nextRowEdits[key] = (fieldValues[fkey] ?? "").toString();
+          const requested = (q.text || "").trim();
+          nextRowEdits[key] =
+            requested.length > 0 ? requested : (fieldValues[fkey] ?? "").toString();
         }
       }
     }
@@ -465,12 +467,19 @@ export function MetadataQueries({
                           </p>
                         );
                       }
-                      const current = rowEdits[key] ?? (fieldValues?.[fkey] ?? "").toString();
+                      const requested = (queryText || "").trim();
+                      const current =
+                        rowEdits[key] ??
+                        (requested.length > 0
+                          ? requested
+                          : (fieldValues?.[fkey] ?? "").toString());
                       const isApplying = !!applyingKeys[key];
                       const savedValue = (fieldValues?.[fkey] ?? "").toString().trim();
                       const isApplied =
                         !!appliedKeys[key] ||
-                        (savedValue.length > 0 && savedValue === current.trim());
+                        (savedValue.length > 0 &&
+                          requested.length > 0 &&
+                          savedValue === requested);
                       const multiline =
                         fkey === "display_bios" || fkey === "book_description";
                       return (
