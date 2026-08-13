@@ -281,10 +281,12 @@ function QueueRow({
   item,
   accentClass,
   tab,
+  hasQuery,
 }: {
   item: ProofreaderQueueItem;
   accentClass: string;
-  tab: ProofreaderQueueTab;
+  tab: UiTab;
+  hasQuery?: boolean;
 }) {
   return (
     <Link
@@ -296,6 +298,11 @@ function QueueRow({
       <div className="flex flex-1 items-center justify-between gap-4 px-4 py-4">
         <div>
           <div className="mb-1 flex flex-wrap items-center gap-2">
+            {hasQuery && (
+              <span className="rounded-md border border-amber-300 bg-amber-50 px-2 py-0.5 font-sans text-xs font-semibold text-amber-700">
+                Query raised
+              </span>
+            )}
             {item.is_locked && (
               <span className="rounded-md border border-stone-300 bg-stone-100 px-2 py-0.5 font-sans text-xs text-stone-600">
                 Locked
