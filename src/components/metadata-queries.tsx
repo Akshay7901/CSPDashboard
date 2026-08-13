@@ -264,6 +264,25 @@ export function MetadataQueries({
     return updates;
   }, [onSaveFields, fieldEdits, rowEdits, fieldValues]);
 
+  /** Seed the inline field editors with the current saved field values. */
+  useEffect(() => {
+    if (!onSaveFields || !fieldValues) return;
+    const nextRowEdits: Record<string, string> = {};
+    for (const q of thread) {
+      if (q.type !== "query") continue;
+      for (const fkey of q.fields || []) {
+        if (fkey === "cover_image" || fkey === "authors") continue;
+        const key = `${q.id}:${fkey}`;
+        if (rowEdits[key] === undefined) {
+          nextRowEdits[key] = (fieldValues[fkey] ?? "").toString();
+        }
+      }
+    }
+    if (Object.keys(nextRowEdits).length > 0) {
+      setRowEdits((prev) => ({ ...prev, ...nextRowEdits }));
+    }
+  }, [thread, fieldValues, onSaveFields]);
+
   const onRespond = async (queryIds: number[], applyFields = true) => {
     if (!responseText.trim()) return;
     if (queryIds.length === 0) return;
@@ -446,7 +465,7 @@ export function MetadataQueries({
                           </p>
                         );
                       }
-                      const current = rowEdits[key] ?? queryText;
+                      const current = rowEdits[key] ?? (fieldValues?.[fkey] ?? "").toString();
                       const isApplying = !!applyingKeys[key];
                       const savedValue = (fieldValues?.[fkey] ?? "").toString().trim();
                       const isApplied =
