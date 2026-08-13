@@ -534,7 +534,14 @@ export function MetadataQueries({
               <button
                 type="button"
                 disabled={submitting || !responseText.trim()}
-                onClick={() => onRespond(openIds)}
+                onClick={() => {
+                  const updates = pendingFieldUpdates();
+                  if (Object.keys(updates).length > 0) {
+                    setConfirmSend({ ids: openIds, updates });
+                  } else {
+                    void onRespond(openIds, true);
+                  }
+                }}
                 className={`inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-3 py-1.5 font-sans text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-50 ${
                   flashCta ? "ring-4 ring-amber-300 animate-pulse" : ""
                 }`}
