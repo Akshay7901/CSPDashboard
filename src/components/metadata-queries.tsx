@@ -264,7 +264,7 @@ export function MetadataQueries({
     return updates;
   }, [onSaveFields, fieldEdits, rowEdits, fieldValues]);
 
-  /** Seed the inline field editors with the current saved field values. */
+  /** Seed the inline field editors with the value the author requested. */
   useEffect(() => {
     if (!onSaveFields || !fieldValues) return;
     const nextRowEdits: Record<string, string> = {};
@@ -274,7 +274,9 @@ export function MetadataQueries({
         if (fkey === "cover_image" || fkey === "authors") continue;
         const key = `${q.id}:${fkey}`;
         if (rowEdits[key] === undefined) {
-          nextRowEdits[key] = (fieldValues[fkey] ?? "").toString();
+          const requested = (q.text || "").trim();
+          nextRowEdits[key] =
+            requested.length > 0 ? requested : (fieldValues[fkey] ?? "").toString();
         }
       }
     }
