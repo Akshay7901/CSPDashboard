@@ -244,7 +244,27 @@ export function MetadataQueries({
     }
   };
 
-  const onRespond = async (queryIds: number[]) => {
+  const [confirmSend, setConfirmSend] = useState<null | {
+    ids: number[];
+    updates: Record<string, string>;
+  }>(null);
+
+  /** Compute the field updates that would be saved alongside a response. */
+  const pendingFieldUpdates = useCallback(() => {
+    const updates: Record<string, string> = {};
+    if (!onSaveFields) return updates;
+    for (const [k, v] of Object.entries(fieldEdits)) {
+      if ((fieldValues?.[k] ?? "") !== v) updates[k] = v;
+    }
+    for (const [rowKey, v] of Object.entries(rowEdits)) {
+      const fkey = rowKey.split(":")[1];
+      if (!fkey || fkey === "cover_image" || fkey === "authors") continue;
+      if ((fieldValues?.[fkey] ?? "") !== v) updates[fkey] = v;
+    }
+    return updates;
+  }, [onSaveFields, fieldEdits, rowEdits, fieldValues]);
+
+  const onRespond = async (queryIds: number[], applyFields = true) => {
     if (!responseText.trim()) return;
     if (queryIds.length === 0) return;
     setSubmitting(true);
@@ -252,17 +272,8 @@ export function MetadataQueries({
     try {
       // Persist any field updates first so the metadata snapshot reflects
       // the change before the response is recorded.
-      if (onSaveFields) {
-        const updates: Record<string, string> = {};
-        for (const [k, v] of Object.entries(fieldEdits)) {
-          if ((fieldValues?.[k] ?? "") !== v) updates[k] = v;
-        }
-        // Also persist any inline row edits made under the open queries.
-        for (const [rowKey, v] of Object.entries(rowEdits)) {
-          const fkey = rowKey.split(":")[1];
-          if (!fkey || fkey === "cover_image" || fkey === "authors") continue;
-          if ((fieldValues?.[fkey] ?? "") !== v) updates[fkey] = v;
-        }
+      if (onSaveFields && applyFields) {
+        const updates = pendingFieldUpdates();
         if (Object.keys(updates).length > 0) {
           await onSaveFields(updates);
         }
@@ -274,6 +285,7 @@ export function MetadataQueries({
       setResponseText("");
       setFieldEdits({});
       setRowEdits({});
+      setConfirmSend(null);
       await reload();
       onChanged?.();
     } catch (e) {
@@ -522,7 +534,14 @@ export function MetadataQueries({
               <button
                 type="button"
                 disabled={submitting || !responseText.trim()}
-                onClick={() => onRespond(openIds)}
+                onClick={() => {
+                  const updates = pendingFieldUpdates();
+                  if (Object.keys(updates).length > 0) {
+                    setConfirmSend({ ids: openIds, updates });
+                  } else {
+                    void onRespond(openIds, true);
+                  }
+                }}
                 className={`inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-3 py-1.5 font-sans text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-50 ${
                   flashCta ? "ring-4 ring-amber-300 animate-pulse" : ""
                 }`}
@@ -608,6 +627,61 @@ export function MetadataQueries({
             </button>
           </div>
         </form>
+      )}
+
+      {confirmSend && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 px-4">
+          <div className="w-full max-w-md rounded-2xl border border-stone-200 bg-white p-5 shadow-xl">
+            <h4 className="font-serif text-lg font-bold text-stone-900">
+              Apply metadata changes?
+            </h4>
+            <p className="mt-2 font-sans text-sm text-stone-600">
+              Sending this reply will also update{" "}
+              {Object.keys(confirmSend.updates).length}{" "}
+              {Object.keys(confirmSend.updates).length === 1 ? "field" : "fields"} in
+              the metadata record. Do you want to apply these changes or discard them
+              and send the reply only?
+            </p>
+            <ul className="mt-3 space-y-1 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2">
+              {Object.entries(confirmSend.updates).map(([k, v]) => (
+                <li key={k} className="font-sans text-xs text-stone-700">
+                  <span className="font-semibold">{fieldLabels?.[k] || k}:</span>{" "}
+                  <span className="text-stone-600">{v || "—"}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-5 flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() => setConfirmSend(null)}
+                className="rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-xs font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() => {
+                  setRowEdits({});
+                  setFieldEdits({});
+                  void onRespond(confirmSend.ids, false);
+                }}
+                className="rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-xs font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-50"
+              >
+                Discard changes & send reply
+              </button>
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() => void onRespond(confirmSend.ids, true)}
+                className="rounded-lg bg-emerald-700 px-3 py-2 font-sans text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
+              >
+                {submitting ? "Sending…" : "Apply changes & send"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
