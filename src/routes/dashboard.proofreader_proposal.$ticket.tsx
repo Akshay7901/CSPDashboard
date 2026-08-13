@@ -443,6 +443,42 @@ function ProofreaderProposalPage() {
                 />
               </div>
 
+              {(() => {
+                const extraRows = Object.entries(extras).filter(
+                  ([, v]) =>
+                    v != null &&
+                    (typeof v === "string" || typeof v === "number" || typeof v === "boolean"
+                      ? String(v).trim() !== ""
+                      : Array.isArray(v)
+                        ? v.length > 0
+                        : false),
+                );
+                if (extraRows.length === 0) return null;
+                return (
+                  <div className="mt-6 overflow-hidden rounded-xl border border-stone-200 bg-white">
+                    <div className="bg-stone-50/60 px-5 py-3 font-sans text-xs font-bold uppercase tracking-[0.18em] text-stone-500">
+                      Additional Metadata (sent to author)
+                    </div>
+                    {extraRows.map(([k, v]) => (
+                      <div
+                        key={k}
+                        className="grid grid-cols-[220px_1fr] gap-0 border-t border-stone-200"
+                      >
+                        <div className="flex items-center bg-stone-50/60 px-5 py-4 font-sans text-sm font-medium text-stone-700">
+                          {fieldLabels[k] ??
+                            k.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase())}
+                        </div>
+                        <div className="border-l border-stone-200 px-5 py-4 font-sans text-sm text-stone-800">
+                          <span className="whitespace-pre-wrap break-words">
+                            {Array.isArray(v) ? v.map((x) => String(x)).join(", ") : String(v)}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+
               {!readOnly && (
                 <div className="mt-4 flex flex-wrap items-center gap-3">
                   <button
