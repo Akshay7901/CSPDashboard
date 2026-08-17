@@ -2425,6 +2425,25 @@ function ContractIssuedView({
                 <HelpCircle className="h-4 w-4" />I have a question
               </button>
             </div>
+            {showDecline && (
+              <div className="mt-4 flex flex-col items-center gap-2 border-t border-violet-200/60 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeclineReason("");
+                    setDeclineError(null);
+                    setDeclineDialogOpen(true);
+                  }}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-300 bg-white px-5 py-2.5 font-sans text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
+                >
+                  <X className="h-4 w-4" />
+                  Decline Contract
+                </button>
+                <p className="max-w-md text-center font-sans text-xs text-stone-500">
+                  Only use this if you have decided not to publish with Cambridge Scholars Publishing.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
