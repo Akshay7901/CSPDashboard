@@ -1879,6 +1879,21 @@ function ContractIssuedView({
     }
   };
 
+  const handleDecline = async () => {
+    setDeclineLoading(true);
+    setDeclineError(null);
+    try {
+      await declineContract(ticket, declineReason.trim());
+      setDeclineDialogOpen(false);
+      setDeclineReason("");
+      setReloadKey((k) => k + 1);
+    } catch (e) {
+      setDeclineError((e as Error).message || "Failed to decline contract.");
+    } finally {
+      setDeclineLoading(false);
+    }
+  };
+
   const pillCls = isSigned
     ? "bg-emerald-50 text-emerald-700"
     : isDeclined
