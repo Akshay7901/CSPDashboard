@@ -2551,7 +2551,7 @@ function ContractIssuedView({
         </AlertDialog>
 
         <AlertDialog open={declineDialogOpen} onOpenChange={setDeclineDialogOpen}>
-          <AlertDialogContent className="max-w-md">
+          <AlertDialogContent className="max-w-md bg-card text-card-foreground">
             <AlertDialogHeader>
               <AlertDialogTitle className="font-serif text-lg text-[#2C1A0E]">
                 Decline contract?
