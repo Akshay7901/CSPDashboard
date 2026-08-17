@@ -22,7 +22,7 @@ import cspLogo from "@/assets/csp-logo.png";
 import { initialsFromName, type StatusKey } from "@/lib/proposals";
 import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
 import { proposalApiFetch } from "@/lib/proposalApi";
-import { getContract, getSigningUrl, type ContractDetail } from "@/lib/contractsApi";
+import { getContract, getSigningUrl, declineContract, type ContractDetail } from "@/lib/contractsApi";
 import { getQueries, raiseQuery } from "@/lib/contractsApi";
 import { ContractPdfModal } from "@/components/contract-pdf-modal";
 import { ContractQueries } from "@/components/contract-queries";
