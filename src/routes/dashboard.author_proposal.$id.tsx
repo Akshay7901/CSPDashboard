@@ -2505,6 +2505,64 @@ function ContractIssuedView({
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <AlertDialog open={declineDialogOpen} onOpenChange={setDeclineDialogOpen}>
+          <AlertDialogContent className="max-w-md">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="font-serif text-lg text-[#2C1A0E]">
+                Decline contract?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="font-sans text-sm leading-relaxed text-stone-600">
+                Are you sure you want to decline this contract? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="px-6 py-2">
+              <label
+                htmlFor="decline-reason"
+                className="block font-sans text-xs font-semibold uppercase tracking-[0.1em] text-stone-500"
+              >
+                Reason (optional)
+              </label>
+              <textarea
+                id="decline-reason"
+                value={declineReason}
+                onChange={(e) => setDeclineReason(e.target.value)}
+                rows={4}
+                maxLength={1000}
+                disabled={declineLoading}
+                placeholder="Tell us why you are declining this contract…"
+                className="mt-1.5 w-full resize-none rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100 disabled:opacity-60"
+              />
+              <p className="mt-1 text-right font-sans text-[11px] text-stone-400">
+                {declineReason.length}/1000
+              </p>
+              {declineError && (
+                <p className="mt-2 rounded-lg bg-rose-50 px-3 py-2 font-sans text-xs text-rose-700 ring-1 ring-rose-200">
+                  {declineError}
+                </p>
+              )}
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                asChild
+                className="rounded-lg border border-stone-300 bg-white px-4 py-2 font-sans text-sm font-semibold text-stone-700 hover:bg-stone-50"
+              >
+                <button type="button" disabled={declineLoading}>
+                  Cancel
+                </button>
+              </AlertDialogCancel>
+              <button
+                type="button"
+                onClick={handleDecline}
+                disabled={declineLoading}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-rose-600 px-4 py-2 font-sans text-sm font-semibold text-white hover:bg-rose-700 disabled:opacity-60"
+              >
+                <X className="h-4 w-4" />
+                {declineLoading ? "Declining…" : "Yes, Decline Contract"}
+              </button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       {queryOpen && (
