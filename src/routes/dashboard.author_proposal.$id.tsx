@@ -22,7 +22,12 @@ import cspLogo from "@/assets/csp-logo.png";
 import { initialsFromName, type StatusKey } from "@/lib/proposals";
 import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
 import { proposalApiFetch } from "@/lib/proposalApi";
-import { getContract, getSigningUrl, type ContractDetail } from "@/lib/contractsApi";
+import {
+  getContract,
+  getSigningUrl,
+  declineContract,
+  type ContractDetail,
+} from "@/lib/contractsApi";
 import { getQueries, raiseQuery } from "@/lib/contractsApi";
 import { ContractPdfModal } from "@/components/contract-pdf-modal";
 import { ContractQueries } from "@/components/contract-queries";
@@ -1742,6 +1747,10 @@ function ContractIssuedView({
   const [querySuccess, setQuerySuccess] = useState(false);
   const [proposalStatus, setProposalStatus] = useState<string>("");
   const [signDisabledDialogOpen, setSignDisabledDialogOpen] = useState(false);
+  const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
+  const [declineReason, setDeclineReason] = useState("");
+  const [declineLoading, setDeclineLoading] = useState(false);
+  const [declineError, setDeclineError] = useState<string | null>(null);
   const awaitingKey = `csp:awaiting-signature:${ticket}`;
   const [awaitingSignature, setAwaitingSignature] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
@@ -1851,6 +1860,7 @@ function ContractIssuedView({
     !isDeclined;
   const hasOpenQuery = proposalStatus === "queries_raised" || proposalStatus === "question_raised";
   const signDisabled = !canSign || hasOpenQuery;
+  const showDecline = proposalStatus === "contract_issued" && !isSigned && !isDeclined && canSign;
 
   const submitQuery = async () => {
     if (!queryText.trim()) return;
@@ -1870,6 +1880,21 @@ function ContractIssuedView({
       setQueryError((e as Error).message || "Failed to submit query.");
     } finally {
       setQuerySubmitting(false);
+    }
+  };
+
+  const handleDecline = async () => {
+    setDeclineLoading(true);
+    setDeclineError(null);
+    try {
+      await declineContract(ticket, declineReason.trim());
+      setDeclineDialogOpen(false);
+      setDeclineReason("");
+      setReloadKey((k) => k + 1);
+    } catch (e) {
+      setDeclineError((e as Error).message || "Failed to decline contract.");
+    } finally {
+      setDeclineLoading(false);
     }
   };
 
@@ -2080,6 +2105,44 @@ function ContractIssuedView({
       </div>
 
       <ContractPdfModal open={pdfOpen} ticket={ticket} onClose={() => setPdfOpen(false)} />
+    </section>
+  ) : isDeclined ? (
+    <section className="mt-6 overflow-hidden rounded-2xl border-2 border-rose-200 bg-white shadow-sm">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4 border-b border-rose-200 bg-gradient-to-br from-rose-50 to-rose-100/40 px-6 py-5">
+        <div className="min-w-0 flex-1">
+          <p className="mb-1 inline-flex items-center gap-1.5 font-sans text-xs font-bold uppercase tracking-wider text-rose-600">
+            <X className="h-3.5 w-3.5" strokeWidth={3} />
+            Contract Declined
+          </p>
+          <h2 className="font-serif text-xl font-bold leading-snug text-[#2C1A0E]">
+            You have formally declined this contract
+          </h2>
+          <p className="mt-1.5 font-sans text-sm text-rose-600">Our team has been notified.</p>
+        </div>
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-rose-600 px-2.5 py-1 font-sans text-xs font-semibold text-white">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-200" />
+          Declined
+        </span>
+      </div>
+
+      <div className="bg-stone-50/40 p-6 sm:p-10 md:p-14">
+        <div className="mx-auto w-full max-w-lg rounded-xl bg-white p-8 text-center shadow-sm">
+          <X className="mx-auto h-12 w-12 text-rose-600" />
+          <h3 className="mt-4 font-serif text-lg font-semibold text-stone-900">
+            You have formally declined this contract
+          </h3>
+          <p className="mt-2 font-sans text-sm text-stone-600">
+            Our team has been notified. If you change your mind, please contact us directly.
+          </p>
+          {contract.docusign_decline_reason && (
+            <p className="mt-4 rounded-lg border border-rose-100 bg-rose-50 px-4 py-3 text-left font-sans text-sm text-rose-700">
+              <span className="font-semibold">Reason given:</span>{" "}
+              {contract.docusign_decline_reason}
+            </p>
+          )}
+        </div>
+      </div>
     </section>
   ) : (
     <section
@@ -2377,7 +2440,8 @@ function ContractIssuedView({
                         align="center"
                         className="max-w-[260px] text-center"
                       >
-                        Contract signing option has been disabled when the author has issued a query.
+                        Contract signing option has been disabled when the author has issued a
+                        query.
                       </TooltipContent>
                     )}
                   </Tooltip>
@@ -2404,6 +2468,26 @@ function ContractIssuedView({
                 <HelpCircle className="h-4 w-4" />I have a question
               </button>
             </div>
+            {showDecline && (
+              <div className="mt-4 flex flex-col items-center gap-2 border-t border-violet-200/60 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeclineReason("");
+                    setDeclineError(null);
+                    setDeclineDialogOpen(true);
+                  }}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-300 bg-white px-5 py-2.5 font-sans text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
+                >
+                  <X className="h-4 w-4" />
+                  Decline Contract
+                </button>
+                <p className="max-w-md text-center font-sans text-xs text-stone-500">
+                  Only use this if you have decided not to publish with Cambridge Scholars
+                  Publishing.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -2462,6 +2546,64 @@ function ContractIssuedView({
               >
                 <button type="button">Got it</button>
               </AlertDialogCancel>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={declineDialogOpen} onOpenChange={setDeclineDialogOpen}>
+          <AlertDialogContent className="max-w-md">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="font-serif text-lg text-[#2C1A0E]">
+                Decline contract?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="font-sans text-sm leading-relaxed text-stone-600">
+                Are you sure you want to decline this contract? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="px-6 py-2">
+              <label
+                htmlFor="decline-reason"
+                className="block font-sans text-xs font-semibold uppercase tracking-[0.1em] text-stone-500"
+              >
+                Reason (optional)
+              </label>
+              <textarea
+                id="decline-reason"
+                value={declineReason}
+                onChange={(e) => setDeclineReason(e.target.value)}
+                rows={4}
+                maxLength={1000}
+                disabled={declineLoading}
+                placeholder="Tell us why you are declining this contract…"
+                className="mt-1.5 w-full resize-none rounded-lg border border-stone-300 bg-white px-3 py-2 font-sans text-sm focus:border-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-100 disabled:opacity-60"
+              />
+              <p className="mt-1 text-right font-sans text-[11px] text-stone-400">
+                {declineReason.length}/1000
+              </p>
+              {declineError && (
+                <p className="mt-2 rounded-lg bg-rose-50 px-3 py-2 font-sans text-xs text-rose-700 ring-1 ring-rose-200">
+                  {declineError}
+                </p>
+              )}
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                asChild
+                className="rounded-lg border border-stone-300 bg-white px-4 py-2 font-sans text-sm font-semibold text-stone-700 hover:bg-stone-50"
+              >
+                <button type="button" disabled={declineLoading}>
+                  Cancel
+                </button>
+              </AlertDialogCancel>
+              <button
+                type="button"
+                onClick={handleDecline}
+                disabled={declineLoading}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-rose-600 px-4 py-2 font-sans text-sm font-semibold text-white hover:bg-rose-700 disabled:opacity-60"
+              >
+                <X className="h-4 w-4" />
+                {declineLoading ? "Declining…" : "Yes, Decline Contract"}
+              </button>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
