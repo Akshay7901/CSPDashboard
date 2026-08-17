@@ -127,6 +127,18 @@ export async function voidContract(ticket: string, reason: string) {
   return body;
 }
 
+export async function declineContract(ticket: string, reason: string) {
+  const res = await proposalApiFetch(`/${encodeURIComponent(ticket)}/contract/decline`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ reason }),
+  });
+  const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+  if (!res.ok) throw new Error((body.error as string) || `Failed (${res.status})`);
+  return body;
+}
+
+
 export async function getSigningUrl(ticket: string): Promise<string> {
   const res = await proposalApiFetch(
     `/${encodeURIComponent(ticket)}/contract/signing-url`,
