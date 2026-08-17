@@ -1856,7 +1856,7 @@ function ContractIssuedView({
   const hasOpenQuery = proposalStatus === "queries_raised" || proposalStatus === "question_raised";
   const signDisabled = !canSign || hasOpenQuery;
   const showDecline =
-    proposal?.status === "contract_issued" && !isSigned && !isDeclined && canSign;
+    proposalStatus === "contract_issued" && !isSigned && !isDeclined && canSign;
 
   const submitQuery = async () => {
     if (!queryText.trim()) return;
