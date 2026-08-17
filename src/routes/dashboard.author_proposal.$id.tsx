@@ -2102,6 +2102,46 @@ function ContractIssuedView({
 
       <ContractPdfModal open={pdfOpen} ticket={ticket} onClose={() => setPdfOpen(false)} />
     </section>
+  ) : isDeclined ? (
+    <section className="mt-6 overflow-hidden rounded-2xl border-2 border-rose-200 bg-white shadow-sm">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4 border-b border-rose-200 bg-gradient-to-br from-rose-50 to-rose-100/40 px-6 py-5">
+        <div className="min-w-0 flex-1">
+          <p className="mb-1 inline-flex items-center gap-1.5 font-sans text-xs font-bold uppercase tracking-wider text-rose-600">
+            <X className="h-3.5 w-3.5" strokeWidth={3} />
+            Contract Declined
+          </p>
+          <h2 className="font-serif text-xl font-bold leading-snug text-[#2C1A0E]">
+            You have formally declined this contract
+          </h2>
+          <p className="mt-1.5 font-sans text-sm text-rose-600">
+            Our team has been notified.
+          </p>
+        </div>
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-rose-600 px-2.5 py-1 font-sans text-xs font-semibold text-white">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-200" />
+          Declined
+        </span>
+      </div>
+
+      <div className="bg-stone-50/40 p-6 sm:p-10 md:p-14">
+        <div className="mx-auto w-full max-w-lg rounded-xl bg-white p-8 text-center shadow-sm">
+          <X className="mx-auto h-12 w-12 text-rose-600" />
+          <h3 className="mt-4 font-serif text-lg font-semibold text-stone-900">
+            You have formally declined this contract
+          </h3>
+          <p className="mt-2 font-sans text-sm text-stone-600">
+            Our team has been notified. If you change your mind, please contact us directly.
+          </p>
+          {contract.docusign_decline_reason && (
+            <p className="mt-4 rounded-lg border border-rose-100 bg-rose-50 px-4 py-3 text-left font-sans text-sm text-rose-700">
+              <span className="font-semibold">Reason given:</span>{" "}
+              {contract.docusign_decline_reason}
+            </p>
+          )}
+        </div>
+      </div>
+    </section>
   ) : (
     <section
       className={`mt-6 overflow-hidden rounded-2xl border-2 shadow-sm ${
