@@ -22,7 +22,12 @@ import cspLogo from "@/assets/csp-logo.png";
 import { initialsFromName, type StatusKey } from "@/lib/proposals";
 import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
 import { proposalApiFetch } from "@/lib/proposalApi";
-import { getContract, getSigningUrl, declineContract, type ContractDetail } from "@/lib/contractsApi";
+import {
+  getContract,
+  getSigningUrl,
+  declineContract,
+  type ContractDetail,
+} from "@/lib/contractsApi";
 import { getQueries, raiseQuery } from "@/lib/contractsApi";
 import { ContractPdfModal } from "@/components/contract-pdf-modal";
 import { ContractQueries } from "@/components/contract-queries";
@@ -1855,8 +1860,7 @@ function ContractIssuedView({
     !isDeclined;
   const hasOpenQuery = proposalStatus === "queries_raised" || proposalStatus === "question_raised";
   const signDisabled = !canSign || hasOpenQuery;
-  const showDecline =
-    proposalStatus === "contract_issued" && !isSigned && !isDeclined && canSign;
+  const showDecline = proposalStatus === "contract_issued" && !isSigned && !isDeclined && canSign;
 
   const submitQuery = async () => {
     if (!queryText.trim()) return;
@@ -2114,9 +2118,7 @@ function ContractIssuedView({
           <h2 className="font-serif text-xl font-bold leading-snug text-[#2C1A0E]">
             You have formally declined this contract
           </h2>
-          <p className="mt-1.5 font-sans text-sm text-rose-600">
-            Our team has been notified.
-          </p>
+          <p className="mt-1.5 font-sans text-sm text-rose-600">Our team has been notified.</p>
         </div>
         <span className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-rose-600 px-2.5 py-1 font-sans text-xs font-semibold text-white">
           <span className="h-1.5 w-1.5 rounded-full bg-rose-200" />
@@ -2438,7 +2440,8 @@ function ContractIssuedView({
                         align="center"
                         className="max-w-[260px] text-center"
                       >
-                        Contract signing option has been disabled when the author has issued a query.
+                        Contract signing option has been disabled when the author has issued a
+                        query.
                       </TooltipContent>
                     )}
                   </Tooltip>
@@ -2480,7 +2483,8 @@ function ContractIssuedView({
                   Decline Contract
                 </button>
                 <p className="max-w-md text-center font-sans text-xs text-stone-500">
-                  Only use this if you have decided not to publish with Cambridge Scholars Publishing.
+                  Only use this if you have decided not to publish with Cambridge Scholars
+                  Publishing.
                 </p>
               </div>
             )}
