@@ -155,10 +155,12 @@ type ProposalDetail = {
   internal_status?: string;
   submitted_at: string;
   updated_at?: string;
+  ms_submission_deadline?: string | null;
   current_data: Record<string, unknown>;
   assignments?: Assignment[];
   timeline?: TimelineStage[];
 };
+
 
 type SubmittedReview = {
   reviewer_email?: string;
