@@ -122,7 +122,6 @@ function MetaRow({
   );
 }
 
-
 type Assignment = {
   reviewer_email: string;
   reviewer_name?: string;
@@ -155,6 +154,7 @@ type ProposalDetail = {
   internal_status?: string;
   submitted_at: string;
   updated_at?: string;
+  ms_submission_deadline?: string | null;
   current_data: Record<string, unknown>;
   assignments?: Assignment[];
   timeline?: TimelineStage[];
@@ -225,7 +225,11 @@ function filenameFromUrl(url?: string) {
 function toProposalDocument(value: unknown, fallbackLabel?: string): ProposalDocument | null {
   if (typeof value === "string" && /^https?:\/\//i.test(value.trim())) {
     const url = value.trim();
-    return { url, filename: filenameFromUrl(url) || fallbackLabel || "Document", label: fallbackLabel };
+    return {
+      url,
+      filename: filenameFromUrl(url) || fallbackLabel || "Document",
+      label: fallbackLabel,
+    };
   }
   if (!isRecord(value)) return null;
   const url = stringFrom(value, ["url", "file_url", "download_url", "s3_url", "public_url"]);
@@ -293,6 +297,47 @@ function formatFileSize(bytes?: number) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function isPostContractStatus(status?: string) {
+  const s = (status || "").toLowerCase().replace(/\s+/g, "_");
+  return [
+    "awaiting_author_approval",
+    "signed",
+    "approved",
+    "proofreader_review",
+    "author_approved",
+    "locked",
+    "contract_signed",
+    "contract_received",
+  ].includes(s);
+}
+
+function formatMsSubmissionDeadline(value?: string | null) {
+  if (!value) return "—";
+  const parts = value.split("/");
+  if (parts.length === 3) {
+    const month = Number(parts[0]);
+    const day = Number(parts[1]);
+    const year = Number(parts[2]);
+    if (month > 0 && month <= 12 && day > 0 && day <= 31 && year > 0) {
+      const d = new Date(year, month - 1, day);
+      return d.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+    }
+  }
+  const fallback = new Date(value);
+  if (!Number.isNaN(fallback.getTime())) {
+    return fallback.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  }
+  return value;
 }
 
 type InfoRequest = {
@@ -376,9 +421,7 @@ function ReviewSectionList({ data }: { data: Record<string, unknown> }) {
   const noteRaw = data.dr_note;
   const note = typeof noteRaw === "string" ? noteRaw.trim() : "";
   if (items.length === 0 && !note) {
-    return (
-      <p className="font-sans text-sm text-stone-500">No comments provided.</p>
-    );
+    return <p className="font-sans text-sm text-stone-500">No comments provided.</p>;
   }
   return (
     <div className="space-y-3">
@@ -406,13 +449,7 @@ function ReviewSectionList({ data }: { data: Record<string, unknown> }) {
   );
 }
 
-function ContractField({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function ContractField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
       <dt className="font-sans text-xs font-medium text-stone-500">{label}</dt>
@@ -423,13 +460,7 @@ function ContractField({
   );
 }
 
-function ReviewFeedbackAccordion({
-  title,
-  review,
-}: {
-  title: string;
-  review: SubmittedReview;
-}) {
+function ReviewFeedbackAccordion({ title, review }: { title: string; review: SubmittedReview }) {
   const rd = (review.review_data || {}) as Record<string, unknown>;
   const recoKey = typeof rd.recommendation === "string" ? rd.recommendation : "";
   const recoLabel = RECOMMENDATION_LABELS[recoKey] || recoKey || "—";
@@ -460,9 +491,7 @@ function ReviewFeedbackAccordion({
           <p className="font-sans text-xs font-semibold uppercase tracking-[0.12em] text-stone-500">
             Final Recommendation
           </p>
-          <p className="mt-1 font-sans text-sm font-semibold text-stone-900">
-            {recoLabel}
-          </p>
+          <p className="mt-1 font-sans text-sm font-semibold text-stone-900">{recoLabel}</p>
         </div>
       </div>
     </details>
@@ -495,7 +524,8 @@ function ProposalDetailPage() {
   useEffect(() => setMounted(true), []);
 
   const handleLockProposal = async () => {
-    if (!confirm(`Lock proposal ${ticket} and generate production files? This cannot be undone.`)) return;
+    if (!confirm(`Lock proposal ${ticket} and generate production files? This cannot be undone.`))
+      return;
     setLocking(true);
     try {
       const token = getPortalToken();
@@ -508,7 +538,9 @@ function ProposalDetailPage() {
       });
       const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
       if (!res.ok) {
-        toast.error((body.error as string) || (body.message as string) || `Failed to lock (${res.status}).`);
+        toast.error(
+          (body.error as string) || (body.message as string) || `Failed to lock (${res.status}).`,
+        );
         return;
       }
       toast.success((body.message as string) || `Proposal ${ticket} locked.`);
@@ -576,7 +608,7 @@ function ProposalDetailPage() {
   >(null);
   const [comments, setComments] = useState<ReviewComment[]>([]);
   const [commentsSeeded, setCommentsSeeded] = useState(false);
-  
+
   // Default to expanded so the original proposal details and supporting
   // documents are visible in every state (review-returned, contract-issued,
   // etc.), matching the author-facing view.
@@ -716,9 +748,7 @@ function ProposalDetailPage() {
     key: "",
     note: "",
   });
-  const [reqRevEntries, setReqRevEntries] = useState<RevisionEntry[]>([
-    newRevisionEntry(),
-  ]);
+  const [reqRevEntries, setReqRevEntries] = useState<RevisionEntry[]>([newRevisionEntry()]);
   const [reqRevDeadline, setReqRevDeadline] = useState("");
   const [reqRevSubmitting, setReqRevSubmitting] = useState(false);
   const [reqRevError, setReqRevError] = useState<string | null>(null);
@@ -797,9 +827,7 @@ function ProposalDetailPage() {
           if (!b) return;
           const label = (c.chapter || "").trim();
           if (label && Object.prototype.hasOwnProperty.call(sectionByLabel, label)) {
-            sectionByLabel[label] = sectionByLabel[label]
-              ? `${sectionByLabel[label]}\n\n${b}`
-              : b;
+            sectionByLabel[label] = sectionByLabel[label] ? `${sectionByLabel[label]}\n\n${b}` : b;
           } else {
             otherBuckets.push(label ? `${label}: ${b}` : b);
           }
@@ -821,17 +849,14 @@ function ProposalDetailPage() {
         });
         // Only push a review if there's actually content beyond the recommendation
         if (Object.keys(reviewPayload).length > 1) {
-          await proposalApiFetch(
-            `/${encodeURIComponent(ticket)}/review/submit`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                ...(token ? { Authorization: `Bearer ${token}` } : {}),
-              },
-              body: JSON.stringify(reviewPayload),
+          await proposalApiFetch(`/${encodeURIComponent(ticket)}/review/submit`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
-          );
+            body: JSON.stringify(reviewPayload),
+          });
         }
       } catch {
         // Non-blocking: if review/submit fails we still try to send the
@@ -849,7 +874,7 @@ function ProposalDetailPage() {
         // Backend requires a title. Always send one; use the original when
         // the DR didn't change it so the frontend can tell "unchanged" apart
         // from "proposed edit" by comparing to main_title on read.
-        title: (titleChanged ? enteredTitle : originalTitle),
+        title: titleChanged ? enteredTitle : originalTitle,
         expiry_days: contractExpiryDays,
         language: contractFields.language,
         author_copies: contractFields.author_copies,
@@ -868,17 +893,14 @@ function ProposalDetailPage() {
       if (contractNote.trim()) {
         payload.notes = contractNote.trim();
       }
-      const res = await proposalApiFetch(
-        `/${encodeURIComponent(ticket)}/contract/send`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify(payload),
+      const res = await proposalApiFetch(`/${encodeURIComponent(ticket)}/contract/send`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-      );
+        body: JSON.stringify(payload),
+      });
       const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
       if (!res.ok) {
         setContractError(
@@ -888,9 +910,7 @@ function ProposalDetailPage() {
         );
         return;
       }
-      setContractSuccess(
-        (body.message as string) || "Contract sent to author.",
-      );
+      setContractSuccess((body.message as string) || "Contract sent to author.");
       // Optimistically remember what we just sent so the hero card shows the
       // proposed title/subtitle immediately, without waiting for the contracts
       // list to refetch.
@@ -908,10 +928,7 @@ function ProposalDetailPage() {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
         });
-        const refreshedBody = (await refreshed.json().catch(() => ({}))) as Record<
-          string,
-          unknown
-        >;
+        const refreshedBody = (await refreshed.json().catch(() => ({}))) as Record<string, unknown>;
         if (refreshed.ok) setData(refreshedBody as unknown as ProposalDetail);
       } catch {
         // ignore refresh errors
@@ -944,12 +961,9 @@ function ProposalDetailPage() {
 
   const updateRevisionEntry = (id: string, patch: Partial<RevisionEntry>) =>
     setReqRevEntries((prev) => prev.map((e) => (e.id === id ? { ...e, ...patch } : e)));
-  const addRevisionEntry = () =>
-    setReqRevEntries((prev) => [...prev, newRevisionEntry()]);
+  const addRevisionEntry = () => setReqRevEntries((prev) => [...prev, newRevisionEntry()]);
   const removeRevisionEntry = (id: string) =>
-    setReqRevEntries((prev) =>
-      prev.length <= 1 ? prev : prev.filter((e) => e.id !== id),
-    );
+    setReqRevEntries((prev) => (prev.length <= 1 ? prev : prev.filter((e) => e.id !== id)));
 
   const submitRequestRevisions = async () => {
     const valid = reqRevEntries.filter((e) => e.key && e.note.trim());
@@ -974,24 +988,19 @@ function ProposalDetailPage() {
           note: e.note.trim(),
         };
       });
-      const combinedNote = items
-        .map((i) => `${i.label}: ${i.note}`)
-        .join("\n\n");
-      const res = await proposalApiFetch(
-        `/${encodeURIComponent(ticket)}/request-info`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify({
-            items,
-            note: combinedNote,
-            ...(reqRevDeadline ? { resubmission_deadline: reqRevDeadline } : {}),
-          }),
+      const combinedNote = items.map((i) => `${i.label}: ${i.note}`).join("\n\n");
+      const res = await proposalApiFetch(`/${encodeURIComponent(ticket)}/request-info`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-      );
+        body: JSON.stringify({
+          items,
+          note: combinedNote,
+          ...(reqRevDeadline ? { resubmission_deadline: reqRevDeadline } : {}),
+        }),
+      });
       const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
       if (!res.ok) {
         setReqRevError(
@@ -1010,10 +1019,7 @@ function ProposalDetailPage() {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
         });
-        const refreshedBody = (await refreshed.json().catch(() => ({}))) as Record<
-          string,
-          unknown
-        >;
+        const refreshedBody = (await refreshed.json().catch(() => ({}))) as Record<string, unknown>;
         if (refreshed.ok) setData(refreshedBody as unknown as ProposalDetail);
       } catch {
         // ignore
@@ -1061,10 +1067,7 @@ function ProposalDetailPage() {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
         });
-        const refreshedBody = (await refreshed.json().catch(() => ({}))) as Record<
-          string,
-          unknown
-        >;
+        const refreshedBody = (await refreshed.json().catch(() => ({}))) as Record<string, unknown>;
         if (refreshed.ok) setData(refreshedBody as unknown as ProposalDetail);
       } catch {
         // ignore refresh errors
@@ -1111,18 +1114,15 @@ function ProposalDetailPage() {
           payload[key] = v;
         }
       });
-      
-      const res = await proposalApiFetch(
-        `/${encodeURIComponent(ticket)}/review/submit`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify(payload),
+
+      const res = await proposalApiFetch(`/${encodeURIComponent(ticket)}/review/submit`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-      );
+        body: JSON.stringify(payload),
+      });
       const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
       if (!res.ok) {
         setSubmitReviewError(
@@ -1132,9 +1132,7 @@ function ProposalDetailPage() {
         );
         return;
       }
-      setSubmitReviewSuccess(
-        (body.message as string) || "Review submitted to author.",
-      );
+      setSubmitReviewSuccess((body.message as string) || "Review submitted to author.");
       // refresh proposal
       try {
         const refreshed = await proposalApiFetch(`/${encodeURIComponent(ticket)}`, {
@@ -1143,10 +1141,7 @@ function ProposalDetailPage() {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
         });
-        const refreshedBody = (await refreshed.json().catch(() => ({}))) as Record<
-          string,
-          unknown
-        >;
+        const refreshedBody = (await refreshed.json().catch(() => ({}))) as Record<string, unknown>;
         if (refreshed.ok) setData(refreshedBody as unknown as ProposalDetail);
       } catch {
         // ignore
@@ -1330,9 +1325,7 @@ function ProposalDetailPage() {
     navigate({ to: "/login" });
   };
 
-  const rawCd = normalizeProposalData(
-    (data?.current_data ?? {}) as Record<string, unknown>,
-  );
+  const rawCd = normalizeProposalData((data?.current_data ?? {}) as Record<string, unknown>);
   const asStr = (v: unknown): string | undefined => {
     if (v === null || v === undefined || v === "") return undefined;
     if (typeof v === "string") return v;
@@ -1376,7 +1369,11 @@ function ProposalDetailPage() {
     phone: pick("phone", "phone_number"),
     institution: pick("institution"),
     job_title: pick("job_title", "author_title"),
-    qualifications: pick("qualifications", "academic_qualifications", "professional_qualifications"),
+    qualifications: pick(
+      "qualifications",
+      "academic_qualifications",
+      "professional_qualifications",
+    ),
     address: pick("address"),
     address_line_1: pick("address_line_1", "address_line1"),
     address_line_2: pick("address_line_2", "address_line2"),
@@ -1415,12 +1412,7 @@ function ProposalDetailPage() {
     conferences: pick("conferences", "relevant_conferences"),
     promotional_channels: pick("promotional_channels", "promotion_channels"),
     keywords: pick("keywords"),
-    marketing_info: pick(
-      "marketing_info",
-      "primary_market",
-      "target_audience",
-      "competing_titles",
-    ),
+    marketing_info: pick("marketing_info", "primary_market", "target_audience", "competing_titles"),
     referees_reviewers: pick("referees_reviewers", "recommended_reviewers"),
     additional_info: pick("additional_info", "conferences", "promotional_channels"),
     additional_notes: pick("additional_notes", "additional_comments", "notes"),
@@ -1514,10 +1506,7 @@ function ProposalDetailPage() {
     );
     const unanswered = queryThread
       .filter((t) => t.type === "query" && !answered.has(t.id))
-      .sort(
-        (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-      );
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     return unanswered[0] || null;
   }, [queryThread]);
 
@@ -1556,9 +1545,7 @@ function ProposalDetailPage() {
       // dialog with title/subtitle and the rest of the contract fields.
       setContractResendPrompt("prompt");
     } catch (err) {
-      setQueryResponseError(
-        (err as Error).message || "Failed to send response.",
-      );
+      setQueryResponseError((err as Error).message || "Failed to send response.");
     } finally {
       setQueryResponseSubmitting(false);
     }
@@ -1602,15 +1589,12 @@ function ProposalDetailPage() {
       setMetadataError(null);
       try {
         const token = getPortalToken();
-        const res = await proposalApiFetch(
-          `/${encodeURIComponent(ticket)}/metadata`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
+        const res = await proposalApiFetch(`/${encodeURIComponent(ticket)}/metadata`, {
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
-        );
+        });
         const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
         if (cancelled) return;
         if (!res.ok) {
@@ -1618,9 +1602,7 @@ function ProposalDetailPage() {
             setMetadata(null);
             setMetadataError(null);
           } else {
-            setMetadataError(
-              (body.error as string) || `Failed to load metadata (${res.status}).`,
-            );
+            setMetadataError((body.error as string) || `Failed to load metadata (${res.status}).`);
           }
         } else {
           setMetadata(body as ProposalMetadata);
@@ -1727,11 +1709,8 @@ function ProposalDetailPage() {
           // flow straight through to the author dashboard without
           // requiring another approval round-trip.
           metadata_status:
-            prev.metadata_status === "approved" || !!prev.approved_at
-              ? "approved"
-              : "draft",
-          current_version:
-            (body.current_version as number) ?? prev.current_version,
+            prev.metadata_status === "approved" || !!prev.approved_at ? "approved" : "draft",
+          current_version: (body.current_version as number) ?? prev.current_version,
           updated_at: new Date().toISOString(),
           metadata: {
             ...(prev.metadata || {}),
@@ -1783,9 +1762,7 @@ function ProposalDetailPage() {
         return;
       }
       setMetaSendSuccess((body.message as string) || "Metadata sent to author.");
-      setMetadata((prev) =>
-        prev ? { ...prev, metadata_status: "sent_to_author" } : prev,
-      );
+      setMetadata((prev) => (prev ? { ...prev, metadata_status: "sent_to_author" } : prev));
     } catch {
       setMetaSendError("Network error. Please try again.");
     } finally {
@@ -1810,20 +1787,14 @@ function ProposalDetailPage() {
   const recommendationKey = (primaryReview?.review_data?.recommendation as string) || "";
   const recommendationLabel = RECOMMENDATION_LABELS[recommendationKey] || recommendationKey;
   const reviewerDisplayName = primaryReview
-    ? primaryReview.reviewer_name ||
-      displayNameFromEmail(primaryReview.reviewer_email || "")
+    ? primaryReview.reviewer_name || displayNameFromEmail(primaryReview.reviewer_email || "")
     : "";
   const reviewerInstitution = (primaryReview as { reviewer_institution?: string } | undefined)
     ?.reviewer_institution;
   const reviewerSummary = useMemo(() => {
     if (!primaryReview) return "";
     const rd = (primaryReview.review_data || {}) as Record<string, unknown>;
-    const candidates = [
-      rd.note_to_dr,
-      rd.other_comments,
-      rd.scope,
-      rd.purpose_value,
-    ];
+    const candidates = [rd.note_to_dr, rd.other_comments, rd.scope, rd.purpose_value];
     for (const c of candidates) {
       const s = typeof c === "string" ? c.trim() : "";
       if (s) return s;
@@ -1888,17 +1859,14 @@ function ProposalDetailPage() {
       });
 
       const token = getPortalToken();
-      const res = await proposalApiFetch(
-        `/${encodeURIComponent(ticket)}/review/save`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify(payload),
+      const res = await proposalApiFetch(`/${encodeURIComponent(ticket)}/review/save`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-      );
+        body: JSON.stringify(payload),
+      });
       const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
       if (!res.ok) {
         toast.error(
@@ -1918,8 +1886,7 @@ function ProposalDetailPage() {
 
   const updateComment = (id: string, patch: Partial<ReviewComment>) =>
     setComments((cs) => cs.map((c) => (c.id === id ? { ...c, ...patch } : c)));
-  const removeComment = (id: string) =>
-    setComments((cs) => cs.filter((c) => c.id !== id));
+  const removeComment = (id: string) => setComments((cs) => cs.filter((c) => c.id !== id));
   const addComment = () =>
     setComments((cs) => [
       ...cs,
@@ -2145,95 +2112,104 @@ function ProposalDetailPage() {
         </div>
       </header>
 
-      {mounted ? (() => {
-        const session = getPortalSession();
-        const role = (session?.role || "").toLowerCase();
-        if (role !== "admin" && role !== "decision_reviewer") return null;
-        return (
-          <Sheet onOpenChange={(o) => { if (o) refreshEvents(); }}>
-            <SheetTrigger asChild>
-              <button
-                type="button"
-                aria-label="View audit trail"
-                className="fixed right-5 top-24 z-40 flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-700 shadow-md hover:bg-stone-50 hover:text-stone-900"
+      {mounted
+        ? (() => {
+            const session = getPortalSession();
+            const role = (session?.role || "").toLowerCase();
+            if (role !== "admin" && role !== "decision_reviewer") return null;
+            return (
+              <Sheet
+                onOpenChange={(o) => {
+                  if (o) refreshEvents();
+                }}
               >
-                <History className="h-4 w-4" />
-              </button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-full overflow-y-auto bg-white sm:max-w-md">
-              <SheetHeader>
-                <SheetTitle className="font-serif text-black">Audit Trail</SheetTitle>
-                <SheetDescription className="text-black">
-                  All events for {ticket}
-                </SheetDescription>
-              </SheetHeader>
-              <div className="mt-4">
-                <p className="font-sans text-xs text-black">
-                  {events.length} event{events.length === 1 ? "" : "s"}
-                </p>
-              </div>
-              <div className="mt-4 space-y-3">
-                {eventsLoading && events.length === 0 && (
-                  <p className="font-sans text-xs text-black">Loading events…</p>
-                )}
-                {eventsError && (
-                  <p className="rounded-lg bg-rose-50 px-3 py-2 font-sans text-xs text-rose-700 ring-1 ring-rose-200">
-                    {eventsError}
-                  </p>
-                )}
-                {!eventsLoading && !eventsError && events.length === 0 && (
-                  <p className="font-sans text-xs text-black">No events yet.</p>
-                )}
-                <ol className="relative space-y-3 border-l border-stone-200 pl-4">
-                  {events.map((ev) => (
-                    <li key={ev.id} className="relative">
-                      <span className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full bg-stone-500 ring-2 ring-white" />
-                      <div className="rounded-xl border border-stone-200 bg-stone-100 p-3">
-                        <div className="mb-1 flex items-center justify-between gap-2">
-                          <span className="inline-flex items-center rounded-full bg-white px-2 py-0.5 font-sans text-[10px] font-semibold uppercase tracking-wide text-black ring-1 ring-stone-200">
-                            {ev.event_type.replace(/_/g, " ")}
-                          </span>
-                          <p className="font-sans text-[11px] text-black">
-                            {formatDate(ev.created_at)}
-                          </p>
-                        </div>
-                        <p className="whitespace-pre-wrap font-sans text-sm text-black">
-                          {ev.description}
-                        </p>
-                        {(ev.old_status || ev.new_status) && (
-                          <p className="mt-1.5 font-sans text-[11px] text-black">
-                            {ev.old_status && (
-                              <span className="rounded bg-white px-1.5 py-0.5 ring-1 ring-stone-200">
-                                {ev.old_status}
+                <SheetTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label="View audit trail"
+                    className="fixed right-5 top-24 z-40 flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-700 shadow-md hover:bg-stone-50 hover:text-stone-900"
+                  >
+                    <History className="h-4 w-4" />
+                  </button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-full overflow-y-auto bg-white sm:max-w-md">
+                  <SheetHeader>
+                    <SheetTitle className="font-serif text-black">Audit Trail</SheetTitle>
+                    <SheetDescription className="text-black">
+                      All events for {ticket}
+                    </SheetDescription>
+                  </SheetHeader>
+                  <div className="mt-4">
+                    <p className="font-sans text-xs text-black">
+                      {events.length} event{events.length === 1 ? "" : "s"}
+                    </p>
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    {eventsLoading && events.length === 0 && (
+                      <p className="font-sans text-xs text-black">Loading events…</p>
+                    )}
+                    {eventsError && (
+                      <p className="rounded-lg bg-rose-50 px-3 py-2 font-sans text-xs text-rose-700 ring-1 ring-rose-200">
+                        {eventsError}
+                      </p>
+                    )}
+                    {!eventsLoading && !eventsError && events.length === 0 && (
+                      <p className="font-sans text-xs text-black">No events yet.</p>
+                    )}
+                    <ol className="relative space-y-3 border-l border-stone-200 pl-4">
+                      {events.map((ev) => (
+                        <li key={ev.id} className="relative">
+                          <span className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full bg-stone-500 ring-2 ring-white" />
+                          <div className="rounded-xl border border-stone-200 bg-stone-100 p-3">
+                            <div className="mb-1 flex items-center justify-between gap-2">
+                              <span className="inline-flex items-center rounded-full bg-white px-2 py-0.5 font-sans text-[10px] font-semibold uppercase tracking-wide text-black ring-1 ring-stone-200">
+                                {ev.event_type.replace(/_/g, " ")}
                               </span>
+                              <p className="font-sans text-[11px] text-black">
+                                {formatDate(ev.created_at)}
+                              </p>
+                            </div>
+                            <p className="whitespace-pre-wrap font-sans text-sm text-black">
+                              {ev.description}
+                            </p>
+                            {(ev.old_status || ev.new_status) && (
+                              <p className="mt-1.5 font-sans text-[11px] text-black">
+                                {ev.old_status && (
+                                  <span className="rounded bg-white px-1.5 py-0.5 ring-1 ring-stone-200">
+                                    {ev.old_status}
+                                  </span>
+                                )}
+                                {ev.old_status && ev.new_status && (
+                                  <span className="mx-1.5 text-stone-400">→</span>
+                                )}
+                                {ev.new_status && (
+                                  <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-emerald-800 ring-1 ring-emerald-200">
+                                    {ev.new_status}
+                                  </span>
+                                )}
+                              </p>
                             )}
-                            {ev.old_status && ev.new_status && (
-                              <span className="mx-1.5 text-stone-400">→</span>
+                            {ev.changed_by && (
+                              <p className="mt-1.5 font-sans text-[11px] text-black">
+                                by {ev.changed_by}
+                                {ev.changed_by_role && (
+                                  <span className="text-stone-600">
+                                    {" "}
+                                    · {ev.changed_by_role.replace(/_/g, " ")}
+                                  </span>
+                                )}
+                              </p>
                             )}
-                            {ev.new_status && (
-                              <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-emerald-800 ring-1 ring-emerald-200">
-                                {ev.new_status}
-                              </span>
-                            )}
-                          </p>
-                        )}
-                        {ev.changed_by && (
-                          <p className="mt-1.5 font-sans text-[11px] text-black">
-                            by {ev.changed_by}
-                            {ev.changed_by_role && (
-                              <span className="text-stone-600"> · {ev.changed_by_role.replace(/_/g, " ")}</span>
-                            )}
-                          </p>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            </SheetContent>
-          </Sheet>
-        );
-      })() : null}
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            );
+          })()
+        : null}
 
       <main className="mx-auto w-full max-w-5xl px-6 py-8">
         <Link
@@ -2261,9 +2237,8 @@ function ProposalDetailPage() {
                   This proposal is in the Proofreader phase.
                 </p>
                 <p className="mt-1 font-sans text-sm leading-relaxed text-purple-800/90">
-                  The proofreader is compiling editorial metadata. Admin and
-                  Decision Reviewer actions are limited until the author
-                  approves.
+                  The proofreader is compiling editorial metadata. Admin and Decision Reviewer
+                  actions are limited until the author approves.
                 </p>
               </div>
             )}
@@ -2283,20 +2258,18 @@ function ProposalDetailPage() {
                     if (!latestContractForHeader) return null;
                     const origTitle = (cd.main_title || title || "").trim();
                     const origSubtitle = (cd.sub_title || "").trim();
-                    const pTitle =
-                      (
-                        latestContractForHeader?.title ||
-                        optimisticProposed?.title ||
-                        cd.proposed_title ||
-                        ""
-                      ).trim();
-                    const pSubtitle =
-                      (
-                        latestContractForHeader?.subtitle ||
-                        optimisticProposed?.subtitle ||
-                        cd.proposed_subtitle ||
-                        ""
-                      ).trim();
+                    const pTitle = (
+                      latestContractForHeader?.title ||
+                      optimisticProposed?.title ||
+                      cd.proposed_title ||
+                      ""
+                    ).trim();
+                    const pSubtitle = (
+                      latestContractForHeader?.subtitle ||
+                      optimisticProposed?.subtitle ||
+                      cd.proposed_subtitle ||
+                      ""
+                    ).trim();
                     // Hide the "Proposed Title" row entirely when the DR did
                     // not actually edit the title/subtitle (i.e. proposed
                     // matches the original values).
@@ -2323,24 +2296,26 @@ function ProposalDetailPage() {
                     <Check className="h-3.5 w-3.5" />
                     Contract Signed
                   </span>
-                ) : (() => {
-                  const normalizedStatus = data.status?.toLowerCase().replace(/\s+/g, "_") || "";
-                  const rawLabel =
-                    normalizedStatus === "awaiting_more_info"
-                      ? "Request Revision"
-                      : normalizedStatus === "new" || normalizedStatus === "submitted"
-                        ? "New"
-                        : data.status;
-                  const sMeta = getStatusMeta(data.status, rawLabel);
-                  return (
-                    <span
-                      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 font-sans text-xs font-medium ${sMeta.badgeClass}`}
-                    >
-                      <span className={`h-1.5 w-1.5 rounded-full ${sMeta.dot}`} />
-                      {rawLabel}
-                    </span>
-                  );
-                })()}
+                ) : (
+                  (() => {
+                    const normalizedStatus = data.status?.toLowerCase().replace(/\s+/g, "_") || "";
+                    const rawLabel =
+                      normalizedStatus === "awaiting_more_info"
+                        ? "Request Revision"
+                        : normalizedStatus === "new" || normalizedStatus === "submitted"
+                          ? "New"
+                          : data.status;
+                    const sMeta = getStatusMeta(data.status, rawLabel);
+                    return (
+                      <span
+                        className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 font-sans text-xs font-medium ${sMeta.badgeClass}`}
+                      >
+                        <span className={`h-1.5 w-1.5 rounded-full ${sMeta.dot}`} />
+                        {rawLabel}
+                      </span>
+                    );
+                  })()
+                )}
               </div>
               <div className="mt-5 flex flex-wrap items-center gap-x-7 gap-y-2 font-sans text-sm text-stone-600">
                 {cd.corresponding_author_name && (
@@ -2392,181 +2367,288 @@ function ProposalDetailPage() {
                         </div>
                       )}
 
-                      {!metadataLoading && !metadataError && metadata && (() => {
-                        const coverImg = metadata.cover_image;
-                        const coverUrl = coverImg?.url || coverImg?.s3_url;
-                        const canDeleteCover = isAdmin();
-                        const authorsList = metaForm.authors;
-                        const isMetaApproved =
-                          metadata.metadata_status === "approved" || !!metadata.approved_at;
-                        /**
-                         * Admin / DR can only edit metadata once the author has
-                         * finalised (approved) it — before that the proofreader
-                         * and author own the record.
-                         */
-                        const isMetaLocked =
-                          isLocked ||
-                          isProofreaderPhase ||
-                          metadata.is_locked === true ||
-                          !isMetaApproved;
-                        return (
-                          <div className="space-y-4">
-                            {isMetaLocked && (
-                              <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 font-sans text-sm text-amber-800">
-                                {isLocked
-                                  ? "Metadata has been locked — no further changes can be made."
-                                  : isProofreaderPhase
-                                    ? "The proofreader owns this metadata while the proposal is in the Proofreader phase — this panel is read-only."
-                                    : "This metadata is read-only until the author finalises it."}
-                              </div>
-                            )}
-                            <div className="overflow-hidden rounded-xl border border-stone-200 bg-white">
-                              <MetaRow label="Title Full" value={metaForm.full_title} onChange={(v) => updateMetaField("full_title", v)} disabled={isMetaLocked} />
-                              <MetaRow
-                                label="Title"
-                                value={metaForm.title}
-                                onChange={(v) => updateMetaField("title", v)}
-                                disabled={isMetaLocked}
-                                hint={
-                                  latestContractForHeader?.title &&
-                                  latestContractForHeader.title !== metaForm.title
-                                    ? latestContractForHeader.title
-                                    : undefined
-                                }
-                              />
-                              <MetaRow
-                                label="Subtitle"
-                                value={metaForm.subtitle}
-                                onChange={(v) => updateMetaField("subtitle", v)}
-                                disabled={isMetaLocked}
-                                hint={
-                                  latestContractForHeader?.subtitle &&
-                                  latestContractForHeader.subtitle !== metaForm.subtitle
-                                    ? latestContractForHeader.subtitle
-                                    : undefined
-                                }
-                              />
-                              <MetaRow label="Category Auth/Ed" value={metaForm.category} onChange={(v) => updateMetaField("category", v)} disabled={isMetaLocked} />
-                              <MetaRow label="Display Names" value={metaForm.display_names} onChange={(v) => updateMetaField("display_names", v)} disabled={isMetaLocked} />
-                              <MetaRow label="Display Bios" value={metaForm.display_bios} onChange={(v) => updateMetaField("display_bios", v)} multiline disabled={isMetaLocked} />
-                              <MetaRow label="Book Description (Blurb)" value={metaForm.book_description} onChange={(v) => updateMetaField("book_description", v)} multiline disabled={isMetaLocked} />
-                              <MetaRow label="Keywords" value={metaForm.keywords} onChange={(v) => updateMetaField("keywords", v)} disabled={isMetaLocked} />
-                              <MetaRow label="Website Classification" value={metaForm.website_classification} onChange={(v) => updateMetaField("website_classification", v)} disabled={isMetaLocked} />
-                              <MetaRow label="BIC Codes" value={metaForm.bic} onChange={(v) => updateMetaField("bic", v)} disabled={isMetaLocked} />
-                              <div className="grid grid-cols-[220px_1fr] gap-0 border-t border-stone-200">
-                                <div className="flex items-center bg-stone-50/60 px-5 py-4 font-sans text-sm font-medium text-stone-700">
-                                  Cover Image
+                      {!metadataLoading &&
+                        !metadataError &&
+                        metadata &&
+                        (() => {
+                          const coverImg = metadata.cover_image;
+                          const coverUrl = coverImg?.url || coverImg?.s3_url;
+                          const canDeleteCover = isAdmin();
+                          const authorsList = metaForm.authors;
+                          const isMetaApproved =
+                            metadata.metadata_status === "approved" || !!metadata.approved_at;
+                          /**
+                           * Admin / DR can only edit metadata once the author has
+                           * finalised (approved) it — before that the proofreader
+                           * and author own the record.
+                           */
+                          const isMetaLocked =
+                            isLocked ||
+                            isProofreaderPhase ||
+                            metadata.is_locked === true ||
+                            !isMetaApproved;
+                          return (
+                            <div className="space-y-4">
+                              {isMetaLocked && (
+                                <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 font-sans text-sm text-amber-800">
+                                  {isLocked
+                                    ? "Metadata has been locked — no further changes can be made."
+                                    : isProofreaderPhase
+                                      ? "The proofreader owns this metadata while the proposal is in the Proofreader phase — this panel is read-only."
+                                      : "This metadata is read-only until the author finalises it."}
                                 </div>
-                                <div className="border-l border-stone-200 px-4 py-4">
-                                  {coverUrl ? (
-                                    <div className="flex flex-wrap items-start gap-4">
-                                      <img
-                                        src={coverUrl}
-                                        alt="Cover"
-                                        className="h-40 rounded-lg border border-stone-200 object-contain shadow-sm"
-                                      />
-                                      <div className="space-y-1 font-sans text-xs text-stone-600">
-                                        {coverImg?.filename && (
-                                          <p><span className="text-stone-400">File:</span> {coverImg.filename}</p>
-                                        )}
-                                        {(coverImg?.width_px || coverImg?.height_px) && (
-                                          <p>
-                                            <span className="text-stone-400">Dimensions:</span>{" "}
-                                            {coverImg?.width_px || "?"}×{coverImg?.height_px || "?"} px
-                                            {coverImg?.dpi ? ` · ${coverImg.dpi} dpi` : ""}
-                                          </p>
-                                        )}
-                                        {typeof coverImg?.file_size_bytes === "number" && (
-                                          <p>
-                                            <span className="text-stone-400">Size:</span>{" "}
-                                            {(coverImg.file_size_bytes / 1024 / 1024).toFixed(2)} MB
-                                          </p>
-                                        )}
-                                        {typeof coverImg?.version === "number" && (
-                                          <p><span className="text-stone-400">Version:</span> v{coverImg.version}</p>
-                                        )}
-                                        {coverImg?.source && (
-                                          <p><span className="text-stone-400">Source:</span> {coverImg.source}</p>
-                                        )}
-                                        {canDeleteCover && (
-                                          <button
-                                            type="button"
-                                            onClick={async () => {
-                                              if (!confirm("Remove the current cover image? This cannot be undone.")) return;
-                                              try {
-                                                await apiDeleteCoverImage(ticket);
-                                                setMetadata((prev) => prev ? { ...prev, cover_image: null } : prev);
-                                              } catch (e) {
-                                                alert((e as Error).message);
-                                              }
-                                            }}
-                                            className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-rose-200 bg-white px-3 py-1.5 font-sans text-xs font-semibold text-rose-700 hover:bg-rose-50"
-                                          >
-                                            Remove cover
-                                          </button>
-                                        )}
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    <div className="flex h-32 items-center justify-center rounded-lg border-2 border-dashed border-stone-300 px-4 font-sans text-xs text-stone-400">
-                                      No cover image uploaded
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-
-                              {authorsList.map((a, i) => (
-                                <div key={i}>
-                                  <div className="border-t border-stone-200 bg-emerald-700 px-5 py-3 font-sans text-xs font-bold uppercase tracking-[0.18em] text-white">
-                                    {authorsList.length > 1 ? `Primary Author(s) — ${i + 1}` : "Primary Author(s)"}
+                              )}
+                              <div className="overflow-hidden rounded-xl border border-stone-200 bg-white">
+                                <MetaRow
+                                  label="Title Full"
+                                  value={metaForm.full_title}
+                                  onChange={(v) => updateMetaField("full_title", v)}
+                                  disabled={isMetaLocked}
+                                />
+                                <MetaRow
+                                  label="Title"
+                                  value={metaForm.title}
+                                  onChange={(v) => updateMetaField("title", v)}
+                                  disabled={isMetaLocked}
+                                  hint={
+                                    latestContractForHeader?.title &&
+                                    latestContractForHeader.title !== metaForm.title
+                                      ? latestContractForHeader.title
+                                      : undefined
+                                  }
+                                />
+                                <MetaRow
+                                  label="Subtitle"
+                                  value={metaForm.subtitle}
+                                  onChange={(v) => updateMetaField("subtitle", v)}
+                                  disabled={isMetaLocked}
+                                  hint={
+                                    latestContractForHeader?.subtitle &&
+                                    latestContractForHeader.subtitle !== metaForm.subtitle
+                                      ? latestContractForHeader.subtitle
+                                      : undefined
+                                  }
+                                />
+                                <MetaRow
+                                  label="Category Auth/Ed"
+                                  value={metaForm.category}
+                                  onChange={(v) => updateMetaField("category", v)}
+                                  disabled={isMetaLocked}
+                                />
+                                <MetaRow
+                                  label="Display Names"
+                                  value={metaForm.display_names}
+                                  onChange={(v) => updateMetaField("display_names", v)}
+                                  disabled={isMetaLocked}
+                                />
+                                <MetaRow
+                                  label="Display Bios"
+                                  value={metaForm.display_bios}
+                                  onChange={(v) => updateMetaField("display_bios", v)}
+                                  multiline
+                                  disabled={isMetaLocked}
+                                />
+                                <MetaRow
+                                  label="Book Description (Blurb)"
+                                  value={metaForm.book_description}
+                                  onChange={(v) => updateMetaField("book_description", v)}
+                                  multiline
+                                  disabled={isMetaLocked}
+                                />
+                                <MetaRow
+                                  label="Keywords"
+                                  value={metaForm.keywords}
+                                  onChange={(v) => updateMetaField("keywords", v)}
+                                  disabled={isMetaLocked}
+                                />
+                                <MetaRow
+                                  label="Website Classification"
+                                  value={metaForm.website_classification}
+                                  onChange={(v) => updateMetaField("website_classification", v)}
+                                  disabled={isMetaLocked}
+                                />
+                                <MetaRow
+                                  label="BIC Codes"
+                                  value={metaForm.bic}
+                                  onChange={(v) => updateMetaField("bic", v)}
+                                  disabled={isMetaLocked}
+                                />
+                                <div className="grid grid-cols-[220px_1fr] gap-0 border-t border-stone-200">
+                                  <div className="flex items-center bg-stone-50/60 px-5 py-4 font-sans text-sm font-medium text-stone-700">
+                                    Cover Image
                                   </div>
-                                  <MetaRow label="Salutation" value={a.title || ""} onChange={(v) => updateMetaAuthor(i, "title", v)} disabled={isMetaLocked} />
-                                  <MetaRow label="First name" value={a.first_name || ""} onChange={(v) => updateMetaAuthor(i, "first_name", v)} disabled={isMetaLocked} />
-                                  <MetaRow label="Last name" value={a.last_name || ""} onChange={(v) => updateMetaAuthor(i, "last_name", v)} disabled={isMetaLocked} />
-                                  <MetaRow label="Email" value={a.email || ""} onChange={(v) => updateMetaAuthor(i, "email", v)} disabled={isMetaLocked} />
-                                  <MetaRow label="Email 2" value={a.email_2 || ""} onChange={(v) => updateMetaAuthor(i, "email_2", v)} disabled={isMetaLocked} />
-                                  <MetaRow label="Institution" value={a.institution || ""} onChange={(v) => updateMetaAuthor(i, "institution", v)} disabled={isMetaLocked} />
-                                  <MetaRow label="Country" value={a.country || ""} onChange={(v) => updateMetaAuthor(i, "country", v)} disabled={isMetaLocked} />
+                                  <div className="border-l border-stone-200 px-4 py-4">
+                                    {coverUrl ? (
+                                      <div className="flex flex-wrap items-start gap-4">
+                                        <img
+                                          src={coverUrl}
+                                          alt="Cover"
+                                          className="h-40 rounded-lg border border-stone-200 object-contain shadow-sm"
+                                        />
+                                        <div className="space-y-1 font-sans text-xs text-stone-600">
+                                          {coverImg?.filename && (
+                                            <p>
+                                              <span className="text-stone-400">File:</span>{" "}
+                                              {coverImg.filename}
+                                            </p>
+                                          )}
+                                          {(coverImg?.width_px || coverImg?.height_px) && (
+                                            <p>
+                                              <span className="text-stone-400">Dimensions:</span>{" "}
+                                              {coverImg?.width_px || "?"}×
+                                              {coverImg?.height_px || "?"} px
+                                              {coverImg?.dpi ? ` · ${coverImg.dpi} dpi` : ""}
+                                            </p>
+                                          )}
+                                          {typeof coverImg?.file_size_bytes === "number" && (
+                                            <p>
+                                              <span className="text-stone-400">Size:</span>{" "}
+                                              {(coverImg.file_size_bytes / 1024 / 1024).toFixed(2)}{" "}
+                                              MB
+                                            </p>
+                                          )}
+                                          {typeof coverImg?.version === "number" && (
+                                            <p>
+                                              <span className="text-stone-400">Version:</span> v
+                                              {coverImg.version}
+                                            </p>
+                                          )}
+                                          {coverImg?.source && (
+                                            <p>
+                                              <span className="text-stone-400">Source:</span>{" "}
+                                              {coverImg.source}
+                                            </p>
+                                          )}
+                                          {canDeleteCover && (
+                                            <button
+                                              type="button"
+                                              onClick={async () => {
+                                                if (
+                                                  !confirm(
+                                                    "Remove the current cover image? This cannot be undone.",
+                                                  )
+                                                )
+                                                  return;
+                                                try {
+                                                  await apiDeleteCoverImage(ticket);
+                                                  setMetadata((prev) =>
+                                                    prev ? { ...prev, cover_image: null } : prev,
+                                                  );
+                                                } catch (e) {
+                                                  alert((e as Error).message);
+                                                }
+                                              }}
+                                              className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-rose-200 bg-white px-3 py-1.5 font-sans text-xs font-semibold text-rose-700 hover:bg-rose-50"
+                                            >
+                                              Remove cover
+                                            </button>
+                                          )}
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div className="flex h-32 items-center justify-center rounded-lg border-2 border-dashed border-stone-300 px-4 font-sans text-xs text-stone-400">
+                                        No cover image uploaded
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
-                              ))}
-                            </div>
 
-                            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-stone-200 bg-stone-50 px-5 py-3">
-                              <div className="min-w-0 font-sans text-xs text-stone-600">
-                                {metaSaveError && (
-                                  <span className="text-rose-700">{metaSaveError}</span>
-                                )}
-                                {metaSendError && (
-                                  <span className="text-rose-700">{metaSendError}</span>
-                                )}
-                                {!metaSaveError && !metaSendError && metaSaveSuccess && (
-                                  <span className="text-emerald-700">{metaSaveSuccess}</span>
-                                )}
-                                {!metaSaveError && !metaSendError && metaSendSuccess && (
-                                  <span className="text-emerald-700">{metaSendSuccess}</span>
-                                )}
-                                {!metaSaveError && !metaSendError && !metaSaveSuccess && !metaSendSuccess && (
-                                  <span>Status: <strong className="text-stone-800">{metadata.metadata_status || "draft"}</strong></span>
-                                )}
+                                {authorsList.map((a, i) => (
+                                  <div key={i}>
+                                    <div className="border-t border-stone-200 bg-emerald-700 px-5 py-3 font-sans text-xs font-bold uppercase tracking-[0.18em] text-white">
+                                      {authorsList.length > 1
+                                        ? `Primary Author(s) — ${i + 1}`
+                                        : "Primary Author(s)"}
+                                    </div>
+                                    <MetaRow
+                                      label="Salutation"
+                                      value={a.title || ""}
+                                      onChange={(v) => updateMetaAuthor(i, "title", v)}
+                                      disabled={isMetaLocked}
+                                    />
+                                    <MetaRow
+                                      label="First name"
+                                      value={a.first_name || ""}
+                                      onChange={(v) => updateMetaAuthor(i, "first_name", v)}
+                                      disabled={isMetaLocked}
+                                    />
+                                    <MetaRow
+                                      label="Last name"
+                                      value={a.last_name || ""}
+                                      onChange={(v) => updateMetaAuthor(i, "last_name", v)}
+                                      disabled={isMetaLocked}
+                                    />
+                                    <MetaRow
+                                      label="Email"
+                                      value={a.email || ""}
+                                      onChange={(v) => updateMetaAuthor(i, "email", v)}
+                                      disabled={isMetaLocked}
+                                    />
+                                    <MetaRow
+                                      label="Email 2"
+                                      value={a.email_2 || ""}
+                                      onChange={(v) => updateMetaAuthor(i, "email_2", v)}
+                                      disabled={isMetaLocked}
+                                    />
+                                    <MetaRow
+                                      label="Institution"
+                                      value={a.institution || ""}
+                                      onChange={(v) => updateMetaAuthor(i, "institution", v)}
+                                      disabled={isMetaLocked}
+                                    />
+                                    <MetaRow
+                                      label="Country"
+                                      value={a.country || ""}
+                                      onChange={(v) => updateMetaAuthor(i, "country", v)}
+                                      disabled={isMetaLocked}
+                                    />
+                                  </div>
+                                ))}
                               </div>
-                              {/* Metadata compilation is owned by the proofreader until
+
+                              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-stone-200 bg-stone-50 px-5 py-3">
+                                <div className="min-w-0 font-sans text-xs text-stone-600">
+                                  {metaSaveError && (
+                                    <span className="text-rose-700">{metaSaveError}</span>
+                                  )}
+                                  {metaSendError && (
+                                    <span className="text-rose-700">{metaSendError}</span>
+                                  )}
+                                  {!metaSaveError && !metaSendError && metaSaveSuccess && (
+                                    <span className="text-emerald-700">{metaSaveSuccess}</span>
+                                  )}
+                                  {!metaSaveError && !metaSendError && metaSendSuccess && (
+                                    <span className="text-emerald-700">{metaSendSuccess}</span>
+                                  )}
+                                  {!metaSaveError &&
+                                    !metaSendError &&
+                                    !metaSaveSuccess &&
+                                    !metaSendSuccess && (
+                                      <span>
+                                        Status:{" "}
+                                        <strong className="text-stone-800">
+                                          {metadata.metadata_status || "draft"}
+                                        </strong>
+                                      </span>
+                                    )}
+                                </div>
+                                {/* Metadata compilation is owned by the proofreader until
                                   the author finalises it — after approval admin / DR
                                   can edit and save drafts. */}
-                              {!isMetaLocked && (
-                                <button
-                                  type="button"
-                                  onClick={saveMetadataDraft}
-                                  disabled={metaSaving}
-                                  className="inline-flex items-center gap-2 rounded-lg border border-stone-300 bg-white px-4 py-2 font-sans text-sm font-semibold text-stone-800 shadow-sm hover:bg-stone-50 disabled:opacity-60"
-                                >
-                                  {metaSaving ? "Saving…" : "Save Draft"}
-                                </button>
-                              )}
+                                {!isMetaLocked && (
+                                  <button
+                                    type="button"
+                                    onClick={saveMetadataDraft}
+                                    disabled={metaSaving}
+                                    className="inline-flex items-center gap-2 rounded-lg border border-stone-300 bg-white px-4 py-2 font-sans text-sm font-semibold text-stone-800 shadow-sm hover:bg-stone-50 disabled:opacity-60"
+                                  >
+                                    {metaSaving ? "Saving…" : "Save Draft"}
+                                  </button>
+                                )}
+                              </div>
                             </div>
-
-                          </div>
-                        );
-                      })()}
+                          );
+                        })()}
                     </div>
                   </Card>
                 )}
@@ -2590,19 +2672,19 @@ function ProposalDetailPage() {
                             isContractExpired
                               ? "bg-amber-50 text-amber-700 ring-amber-200"
                               : (latestContract?.status || "").toLowerCase() === "signed"
-                              ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
-                              : (latestContract?.status || "").toLowerCase() === "declined"
-                                ? "bg-rose-50 text-rose-700 ring-rose-200"
-                                : "bg-violet-50 text-violet-700 ring-violet-200"
+                                ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                                : (latestContract?.status || "").toLowerCase() === "declined"
+                                  ? "bg-rose-50 text-rose-700 ring-rose-200"
+                                  : "bg-violet-50 text-violet-700 ring-violet-200"
                           }`}
                         >
                           {isContractExpired
                             ? "Expired"
                             : (latestContract?.status || "").toLowerCase() === "signed"
-                            ? "Signed"
-                            : (latestContract?.status || "").toLowerCase() === "declined"
-                              ? "Declined"
-                              : "Awaiting Signature"}
+                              ? "Signed"
+                              : (latestContract?.status || "").toLowerCase() === "declined"
+                                ? "Declined"
+                                : "Awaiting Signature"}
                         </span>
                       </div>
                       <div className="px-6 py-6">
@@ -2653,16 +2735,12 @@ function ProposalDetailPage() {
                           {latestContract && (
                             <dl className="mt-8 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
                               <ContractField label="Status">
-                                {(latestContract.status || "—")
-                                  .charAt(0)
-                                  .toUpperCase() +
+                                {(latestContract.status || "—").charAt(0).toUpperCase() +
                                   (latestContract.status || "").slice(1)}
                               </ContractField>
                               <ContractField label="Contract Type">
                                 {latestContract.contract_type
-                                  ? latestContract.contract_type
-                                      .charAt(0)
-                                      .toUpperCase() +
+                                  ? latestContract.contract_type.charAt(0).toUpperCase() +
                                     latestContract.contract_type.slice(1)
                                   : "—"}
                               </ContractField>
@@ -2682,6 +2760,12 @@ function ProposalDetailPage() {
                                   ? formatDate(latestContract.docusign_sent_at)
                                   : "—"}
                               </ContractField>
+                              {isPostContractStatus(data?.status) && (
+                                <ContractField label="Manuscript Submission Deadline">
+                                  {formatMsSubmissionDeadline(data?.ms_submission_deadline)}
+                                </ContractField>
+                              )}
+
                               {latestContract.docusign_completed_at && (
                                 <ContractField label="Completed">
                                   {formatDate(latestContract.docusign_completed_at)}
@@ -2702,9 +2786,7 @@ function ProposalDetailPage() {
                           )}
                           <div className="mt-10 grid grid-cols-2 gap-8 pt-4 font-sans text-xs text-stone-500">
                             <div className="border-t border-stone-300 pt-2">Publisher</div>
-                            <div className="border-t border-stone-300 pt-2 text-right">
-                              Author
-                            </div>
+                            <div className="border-t border-stone-300 pt-2 text-right">Author</div>
                           </div>
                         </div>
                         <p className="mt-4 text-center font-sans text-xs text-stone-500">
@@ -2726,18 +2808,20 @@ function ProposalDetailPage() {
                       </div>
                     </Card>
 
-
                     {/* Contract Queries — moved from right sidebar */}
-                    {contracts.length > 0 && !hasOpenQuery && contractResendPrompt !== "prompt" && contractResendPrompt !== "skip" && (
-                      <ContractQueries
-                        ticket={ticket}
-                        viewer="dr"
-                        collapsible
-                        defaultOpen={contractQueriesOpen}
-                        onOpenChange={setContractQueriesOpen}
-                        onChanged={() => setContractsReloadKey((k) => k + 1)}
-                      />
-                    )}
+                    {contracts.length > 0 &&
+                      !hasOpenQuery &&
+                      contractResendPrompt !== "prompt" &&
+                      contractResendPrompt !== "skip" && (
+                        <ContractQueries
+                          ticket={ticket}
+                          viewer="dr"
+                          collapsible
+                          defaultOpen={contractQueriesOpen}
+                          onOpenChange={setContractQueriesOpen}
+                          onChanged={() => setContractsReloadKey((k) => k + 1)}
+                        />
+                      )}
 
                     {/* Peer + Decision Reviewer feedback (collapsible) */}
                     {peerReview && (
@@ -2756,71 +2840,67 @@ function ProposalDetailPage() {
                     {/* Author Question — prominent DR response panel */}
                     {hasOpenQuery && openQuery && (
                       <div ref={authorQuestionRef} className="scroll-mt-24">
-                      <Card>
-                        <div className="rounded-t-2xl border-b border-teal-200 bg-teal-50/70 px-6 py-4">
-                          <h2 className="flex items-center gap-2 font-serif text-base font-bold text-stone-900">
-                            <MessageSquare className="h-4 w-4 text-teal-700" />
-                            Author Question
-                          </h2>
-                          <p className="mt-0.5 font-sans text-sm text-teal-800/80">
-                            Awaiting your response before the author can sign
-                          </p>
-                        </div>
-                        <div className="space-y-4 px-6 py-5">
-                          <div className="rounded-xl border border-teal-200 bg-teal-50/40 px-4 py-3">
-                            <div className="flex items-center justify-between gap-3">
-                              <p className="font-sans text-xs font-semibold uppercase tracking-[0.12em] text-teal-800">
-                                Author's question
-                                {openQuery.raised_by_name
-                                  ? ` · ${openQuery.raised_by_name}`
-                                  : openQuery.raised_by
-                                    ? ` · ${displayNameFromEmail(openQuery.raised_by)}`
-                                    : ""}
-                              </p>
-                              <p className="font-sans text-xs text-stone-500">
-                                {formatDate(openQuery.created_at)}
-                              </p>
-                            </div>
-                            <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-800">
-                              {openQuery.text}
+                        <Card>
+                          <div className="rounded-t-2xl border-b border-teal-200 bg-teal-50/70 px-6 py-4">
+                            <h2 className="flex items-center gap-2 font-serif text-base font-bold text-stone-900">
+                              <MessageSquare className="h-4 w-4 text-teal-700" />
+                              Author Question
+                            </h2>
+                            <p className="mt-0.5 font-sans text-sm text-teal-800/80">
+                              Awaiting your response before the author can sign
                             </p>
                           </div>
+                          <div className="space-y-4 px-6 py-5">
+                            <div className="rounded-xl border border-teal-200 bg-teal-50/40 px-4 py-3">
+                              <div className="flex items-center justify-between gap-3">
+                                <p className="font-sans text-xs font-semibold uppercase tracking-[0.12em] text-teal-800">
+                                  Author's question
+                                  {openQuery.raised_by_name
+                                    ? ` · ${openQuery.raised_by_name}`
+                                    : openQuery.raised_by
+                                      ? ` · ${displayNameFromEmail(openQuery.raised_by)}`
+                                      : ""}
+                                </p>
+                                <p className="font-sans text-xs text-stone-500">
+                                  {formatDate(openQuery.created_at)}
+                                </p>
+                              </div>
+                              <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-800">
+                                {openQuery.text}
+                              </p>
+                            </div>
 
-                          <form onSubmit={submitQueryResponse} className="space-y-3">
-                            <label className="block font-sans text-sm font-semibold text-stone-800">
-                              Your response
-                            </label>
-                            <textarea
-                              value={queryResponseText}
-                              onChange={(e) => setQueryResponseText(e.target.value)}
-                              rows={5}
-                              placeholder="Reply to the author's question…"
-                              className="w-full resize-none rounded-xl border border-stone-200 bg-white px-3.5 py-3 font-sans text-sm text-stone-800 placeholder:text-stone-400 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100"
-                            />
-                            {queryResponseError && (
-                              <p className="rounded-lg bg-rose-50 px-3 py-2 font-sans text-xs text-rose-700 ring-1 ring-rose-200">
-                                {queryResponseError}
-                              </p>
-                            )}
-                            {queryResponseSuccess && (
-                              <p className="rounded-lg bg-emerald-50 px-3 py-2 font-sans text-xs text-emerald-700 ring-1 ring-emerald-200">
-                                {queryResponseSuccess}
-                              </p>
-                            )}
-                            <button
-                              type="submit"
-                              disabled={
-                                queryResponseSubmitting || !queryResponseText.trim()
-                              }
-                              className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-5 py-2.5 font-sans text-sm font-semibold text-white shadow-sm hover:bg-teal-800 disabled:opacity-50"
-                            >
-                              {queryResponseSubmitting
-                                ? "Sending…"
-                                : "Send Response"}
-                            </button>
-                          </form>
-                        </div>
-                      </Card>
+                            <form onSubmit={submitQueryResponse} className="space-y-3">
+                              <label className="block font-sans text-sm font-semibold text-stone-800">
+                                Your response
+                              </label>
+                              <textarea
+                                value={queryResponseText}
+                                onChange={(e) => setQueryResponseText(e.target.value)}
+                                rows={5}
+                                placeholder="Reply to the author's question…"
+                                className="w-full resize-none rounded-xl border border-stone-200 bg-white px-3.5 py-3 font-sans text-sm text-stone-800 placeholder:text-stone-400 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100"
+                              />
+                              {queryResponseError && (
+                                <p className="rounded-lg bg-rose-50 px-3 py-2 font-sans text-xs text-rose-700 ring-1 ring-rose-200">
+                                  {queryResponseError}
+                                </p>
+                              )}
+                              {queryResponseSuccess && (
+                                <p className="rounded-lg bg-emerald-50 px-3 py-2 font-sans text-xs text-emerald-700 ring-1 ring-emerald-200">
+                                  {queryResponseSuccess}
+                                </p>
+                              )}
+                              <button
+                                type="submit"
+                                disabled={queryResponseSubmitting || !queryResponseText.trim()}
+                                className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-5 py-2.5 font-sans text-sm font-semibold text-white shadow-sm hover:bg-teal-800 disabled:opacity-50"
+                              >
+                                {queryResponseSubmitting ? "Sending…" : "Send Response"}
+                              </button>
+                            </form>
+                          </div>
+                        </Card>
                       </div>
                     )}
 
@@ -2842,7 +2922,6 @@ function ProposalDetailPage() {
                   </>
                 )}
 
-
                 {isReviewReturned && !isContractIssued && (
                   <>
                     {/* Review Returned hero */}
@@ -2854,14 +2933,13 @@ function ProposalDetailPage() {
                           </h2>
                           <p className="mt-0.5 font-sans text-xs text-indigo-600">
                             <span>{reviewerDisplayName}</span>
-                            {reviewerInstitution && (
-                              <span> · {reviewerInstitution}</span>
-                            )}
+                            {reviewerInstitution && <span> · {reviewerInstitution}</span>}
                           </p>
                         </div>
                         {reviewRecommendation && (
                           <span className="inline-flex items-center rounded-full border border-amber-300 bg-amber-100 px-3 py-1 font-sans text-xs font-semibold text-amber-800">
-                            Recommended: {RECOMMENDATION_LABELS[reviewRecommendation] || reviewRecommendation}
+                            Recommended:{" "}
+                            {RECOMMENDATION_LABELS[reviewRecommendation] || reviewRecommendation}
                           </span>
                         )}
                       </div>
@@ -2899,9 +2977,7 @@ function ProposalDetailPage() {
                             </div>
                             <textarea
                               value={c.body}
-                              onChange={(e) =>
-                                updateComment(c.id, { body: e.target.value })
-                              }
+                              onChange={(e) => updateComment(c.id, { body: e.target.value })}
                               rows={3}
                               placeholder="Comment…"
                               className="mt-3 w-full resize-y rounded-lg border border-stone-200 bg-white px-3 py-2.5 font-sans text-sm leading-relaxed text-stone-800 placeholder:text-stone-400 focus:border-stone-400 focus:outline-none"
@@ -2953,7 +3029,6 @@ function ProposalDetailPage() {
                       </div>
                     </Card>
 
-
                     {/* Send Review to Author */}
 
                     {/* Collapsible toggle for original proposal */}
@@ -2976,319 +3051,342 @@ function ProposalDetailPage() {
 
                 {((!isReviewReturned && !isContractIssued) || originalOpen) && (
                   <>
-                <div className="space-y-6 rounded-3xl border border-stone-200 bg-white p-4 sm:p-5">
-                {/* Primary Author */}
-                <Card>
-                  <div className="flex flex-wrap items-start justify-between gap-6 px-7 pt-6">
-                    <div>
-                      <h2 className="font-serif text-xl font-bold text-stone-900">
-                        Primary Author / Editor
-                      </h2>
-                      <p className="mt-1 font-sans text-sm text-stone-500">
-                        Institutional affiliation and contact
-                      </p>
-                    </div>
-                    <div className="flex gap-10 font-sans text-sm">
-                      {cd.book_type && (
-                        <Stat label="Type" value={cd.book_type} />
-                      )}
-                      {cd.word_count && (
-                        <Stat label="Words" value={formatNumber(cd.word_count)} />
-                      )}
-                      {cd.expected_completion_date && (
-                        <Stat label="Completion" value={cd.expected_completion_date} />
-                      )}
-                    </div>
-                  </div>
-                  <Divider />
-                  <div className="grid grid-cols-1 gap-6 px-7 py-6 md:grid-cols-3">
-                    <DataField label="Name" value={cd.corresponding_author_name} />
-                    <DataField label="Email" value={cd.email} />
-                    <DataField label="Institution" value={cd.institution} />
-                    <DataField label="Country" value={cd.country} />
-                  </div>
-                  {(cd.address || cd.address_line_1 || cd.city || cd.state || cd.postal_code || cd.country) && (
-                    <>
-                      <Divider />
-                      <div className="px-7 py-6">
-                        <SectionLabel>Mailing Address</SectionLabel>
-                        <p className="mt-2 font-sans text-sm text-stone-800">
-                          {[
-                            cd.address_line_1,
-                            cd.address_line_2,
-                            cd.city,
-                            cd.state,
-                            cd.postal_code,
-                            cd.country,
-                          ]
-                            .filter(Boolean)
-                            .join(", ") || cd.address}
-                        </p>
-                      </div>
-                    </>
-                  )}
-                  {cd.biography && (
-                    <>
-                      <Divider />
-                      <div className="px-7 py-6">
-                        <SectionLabel>Biography</SectionLabel>
-                        <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-800">
-                          {cd.biography}
-                        </p>
-                      </div>
-                    </>
-                  )}
-                </Card>
-
-                {/* Additional Authors */}
-                {(Array.isArray(rawCd.co_authors) && (rawCd.co_authors as unknown[]).length > 0) ? (
-                  <Card>
-                    <CardHeader
-                      title="Co-authors / Editors / Contributors / Translators"
-                      subtitle="Additional contributors listed on the proposal"
-                    />
-                    <ul className="divide-y divide-stone-200">
-                      {(rawCd.co_authors as Array<Record<string, unknown>>).map((c, i) => {
-                        const name =
-                          [c.firstName || c.first_name, c.lastName || c.last_name]
-                            .filter(Boolean)
-                            .join(" ")
-                            .trim() || (c.name as string) || `Contributor ${i + 1}`;
-                        return (
-                          <li key={i} className="grid grid-cols-1 gap-4 px-7 py-5 sm:grid-cols-4">
-                            <DataField label="Role" value={(c.role as string) || "—"} />
-                            <DataField label="Name" value={name} />
-                            <DataField label="Email" value={(c.email as string) || undefined} />
-                            <DataField
-                              label="Affiliation"
-                              value={(c.institution || c.affiliation) as string | undefined}
-                            />
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </Card>
-                ) : cd.co_authors_editors ? (
-                  <Card>
-                    <CardHeader
-                      title="Additional Authors / Editors"
-                      subtitle="Co-authors and contributors"
-                    />
-                    <div className="px-7 py-6">
-                      <p className="whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
-                        {cd.co_authors_editors}
-                      </p>
-                    </div>
-                  </Card>
-                ) : null}
-
-                {/* Manuscript Details */}
-                <Card>
-                  <CardHeader title="Manuscript Details" />
-                  <div className="grid grid-cols-2 gap-6 px-7 py-6 sm:grid-cols-3">
-                    <Stat label="Word Count" value={formatNumber(cd.word_count) || "—"} large />
-                    <Stat
-                      label="illustrations/figures/tables"
-                      value={formatNumber(cd.illustration_count) || "—"}
-                      large
-                    />
-                    <Stat
-                      label="Languages"
-                      value={cd.languages_used || "—"}
-                      large
-                    />
-                    <Stat
-                      label="Est. Completion"
-                      value={cd.expected_completion_date || "—"}
-                      large
-                    />
-                    <Stat
-                      label="Subject"
-                      value={cd.subject || "—"}
-                      large
-                    />
-                  </div>
-                  {(cd.intended_audience || cd.manuscript_stage || cd.under_review_elsewhere) && (
-                    <div className="flex flex-col gap-5 border-t border-stone-200 px-7 py-6">
-                      <DataField label="Intended Audience" value={cd.intended_audience} multiline />
-                      <DataField label="Manuscript Stage" value={cd.manuscript_stage} />
-                      <DataField
-                        label="Under Review Elsewhere"
-                        value={cd.under_review_elsewhere}
-                      />
-                    </div>
-                  )}
-                </Card>
-
-                {/* Summary & Description */}
-                {(cd.short_description || cd.detailed_description || keywords.length > 0) && (
-                  <Card>
-                    <CardHeader
-                      title="Summary & Description"
-                      subtitle="Overview, key features and audience"
-                    />
-                    <div className="space-y-6 px-7 py-6">
-                      {cd.short_description && (
-                        <div>
-                          <SectionLabel>Overview</SectionLabel>
-                          <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
-                            {cd.short_description}
-                          </p>
-                          {keywords.length > 0 && (
-                            <div className="mt-4 flex flex-wrap gap-2">
-                              {keywords.map((k) => (
-                                <span
-                                  key={k}
-                                  className="inline-flex rounded-full bg-amber-50 px-3 py-1 font-sans text-xs font-medium text-amber-800 ring-1 ring-amber-200"
-                                >
-                                  {k}
-                                </span>
-                              ))}
+                    <div className="space-y-6 rounded-3xl border border-stone-200 bg-white p-4 sm:p-5">
+                      {/* Primary Author */}
+                      <Card>
+                        <div className="flex flex-wrap items-start justify-between gap-6 px-7 pt-6">
+                          <div>
+                            <h2 className="font-serif text-xl font-bold text-stone-900">
+                              Primary Author / Editor
+                            </h2>
+                            <p className="mt-1 font-sans text-sm text-stone-500">
+                              Institutional affiliation and contact
+                            </p>
+                          </div>
+                          <div className="flex gap-10 font-sans text-sm">
+                            {cd.book_type && <Stat label="Type" value={cd.book_type} />}
+                            {cd.word_count && (
+                              <Stat label="Words" value={formatNumber(cd.word_count)} />
+                            )}
+                            {cd.expected_completion_date && (
+                              <Stat label="Completion" value={cd.expected_completion_date} />
+                            )}
+                          </div>
+                        </div>
+                        <Divider />
+                        <div className="grid grid-cols-1 gap-6 px-7 py-6 md:grid-cols-3">
+                          <DataField label="Name" value={cd.corresponding_author_name} />
+                          <DataField label="Email" value={cd.email} />
+                          <DataField label="Institution" value={cd.institution} />
+                          <DataField label="Country" value={cd.country} />
+                        </div>
+                        {(cd.address ||
+                          cd.address_line_1 ||
+                          cd.city ||
+                          cd.state ||
+                          cd.postal_code ||
+                          cd.country) && (
+                          <>
+                            <Divider />
+                            <div className="px-7 py-6">
+                              <SectionLabel>Mailing Address</SectionLabel>
+                              <p className="mt-2 font-sans text-sm text-stone-800">
+                                {[
+                                  cd.address_line_1,
+                                  cd.address_line_2,
+                                  cd.city,
+                                  cd.state,
+                                  cd.postal_code,
+                                  cd.country,
+                                ]
+                                  .filter(Boolean)
+                                  .join(", ") || cd.address}
+                              </p>
                             </div>
-                          )}
-                        </div>
-                      )}
-                      {cd.detailed_description && (
-                        <div className="-mx-7 border-t border-stone-300 px-7 pt-5">
-                          <SectionLabel>Key Features & Unique Contribution</SectionLabel>
-                          <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
-                            {cd.detailed_description}
-                          </p>
-                        </div>
-                      )}
-                      {cd.key_features && cd.key_features !== cd.detailed_description && (
-                        <div className="-mx-7 border-t border-stone-300 px-7 pt-5">
-                          <SectionLabel>Key Features / Selling Points</SectionLabel>
-                          <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
-                            {cd.key_features}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </Card>
-                )}
-
-                {/* Table of Contents */}
-                {tocItems.length > 0 && (
-                  <Card>
-                    <CardHeader
-                      title="Table of Contents"
-                      subtitle="Is this coherently planned?"
-                    />
-                    <div className="px-7 py-6">
-                      <ol className="space-y-3 rounded-xl bg-stone-50 px-6 py-5 font-sans text-sm text-stone-800">
-                        {tocItems.map((item, i) => (
-                          <li key={`${i}-${item}`} className="flex gap-3">
-                            <span className="text-stone-500">{i + 1}.</span>
-                            <span>{item}</span>
-                          </li>
-                        ))}
-                      </ol>
-                    </div>
-                  </Card>
-                )}
-
-                {/* Market & Competition */}
-                {(cd.competing_titles || cd.unique_contribution || cd.primary_market || cd.conferences || cd.promotional_channels || cd.marketing_info) && (
-                  <Card>
-                    <CardHeader
-                      title="Marketing & Promotion"
-                      subtitle="Market positioning, competition and promotion plan"
-                    />
-                    <div className="space-y-5 px-7 py-6">
-                      {cd.primary_market && (
-                        <DataField label="Primary Market" value={cd.primary_market} />
-                      )}
-                      {cd.competing_titles && (
-                        <DataField label="Competing Titles" value={cd.competing_titles} multiline />
-                      )}
-                      {cd.unique_contribution && (
-                        <DataField
-                          label="Unique Contribution vs Competing Titles"
-                          value={cd.unique_contribution}
-                          multiline
-                        />
-                      )}
-                      {cd.conferences && (
-                        <DataField
-                          label="Relevant Conferences / Academic Events"
-                          value={cd.conferences}
-                          multiline
-                        />
-                      )}
-                      {cd.promotional_channels && (
-                        <DataField
-                          label="Promotional Channels"
-                          value={cd.promotional_channels}
-                          multiline
-                        />
-                      )}
-                      {cd.marketing_info &&
-                        cd.marketing_info !== cd.competing_titles &&
-                        cd.marketing_info !== cd.primary_market && (
-                          <DataField
-                            label="Additional Marketing Notes"
-                            value={cd.marketing_info}
-                            multiline
-                          />
+                          </>
                         )}
-                    </div>
-                  </Card>
-                )}
+                        {cd.biography && (
+                          <>
+                            <Divider />
+                            <div className="px-7 py-6">
+                              <SectionLabel>Biography</SectionLabel>
+                              <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-800">
+                                {cd.biography}
+                              </p>
+                            </div>
+                          </>
+                        )}
+                      </Card>
 
-                {/* Author-Suggested Reviewers */}
-                {suggestedReviewers.length > 0 && (
-                  <Card>
-                    <CardHeader
-                      title="Author-Suggested Reviewers"
-                      subtitle="Nominated by the author — for consideration only"
-                    />
-                    <ol className="divide-y divide-stone-100 px-2 py-2">
-                      {suggestedReviewers.map((r, i) => (
-                        <li key={`${i}-${r}`} className="flex gap-5 px-5 py-4">
-                          <span className="font-sans text-sm font-medium text-stone-500">
-                            {i + 1}.
-                          </span>
-                          <p className="whitespace-pre-line font-sans text-sm text-stone-800">
-                            {r}
-                          </p>
-                        </li>
-                      ))}
-                    </ol>
-                  </Card>
-                )}
+                      {/* Additional Authors */}
+                      {Array.isArray(rawCd.co_authors) &&
+                      (rawCd.co_authors as unknown[]).length > 0 ? (
+                        <Card>
+                          <CardHeader
+                            title="Co-authors / Editors / Contributors / Translators"
+                            subtitle="Additional contributors listed on the proposal"
+                          />
+                          <ul className="divide-y divide-stone-200">
+                            {(rawCd.co_authors as Array<Record<string, unknown>>).map((c, i) => {
+                              const name =
+                                [c.firstName || c.first_name, c.lastName || c.last_name]
+                                  .filter(Boolean)
+                                  .join(" ")
+                                  .trim() ||
+                                (c.name as string) ||
+                                `Contributor ${i + 1}`;
+                              return (
+                                <li
+                                  key={i}
+                                  className="grid grid-cols-1 gap-4 px-7 py-5 sm:grid-cols-4"
+                                >
+                                  <DataField label="Role" value={(c.role as string) || "—"} />
+                                  <DataField label="Name" value={name} />
+                                  <DataField
+                                    label="Email"
+                                    value={(c.email as string) || undefined}
+                                  />
+                                  <DataField
+                                    label="Affiliation"
+                                    value={(c.institution || c.affiliation) as string | undefined}
+                                  />
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </Card>
+                      ) : cd.co_authors_editors ? (
+                        <Card>
+                          <CardHeader
+                            title="Additional Authors / Editors"
+                            subtitle="Co-authors and contributors"
+                          />
+                          <div className="px-7 py-6">
+                            <p className="whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
+                              {cd.co_authors_editors}
+                            </p>
+                          </div>
+                        </Card>
+                      ) : null}
 
-                {/* Additional Notes */}
-                {(cd.additional_info || cd.additional_notes || cd.permissions_required) && (
-                  <Card>
-                    <CardHeader
-                      title="Additional Comments & Permissions"
-                      subtitle="Copyright, permissions, special considerations"
-                    />
-                    <div className="space-y-4 px-7 py-6">
-                      {cd.additional_notes && (
-                        <DataField
-                          label="Additional Notes from Author"
-                          value={cd.additional_notes}
-                          multiline
-                        />
+                      {/* Manuscript Details */}
+                      <Card>
+                        <CardHeader title="Manuscript Details" />
+                        <div className="grid grid-cols-2 gap-6 px-7 py-6 sm:grid-cols-3">
+                          <Stat
+                            label="Word Count"
+                            value={formatNumber(cd.word_count) || "—"}
+                            large
+                          />
+                          <Stat
+                            label="illustrations/figures/tables"
+                            value={formatNumber(cd.illustration_count) || "—"}
+                            large
+                          />
+                          <Stat label="Languages" value={cd.languages_used || "—"} large />
+                          <Stat
+                            label="Est. Completion"
+                            value={cd.expected_completion_date || "—"}
+                            large
+                          />
+                          <Stat label="Subject" value={cd.subject || "—"} large />
+                        </div>
+                        {(cd.intended_audience ||
+                          cd.manuscript_stage ||
+                          cd.under_review_elsewhere) && (
+                          <div className="flex flex-col gap-5 border-t border-stone-200 px-7 py-6">
+                            <DataField
+                              label="Intended Audience"
+                              value={cd.intended_audience}
+                              multiline
+                            />
+                            <DataField label="Manuscript Stage" value={cd.manuscript_stage} />
+                            <DataField
+                              label="Under Review Elsewhere"
+                              value={cd.under_review_elsewhere}
+                            />
+                          </div>
+                        )}
+                      </Card>
+
+                      {/* Summary & Description */}
+                      {(cd.short_description || cd.detailed_description || keywords.length > 0) && (
+                        <Card>
+                          <CardHeader
+                            title="Summary & Description"
+                            subtitle="Overview, key features and audience"
+                          />
+                          <div className="space-y-6 px-7 py-6">
+                            {cd.short_description && (
+                              <div>
+                                <SectionLabel>Overview</SectionLabel>
+                                <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
+                                  {cd.short_description}
+                                </p>
+                                {keywords.length > 0 && (
+                                  <div className="mt-4 flex flex-wrap gap-2">
+                                    {keywords.map((k) => (
+                                      <span
+                                        key={k}
+                                        className="inline-flex rounded-full bg-amber-50 px-3 py-1 font-sans text-xs font-medium text-amber-800 ring-1 ring-amber-200"
+                                      >
+                                        {k}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            {cd.detailed_description && (
+                              <div className="-mx-7 border-t border-stone-300 px-7 pt-5">
+                                <SectionLabel>Key Features & Unique Contribution</SectionLabel>
+                                <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
+                                  {cd.detailed_description}
+                                </p>
+                              </div>
+                            )}
+                            {cd.key_features && cd.key_features !== cd.detailed_description && (
+                              <div className="-mx-7 border-t border-stone-300 px-7 pt-5">
+                                <SectionLabel>Key Features / Selling Points</SectionLabel>
+                                <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
+                                  {cd.key_features}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </Card>
                       )}
-                      {cd.additional_info && (
-                        <p className="whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
-                          {cd.additional_info}
-                        </p>
+
+                      {/* Table of Contents */}
+                      {tocItems.length > 0 && (
+                        <Card>
+                          <CardHeader
+                            title="Table of Contents"
+                            subtitle="Is this coherently planned?"
+                          />
+                          <div className="px-7 py-6">
+                            <ol className="space-y-3 rounded-xl bg-stone-50 px-6 py-5 font-sans text-sm text-stone-800">
+                              {tocItems.map((item, i) => (
+                                <li key={`${i}-${item}`} className="flex gap-3">
+                                  <span className="text-stone-500">{i + 1}.</span>
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                            </ol>
+                          </div>
+                        </Card>
                       )}
-                      {cd.permissions_required && (
-                        <DataField
-                          label="Permissions Required from Copyright Holders"
-                          value={cd.permissions_required}
-                          multiline
-                        />
+
+                      {/* Market & Competition */}
+                      {(cd.competing_titles ||
+                        cd.unique_contribution ||
+                        cd.primary_market ||
+                        cd.conferences ||
+                        cd.promotional_channels ||
+                        cd.marketing_info) && (
+                        <Card>
+                          <CardHeader
+                            title="Marketing & Promotion"
+                            subtitle="Market positioning, competition and promotion plan"
+                          />
+                          <div className="space-y-5 px-7 py-6">
+                            {cd.primary_market && (
+                              <DataField label="Primary Market" value={cd.primary_market} />
+                            )}
+                            {cd.competing_titles && (
+                              <DataField
+                                label="Competing Titles"
+                                value={cd.competing_titles}
+                                multiline
+                              />
+                            )}
+                            {cd.unique_contribution && (
+                              <DataField
+                                label="Unique Contribution vs Competing Titles"
+                                value={cd.unique_contribution}
+                                multiline
+                              />
+                            )}
+                            {cd.conferences && (
+                              <DataField
+                                label="Relevant Conferences / Academic Events"
+                                value={cd.conferences}
+                                multiline
+                              />
+                            )}
+                            {cd.promotional_channels && (
+                              <DataField
+                                label="Promotional Channels"
+                                value={cd.promotional_channels}
+                                multiline
+                              />
+                            )}
+                            {cd.marketing_info &&
+                              cd.marketing_info !== cd.competing_titles &&
+                              cd.marketing_info !== cd.primary_market && (
+                                <DataField
+                                  label="Additional Marketing Notes"
+                                  value={cd.marketing_info}
+                                  multiline
+                                />
+                              )}
+                          </div>
+                        </Card>
+                      )}
+
+                      {/* Author-Suggested Reviewers */}
+                      {suggestedReviewers.length > 0 && (
+                        <Card>
+                          <CardHeader
+                            title="Author-Suggested Reviewers"
+                            subtitle="Nominated by the author — for consideration only"
+                          />
+                          <ol className="divide-y divide-stone-100 px-2 py-2">
+                            {suggestedReviewers.map((r, i) => (
+                              <li key={`${i}-${r}`} className="flex gap-5 px-5 py-4">
+                                <span className="font-sans text-sm font-medium text-stone-500">
+                                  {i + 1}.
+                                </span>
+                                <p className="whitespace-pre-line font-sans text-sm text-stone-800">
+                                  {r}
+                                </p>
+                              </li>
+                            ))}
+                          </ol>
+                        </Card>
+                      )}
+
+                      {/* Additional Notes */}
+                      {(cd.additional_info || cd.additional_notes || cd.permissions_required) && (
+                        <Card>
+                          <CardHeader
+                            title="Additional Comments & Permissions"
+                            subtitle="Copyright, permissions, special considerations"
+                          />
+                          <div className="space-y-4 px-7 py-6">
+                            {cd.additional_notes && (
+                              <DataField
+                                label="Additional Notes from Author"
+                                value={cd.additional_notes}
+                                multiline
+                              />
+                            )}
+                            {cd.additional_info && (
+                              <p className="whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
+                                {cd.additional_info}
+                              </p>
+                            )}
+                            {cd.permissions_required && (
+                              <DataField
+                                label="Permissions Required from Copyright Holders"
+                                value={cd.permissions_required}
+                                multiline
+                              />
+                            )}
+                          </div>
+                        </Card>
                       )}
                     </div>
-                  </Card>
-                )}
-                </div>
                   </>
                 )}
 
@@ -3317,7 +3415,9 @@ function ProposalDetailPage() {
                                 {doc.url && (
                                   <button
                                     type="button"
-                                    onClick={() => setPreviewDoc({ url: doc.url!, filename: doc.filename })}
+                                    onClick={() =>
+                                      setPreviewDoc({ url: doc.url!, filename: doc.filename })
+                                    }
                                     className="mt-0.5 shrink-0 rounded-md p-1 text-stone-500 hover:bg-stone-100 hover:text-stone-800"
                                     title="Preview document"
                                   >
@@ -3342,7 +3442,9 @@ function ProposalDetailPage() {
                                   )}
                                   {(doc.label || doc.size_bytes) && (
                                     <p className="mt-1 font-sans text-xs text-stone-500">
-                                      {[doc.label, formatFileSize(doc.size_bytes)].filter(Boolean).join(" · ")}
+                                      {[doc.label, formatFileSize(doc.size_bytes)]
+                                        .filter(Boolean)
+                                        .join(" · ")}
                                     </p>
                                   )}
                                 </div>
@@ -3363,7 +3465,6 @@ function ProposalDetailPage() {
                 })()}
               </div>
 
-
               {/* Sidebar */}
               <aside className="space-y-6">
                 {/* Editorial Decision */}
@@ -3376,20 +3477,20 @@ function ProposalDetailPage() {
                       {isContractIssued && hasOpenQuery
                         ? "Author has raised a question"
                         : isContractIssued
-                        ? isAwaitingSignature
-                          ? "Contract sent — awaiting signature"
-                          : (latestContract?.status || "").toLowerCase() === "signed"
-                            ? "Contract signed"
-                            : "Contract declined"
-                        : isAwaitingMoreInfo
-                        ? "Revisions requested — awaiting author"
-                        : isDeclined
-                        ? "Declined"
-                        : isReviewReturned
-                        ? "Review returned — add notes and send to author"
-                        : assignedReviewer
-                          ? "With proposal reviewer"
-                          : "Awaiting initial assessment"}
+                          ? isAwaitingSignature
+                            ? "Contract sent — awaiting signature"
+                            : (latestContract?.status || "").toLowerCase() === "signed"
+                              ? "Contract signed"
+                              : "Contract declined"
+                          : isAwaitingMoreInfo
+                            ? "Revisions requested — awaiting author"
+                            : isDeclined
+                              ? "Declined"
+                              : isReviewReturned
+                                ? "Review returned — add notes and send to author"
+                                : assignedReviewer
+                                  ? "With proposal reviewer"
+                                  : "Awaiting initial assessment"}
                     </p>
                   </div>
                   {isContractIssued && hasOpenQuery && (
@@ -3398,8 +3499,8 @@ function ProposalDetailPage() {
                         Author Question
                       </p>
                       <p className="mt-1 font-sans text-xs leading-relaxed text-amber-900/90">
-                        The author has raised a question before signing. Review
-                        their message and respond to proceed.
+                        The author has raised a question before signing. Review their message and
+                        respond to proceed.
                       </p>
                     </div>
                   )}
@@ -3482,8 +3583,7 @@ function ProposalDetailPage() {
                           Proofreader Phase
                         </p>
                         <p className="mt-1 font-sans text-xs leading-relaxed text-purple-800/80">
-                          Actions are unavailable until the author approves the
-                          compiled metadata.
+                          Actions are unavailable until the author approves the compiled metadata.
                         </p>
                       </div>
                     ) : isLocked ? (
@@ -3560,89 +3660,95 @@ function ProposalDetailPage() {
                       </>
                     ) : (
                       <>
-                    {isReviewReturned && (
-                      <>
-                         <button
-                           type="button"
-                           onClick={openIssueContract}
-                           className="flex w-full items-start gap-3 rounded-xl bg-[#5B2EBA] px-4 py-3 text-left text-white transition-colors hover:bg-[#4a2599]"
-                         >
-                           <FileText className="mt-0.5 h-4 w-4 text-white" />
-                           <div>
-                             <p className="font-sans text-sm font-medium text-white">Issue Contract</p>
-                             <p className="font-sans text-xs font-normal text-white">
-                               Send contract &amp; review comments to author
-                             </p>
-                           </div>
-                         </button>
+                        {isReviewReturned && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={openIssueContract}
+                              className="flex w-full items-start gap-3 rounded-xl bg-[#5B2EBA] px-4 py-3 text-left text-white transition-colors hover:bg-[#4a2599]"
+                            >
+                              <FileText className="mt-0.5 h-4 w-4 text-white" />
+                              <div>
+                                <p className="font-sans text-sm font-medium text-white">
+                                  Issue Contract
+                                </p>
+                                <p className="font-sans text-xs font-normal text-white">
+                                  Send contract &amp; review comments to author
+                                </p>
+                              </div>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={openRequestMajorRevision}
+                              className="flex w-full items-start gap-3 rounded-xl border border-rose-200 bg-rose-50/60 px-4 py-3 text-left transition-colors hover:bg-rose-50"
+                            >
+                              <SquarePen className="mt-0.5 h-4 w-4 text-rose-700" />
+                              <div>
+                                <p className="font-sans text-sm font-semibold text-rose-900">
+                                  Request Major Revisions
+                                </p>
+                                <p className="font-sans text-xs text-rose-700/80">
+                                  Send review comments back to author
+                                </p>
+                              </div>
+                            </button>
+                          </>
+                        )}
+                        {!assignedReviewer && !isReviewReturned && (
+                          <button
+                            type="button"
+                            onClick={openReviewers}
+                            className="flex w-full items-start gap-3 rounded-xl bg-[#0E3D2F] px-4 py-3 text-left text-white transition-colors hover:bg-[#0a2f24]"
+                          >
+                            <Check className="mt-0.5 h-4 w-4 text-white" />
+                            <div>
+                              <p className="font-sans text-sm font-semibold">Move to Review</p>
+                              <p className="font-sans text-xs text-white/80">
+                                Assign a proposal reviewer
+                              </p>
+                            </div>
+                          </button>
+                        )}
+                        {!assignedReviewer && !isReviewReturned && !isAwaitingMoreInfo && (
+                          <button
+                            type="button"
+                            onClick={openRequestRevisions}
+                            className="flex w-full items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/60 px-4 py-3 text-left transition-colors hover:bg-amber-50"
+                          >
+                            <SquarePen className="mt-0.5 h-4 w-4 text-amber-700" />
+                            <div>
+                              <p className="font-sans text-sm font-semibold text-amber-900">
+                                Request Revisions
+                              </p>
+                              <p className="font-sans text-xs text-amber-700/80">
+                                Needs more info before review
+                              </p>
+                            </div>
+                          </button>
+                        )}
                         <button
                           type="button"
-                          onClick={openRequestMajorRevision}
-                          className="flex w-full items-start gap-3 rounded-xl border border-rose-200 bg-rose-50/60 px-4 py-3 text-left transition-colors hover:bg-rose-50"
+                          onClick={handleDecline}
+                          disabled={declineLoading}
+                          className="flex w-full items-start gap-3 rounded-xl border border-stone-200 px-4 py-3 text-left transition-colors hover:border-red-300 hover:bg-red-50/50 disabled:opacity-50"
                         >
-                          <SquarePen className="mt-0.5 h-4 w-4 text-rose-700" />
+                          <XIcon className="mt-0.5 h-4 w-4 text-stone-500" />
                           <div>
-                            <p className="font-sans text-sm font-semibold text-rose-900">
-                              Request Major Revisions
+                            <p className="font-sans text-sm font-semibold text-stone-900">
+                              {declineLoading ? "Declining…" : "Decline"}
                             </p>
-                            <p className="font-sans text-xs text-rose-700/80">
-                              Send review comments back to author
-                            </p>
+                            <p className="font-sans text-xs text-stone-500">Not moving forward</p>
                           </div>
                         </button>
-                      </>
-                    )}
-                    {!assignedReviewer && !isReviewReturned && (
-                      <button
-                        type="button"
-                        onClick={openReviewers}
-                        className="flex w-full items-start gap-3 rounded-xl bg-[#0E3D2F] px-4 py-3 text-left text-white transition-colors hover:bg-[#0a2f24]"
-                      >
-                        <Check className="mt-0.5 h-4 w-4 text-white" />
-                        <div>
-                          <p className="font-sans text-sm font-semibold">Move to Review</p>
-                          <p className="font-sans text-xs text-white/80">Assign a proposal reviewer</p>
-                        </div>
-                      </button>
-                    )}
-                    {!assignedReviewer && !isReviewReturned && !isAwaitingMoreInfo && (
-                      <button
-                        type="button"
-                        onClick={openRequestRevisions}
-                        className="flex w-full items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/60 px-4 py-3 text-left transition-colors hover:bg-amber-50"
-                      >
-                        <SquarePen className="mt-0.5 h-4 w-4 text-amber-700" />
-                        <div>
-                          <p className="font-sans text-sm font-semibold text-amber-900">Request Revisions</p>
-                          <p className="font-sans text-xs text-amber-700/80">Needs more info before review</p>
-                        </div>
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={handleDecline}
-                      disabled={declineLoading}
-                      className="flex w-full items-start gap-3 rounded-xl border border-stone-200 px-4 py-3 text-left transition-colors hover:border-red-300 hover:bg-red-50/50 disabled:opacity-50"
-                    >
-                      <XIcon className="mt-0.5 h-4 w-4 text-stone-500" />
-                      <div>
-                        <p className="font-sans text-sm font-semibold text-stone-900">
-                          {declineLoading ? "Declining…" : "Decline"}
-                        </p>
-                        <p className="font-sans text-xs text-stone-500">Not moving forward</p>
-                      </div>
-                    </button>
-                    {declineError && (
-                      <p className="rounded-lg bg-red-50 px-3 py-2 font-sans text-xs text-red-700 ring-1 ring-red-200">
-                        {declineError}
-                      </p>
-                    )}
+                        {declineError && (
+                          <p className="rounded-lg bg-red-50 px-3 py-2 font-sans text-xs text-red-700 ring-1 ring-red-200">
+                            {declineError}
+                          </p>
+                        )}
                       </>
                     )}
                   </div>
                 </Card>
-
-
 
                 {/* Internal Notes */}
                 <Card>
@@ -3670,9 +3776,7 @@ function ProposalDetailPage() {
                       {savingNote ? "Saving…" : "Add Note"}
                     </button>
                     {notesError && (
-                      <p className="text-center font-sans text-xs text-rose-600">
-                        {notesError}
-                      </p>
+                      <p className="text-center font-sans text-xs text-rose-600">{notesError}</p>
                     )}
                   </form>
                   <div className="space-y-3 border-t border-stone-200 px-5 py-4">
@@ -3680,16 +3784,13 @@ function ProposalDetailPage() {
                       <p className="font-sans text-xs text-stone-500">Loading notes…</p>
                     )}
                     {!notesLoading && internalNotes.length === 0 && !notesError && (
-                      <p className="font-sans text-xs text-stone-500">
-                        No internal notes yet.
-                      </p>
+                      <p className="font-sans text-xs text-stone-500">No internal notes yet.</p>
                     )}
                     {internalNotes.map((n) => {
                       const session = getPortalSession();
                       const myEmail = (session?.email || "").toLowerCase();
                       const role = (session?.role || "").toLowerCase();
-                      const isOwner =
-                        n.created_by?.toLowerCase() === myEmail;
+                      const isOwner = n.created_by?.toLowerCase() === myEmail;
                       const canModify = role === "admin" || isOwner;
                       const isEditing = editingNoteId === n.id;
                       return (
@@ -3781,9 +3882,7 @@ function ProposalDetailPage() {
                     {data.updated_at && (
                       <InfoRow label="Updated" value={formatDate(data.updated_at)} />
                     )}
-                    {data.internal_status && (
-                      <InfoRow label="Stage" value={data.internal_status} />
-                    )}
+                    {data.internal_status && <InfoRow label="Stage" value={data.internal_status} />}
                   </dl>
                 </Card>
               </aside>
@@ -3814,9 +3913,7 @@ function ProposalDetailPage() {
                   <p className="mt-0.5 font-sans text-sm text-stone-500">
                     Assign a reviewer and set expectations before sending.
                   </p>
-                  <p className="mt-1 font-sans text-xs italic text-stone-500">
-                    "{title}"
-                  </p>
+                  <p className="mt-1 font-sans text-xs italic text-stone-500">"{title}"</p>
                 </div>
               </div>
               <button
@@ -3882,20 +3979,20 @@ function ProposalDetailPage() {
                                 </p>
                               </div>
                               <div className="flex shrink-0 items-center gap-1.5">
-                              {preselectedReviewerId === r.id && (
-                                 <span className="shrink-0 rounded-full bg-[#0E3D2F]/10 px-2.5 py-0.5 font-sans text-[11px] font-medium text-[#0E3D2F] ring-1 ring-[#0E3D2F]/20">
-                                   Preselected
-                                 </span>
-                               )}
-                               <span
-                                className={`shrink-0 rounded-full px-2.5 py-0.5 font-sans text-[11px] font-medium ring-1 ${
-                                  count > 0
-                                    ? "bg-amber-50 text-amber-800 ring-amber-200"
-                                    : "bg-emerald-50 text-emerald-800 ring-emerald-200"
-                                }`}
-                              >
-                                {count > 0 ? `${count} active` : "Available"}
-                              </span>
+                                {preselectedReviewerId === r.id && (
+                                  <span className="shrink-0 rounded-full bg-[#0E3D2F]/10 px-2.5 py-0.5 font-sans text-[11px] font-medium text-[#0E3D2F] ring-1 ring-[#0E3D2F]/20">
+                                    Preselected
+                                  </span>
+                                )}
+                                <span
+                                  className={`shrink-0 rounded-full px-2.5 py-0.5 font-sans text-[11px] font-medium ring-1 ${
+                                    count > 0
+                                      ? "bg-amber-50 text-amber-800 ring-amber-200"
+                                      : "bg-emerald-50 text-emerald-800 ring-emerald-200"
+                                  }`}
+                                >
+                                  {count > 0 ? `${count} active` : "Available"}
+                                </span>
                               </div>
                             </div>
                           </div>
@@ -3912,9 +4009,7 @@ function ProposalDetailPage() {
                   <label className="font-sans text-sm font-semibold text-stone-900">
                     Review Due Date
                   </label>
-                  <span className="font-sans text-xs text-stone-500">
-                    (approx. 4 weeks)
-                  </span>
+                  <span className="font-sans text-xs text-stone-500">(approx. 4 weeks)</span>
                 </div>
                 <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <input
@@ -3932,8 +4027,7 @@ function ProposalDetailPage() {
               {/* Notes */}
               <div className="mt-6">
                 <label className="font-sans text-sm font-semibold text-stone-900">
-                  Notes for Reviewer{" "}
-                  <span className="font-normal text-stone-500">(optional)</span>
+                  Notes for Reviewer <span className="font-normal text-stone-500">(optional)</span>
                 </label>
                 <textarea
                   value={reviewerNotes}
@@ -4037,9 +4131,7 @@ function ProposalDetailPage() {
                         </label>
                         <select
                           value={entry.key}
-                          onChange={(e) =>
-                            updateRevisionEntry(entry.id, { key: e.target.value })
-                          }
+                          onChange={(e) => updateRevisionEntry(entry.id, { key: e.target.value })}
                           className="mt-1.5 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"
                         >
                           <option value="">Select an area…</option>
@@ -4058,9 +4150,7 @@ function ProposalDetailPage() {
                         </label>
                         <textarea
                           value={entry.note}
-                          onChange={(e) =>
-                            updateRevisionEntry(entry.id, { note: e.target.value })
-                          }
+                          onChange={(e) => updateRevisionEntry(entry.id, { note: e.target.value })}
                           rows={3}
                           placeholder="Explain what needs to be updated and why…"
                           className="mt-1.5 w-full resize-none rounded-xl border border-stone-200 bg-white px-3.5 py-3 font-sans text-sm text-stone-800 placeholder:text-stone-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"
@@ -4134,9 +4224,7 @@ function ProposalDetailPage() {
                   <AlertTriangle className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 className="font-serif text-2xl font-bold text-[#2C1A0E]">
-                    Decline Proposal
-                  </h2>
+                  <h2 className="font-serif text-2xl font-bold text-[#2C1A0E]">Decline Proposal</h2>
                   <p className="mt-1 font-sans text-sm text-[#7A6A5A]">
                     This action cannot be undone and the proposal will become read-only.
                   </p>
@@ -4156,7 +4244,8 @@ function ProposalDetailPage() {
             </div>
             <div className="px-7 pb-5">
               <p className="font-sans text-sm text-stone-700">
-                Are you sure you want to decline this proposal? The author will be notified and the proposal status will be set to <strong>Declined</strong>.
+                Are you sure you want to decline this proposal? The author will be notified and the
+                proposal status will be set to <strong>Declined</strong>.
               </p>
               {declineError && (
                 <p className="mt-4 rounded-lg bg-rose-50 px-3 py-2 font-sans text-sm text-rose-700 ring-1 ring-rose-200">
@@ -4215,31 +4304,29 @@ function ProposalDetailPage() {
             </div>
             <div className="flex-1 overflow-y-auto px-7 pb-5">
               <div className="rounded-xl bg-[#F3EEFB] px-4 py-3 font-sans text-sm text-[#5B2EBA] ring-1 ring-[#E0D4F5]">
-                The contract and peer review comments will be sent to the author
-                simultaneously. They will be able to review, raise questions, or sign.
+                The contract and peer review comments will be sent to the author simultaneously.
+                They will be able to review, raise questions, or sign.
               </div>
               {contractStep === 1 && (
-              <div className="mt-5">
-                <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
-                  Note to Author{" "}
-                  <span className="font-normal text-[#7A6A5A]">
-                    (optional — included with the contract)
-                  </span>
-                </label>
-                <textarea
-                  value={contractNote}
-                  onChange={(e) => setContractNote(e.target.value)}
-                  rows={4}
-                  placeholder="Any additional context or guidance for the author ahead of signing…"
-                  className="mt-2 w-full resize-none rounded-xl border border-stone-200 bg-white px-3.5 py-3 font-sans text-sm text-stone-800 placeholder:text-stone-400 focus:border-[#5B2EBA] focus:outline-none focus:ring-2 focus:ring-[#EDE7FA]"
-                />
-              </div>
+                <div className="mt-5">
+                  <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
+                    Note to Author{" "}
+                    <span className="font-normal text-[#7A6A5A]">
+                      (optional — included with the contract)
+                    </span>
+                  </label>
+                  <textarea
+                    value={contractNote}
+                    onChange={(e) => setContractNote(e.target.value)}
+                    rows={4}
+                    placeholder="Any additional context or guidance for the author ahead of signing…"
+                    className="mt-2 w-full resize-none rounded-xl border border-stone-200 bg-white px-3.5 py-3 font-sans text-sm text-stone-800 placeholder:text-stone-400 focus:border-[#5B2EBA] focus:outline-none focus:ring-2 focus:ring-[#EDE7FA]"
+                  />
+                </div>
               )}
               {contractStep === 2 && (
                 <div className="mt-5 space-y-4">
-                  <h3 className="font-serif text-lg font-bold text-[#2C1A0E]">
-                    Contract Details
-                  </h3>
+                  <h3 className="font-serif text-lg font-bold text-[#2C1A0E]">Contract Details</h3>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div className="sm:col-span-2">
                       <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
@@ -4419,11 +4506,7 @@ function ProposalDetailPage() {
                 disabled={contractLoading}
                 className="rounded-xl bg-[#5B2EBA] px-5 py-2.5 font-sans text-sm font-semibold text-white hover:bg-[#4a2599] disabled:cursor-not-allowed disabled:bg-[#B8A8E0] disabled:text-white/80"
               >
-                {contractLoading
-                  ? "Issuing…"
-                  : contractStep === 1
-                    ? "Submit"
-                    : "Issue Contract"}
+                {contractLoading ? "Issuing…" : contractStep === 1 ? "Submit" : "Issue Contract"}
               </button>
             </div>
           </div>
@@ -4451,53 +4534,56 @@ function ProposalDetailPage() {
               </a>
             )}
           </DialogHeader>
-          {previewDoc && (() => {
-            const url = previewDoc.url;
-            const ext = (previewDoc.filename.split(".").pop() || "").toLowerCase();
-            const isImage = ["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp"].includes(ext);
-            const isPdf = ext === "pdf" || url.toLowerCase().includes(".pdf");
-            const isOffice = ["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(ext);
-            return (
-              <div className="h-[75vh] w-full bg-stone-100">
-                {isImage ? (
-                  <div className="flex h-full w-full items-center justify-center overflow-auto p-4">
-                    <img src={url} alt={previewDoc.filename} className="max-h-full max-w-full object-contain" />
-                  </div>
-                ) : isPdf ? (
-                  <iframe src={url} title={previewDoc.filename} className="h-full w-full" />
-                ) : isOffice ? (
-                  <iframe
-                    src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`}
-                    title={previewDoc.filename}
-                    className="h-full w-full"
-                  />
-                ) : (
-                  <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
-                    <FileText className="h-10 w-10 text-stone-400" />
-                    <p className="font-sans text-sm text-stone-600">
-                      Preview isn't available for this file type.
-                    </p>
-                    <a
-                      href={url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="rounded-md bg-stone-900 px-4 py-2 font-sans text-sm font-semibold text-white hover:bg-stone-800"
-                    >
-                      Open in new tab
-                    </a>
-                  </div>
-                )}
-              </div>
-            );
-          })()}
+          {previewDoc &&
+            (() => {
+              const url = previewDoc.url;
+              const ext = (previewDoc.filename.split(".").pop() || "").toLowerCase();
+              const isImage = ["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp"].includes(ext);
+              const isPdf = ext === "pdf" || url.toLowerCase().includes(".pdf");
+              const isOffice = ["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(ext);
+              return (
+                <div className="h-[75vh] w-full bg-stone-100">
+                  {isImage ? (
+                    <div className="flex h-full w-full items-center justify-center overflow-auto p-4">
+                      <img
+                        src={url}
+                        alt={previewDoc.filename}
+                        className="max-h-full max-w-full object-contain"
+                      />
+                    </div>
+                  ) : isPdf ? (
+                    <iframe src={url} title={previewDoc.filename} className="h-full w-full" />
+                  ) : isOffice ? (
+                    <iframe
+                      src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`}
+                      title={previewDoc.filename}
+                      className="h-full w-full"
+                    />
+                  ) : (
+                    <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
+                      <FileText className="h-10 w-10 text-stone-400" />
+                      <p className="font-sans text-sm text-stone-600">
+                        Preview isn't available for this file type.
+                      </p>
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="rounded-md bg-stone-900 px-4 py-2 font-sans text-sm font-semibold text-white hover:bg-stone-800"
+                      >
+                        Open in new tab
+                      </a>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
         </DialogContent>
       </Dialog>
       {voidOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-            <h2 className="font-serif text-lg font-bold text-stone-900">
-              Void Contract
-            </h2>
+            <h2 className="font-serif text-lg font-bold text-stone-900">Void Contract</h2>
             <p className="mt-1 font-sans text-sm text-stone-600">
               The author will no longer be able to sign. You can issue a new contract afterwards.
             </p>
@@ -4575,14 +4661,18 @@ function ProposalDetailPage() {
   );
 }
 
-function MetaItem({ icon, text }: { icon: "user" | "mail" | "building" | "calendar" | "globe"; text: string }) {
+function MetaItem({
+  icon,
+  text,
+}: {
+  icon: "user" | "mail" | "building" | "calendar" | "globe";
+  text: string;
+}) {
   const paths: Record<typeof icon, string> = {
-    user:
-      "M12 12a4 4 0 100-8 4 4 0 000 8zm-7 8a7 7 0 0114 0",
+    user: "M12 12a4 4 0 100-8 4 4 0 000 8zm-7 8a7 7 0 0114 0",
     mail: "M4 6h16v12H4z M4 6l8 7 8-7",
     building: "M4 21V5a2 2 0 012-2h8a2 2 0 012 2v16M9 9h2M9 13h2M9 17h2",
-    calendar:
-      "M4 7h16M4 7v12a2 2 0 002 2h12a2 2 0 002-2V7M4 7l1-3h14l1 3M9 11h6M9 15h6",
+    calendar: "M4 7h16M4 7v12a2 2 0 002 2h12a2 2 0 002-2V7M4 7l1-3h14l1 3M9 11h6M9 15h6",
     globe:
       "M12 21a9 9 0 100-18 9 9 0 000 18zM3 12h18M12 3a13.5 13.5 0 010 18M12 3a13.5 13.5 0 000 18",
   };
@@ -4605,13 +4695,7 @@ function MetaItem({ icon, text }: { icon: "user" | "mail" | "building" | "calend
   );
 }
 
-function Card({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
+function Card({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
     <section
       className={`overflow-hidden rounded-2xl border border-stone-200 bg-white ${className ?? ""}`}
@@ -4638,9 +4722,7 @@ function CardHeader({
     <div className="flex items-center justify-between gap-6 border-b border-stone-200 bg-neutral-50/30 px-5 py-3.5">
       <div>
         <h2 className="font-serif text-base font-bold text-[#2C1A0E]">{title}</h2>
-        {subtitle && (
-          <p className="mt-0.5 font-sans text-xs text-[#7A6A5A]">{subtitle}</p>
-        )}
+        {subtitle && <p className="mt-0.5 font-sans text-xs text-[#7A6A5A]">{subtitle}</p>}
       </div>
       {right && <div>{right}</div>}
     </div>
@@ -4648,11 +4730,7 @@ function CardHeader({
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="font-sans text-xs uppercase tracking-wide text-stone-500">
-      {children}
-    </p>
-  );
+  return <p className="font-sans text-xs uppercase tracking-wide text-stone-500">{children}</p>;
 }
 
 function DataField({
@@ -4679,24 +4757,14 @@ function DataField({
   );
 }
 
-function Stat({
-  label,
-  value,
-  large,
-}: {
-  label: string;
-  value: string;
-  large?: boolean;
-}) {
+function Stat({ label, value, large }: { label: string; value: string; large?: boolean }) {
   return (
     <div className="min-w-0">
       <p className="font-sans text-xs uppercase tracking-wide text-stone-500 break-words">
         {label}
       </p>
       <p
-        className={`mt-1 font-sans font-semibold text-stone-900 ${
-          large ? "text-base" : "text-sm"
-        }`}
+        className={`mt-1 font-sans font-semibold text-stone-900 ${large ? "text-base" : "text-sm"}`}
       >
         {value}
       </p>
@@ -4732,9 +4800,7 @@ function toSnake(key: string): string {
 // description{}, marketing{}, agreement{}, manuscript{}) into the flat
 // snake_case shape the rest of the detail page expects. Existing flat
 // fields always win — we never overwrite values already on the payload.
-function normalizeProposalData(
-  raw: Record<string, unknown>,
-): Record<string, unknown> {
+function normalizeProposalData(raw: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = { ...raw };
   const setIfEmpty = (key: string, value: unknown) => {
     if (value === null || value === undefined || value === "") return;
@@ -4751,16 +4817,12 @@ function normalizeProposalData(
   // the rest become co_authors.
   const authors = raw.authors;
   if (Array.isArray(authors) && authors.length > 0) {
-    const primary = authors.find(
-      (a) => isObj(a) && String(a.role || "").toLowerCase() === "author",
-    ) || authors[0];
+    const primary =
+      authors.find((a) => isObj(a) && String(a.role || "").toLowerCase() === "author") ||
+      authors[0];
     if (isObj(primary)) {
-      const first = (primary.firstName || primary.first_name) as
-        | string
-        | undefined;
-      const last = (primary.lastName || primary.last_name) as
-        | string
-        | undefined;
+      const first = (primary.firstName || primary.first_name) as string | undefined;
+      const last = (primary.lastName || primary.last_name) as string | undefined;
       setIfEmpty("author_first_name", first);
       setIfEmpty("author_last_name", last);
       setIfEmpty(
@@ -4850,9 +4912,11 @@ function normalizeProposalData(
   }
   // primary author auxiliary fields from authors[0]
   if (Array.isArray(raw.authors) && raw.authors.length > 0) {
-    const primary = (raw.authors as unknown[]).find(
-      (a) => isObj(a) && String((a as Record<string, unknown>).role || "").toLowerCase() === "author",
-    ) || raw.authors[0];
+    const primary =
+      (raw.authors as unknown[]).find(
+        (a) =>
+          isObj(a) && String((a as Record<string, unknown>).role || "").toLowerCase() === "author",
+      ) || raw.authors[0];
     if (isObj(primary)) {
       setIfEmpty("qualifications", primary.qualifications);
       setIfEmpty("phone", primary.phone);
@@ -4969,9 +5033,7 @@ const ADDITIONAL_DETAILS_SKIP = new Set<string>([
 ]);
 
 function humanizeKey(key: string): string {
-  return key
-    .replace(/[_-]+/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  return key.replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function formatDetailValue(value: unknown): string | null {
@@ -5070,9 +5132,7 @@ function ProofreaderStatusPanel({
         <ProofreaderStatusItem
           label="Sent to author"
           value={
-            metadata.sent_for_confirmation_at
-              ? formatDate(metadata.sent_for_confirmation_at)
-              : "—"
+            metadata.sent_for_confirmation_at ? formatDate(metadata.sent_for_confirmation_at) : "—"
           }
         />
       </div>
