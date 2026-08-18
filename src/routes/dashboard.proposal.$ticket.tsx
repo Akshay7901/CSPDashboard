@@ -2211,7 +2211,7 @@ function ProposalDetailPage() {
           })()
         : null}
 
-      <main className="mx-auto w-full max-w-5xl px-6 py-8">
+      <main className="mx-auto w-full max-w-6xl px-6 py-8">
         <Link
           to="/dashboard/decision_reviewer"
           className="inline-flex items-center gap-1.5 font-sans text-sm font-medium text-[#0E3D2F] hover:underline"
@@ -2328,9 +2328,9 @@ function ProposalDetailPage() {
               </div>
             </section>
 
-            <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px]">
+            <div className="mt-6 grid w-full grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
               {/* Main column */}
-              <div className="space-y-6">
+              <div className="min-w-0 space-y-6">
                 {hasSignedContract && (
                   <Card className="overflow-hidden border-stone-200">
                     {/* Header */}
@@ -3466,7 +3466,7 @@ function ProposalDetailPage() {
               </div>
 
               {/* Sidebar */}
-              <aside className="space-y-6">
+              <aside className="min-w-0 space-y-6">
                 {/* Editorial Decision */}
                 <Card>
                   <div className="border-b border-stone-200 px-5 py-3.5">
