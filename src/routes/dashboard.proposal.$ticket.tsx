@@ -297,6 +297,48 @@ function formatFileSize(bytes?: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function isPostContractStatus(status?: string) {
+  const s = (status || "").toLowerCase().replace(/\s+/g, "_");
+  return [
+    "awaiting_author_approval",
+    "signed",
+    "approved",
+    "proofreader_review",
+    "author_approved",
+    "locked",
+    "contract_signed",
+    "contract_received",
+  ].includes(s);
+}
+
+function formatMsSubmissionDeadline(value?: string | null) {
+  if (!value) return "—";
+  const parts = value.split("/");
+  if (parts.length === 3) {
+    const month = Number(parts[0]);
+    const day = Number(parts[1]);
+    const year = Number(parts[2]);
+    if (month > 0 && month <= 12 && day > 0 && day <= 31 && year > 0) {
+      const d = new Date(year, month - 1, day);
+      return d.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+    }
+  }
+  const fallback = new Date(value);
+  if (!Number.isNaN(fallback.getTime())) {
+    return fallback.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  }
+  return value;
+}
+
+
 type InfoRequest = {
   id: string | number;
   status?: string;
