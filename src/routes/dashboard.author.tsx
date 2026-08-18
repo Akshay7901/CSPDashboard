@@ -573,7 +573,13 @@ function AuthorDashboard() {
         return !e || e === lowerEmail;
       });
       const mapped: LocalProposalWithInfo[] = mine.map(toProposal);
-      setMyProposals(mapped);
+      // Enrichment below (info requests, metadata approval, contract signed)
+      // is collected into these maps and committed in ONE setState at the end.
+      // Committing `mapped` first made the list flicker through raw statuses
+      // on every silent poll before the enriched statuses landed.
+      const infoById = new Map<string, OpenInfoRequest | null>();
+      const metaNeedsById = new Map<string, boolean>();
+      const contractSignedById = new Map<string, boolean>();
       // Fetch detail for proposals awaiting more info so the card can show
       // the items + note that the DR requested via /request-info.
       const needDetail = mapped.filter((p) =>
@@ -628,12 +634,7 @@ function AuthorDashboard() {
             }
           }),
         );
-        const byId = new Map(details.map((d) => [d.id, d.info]));
-        setMyProposals((prev) =>
-          prev.map((p) =>
-            byId.has(p.id) ? { ...p, openInfoRequest: byId.get(p.id) || null } : p,
-          ),
-        );
+        for (const d of details) infoById.set(d.id, d.info);
       }
       // For "signed" proposals, check if metadata is awaiting author approval.
       // Backend keeps proposal status as signed/locked while metadata flips to
@@ -662,14 +663,7 @@ function AuthorDashboard() {
             }
           }),
         );
-        const needsById = new Map(metaResults.map((m) => [m.id, m.needs]));
-        setMyProposals((prev) =>
-          prev.map((p) =>
-            needsById.has(p.id)
-              ? { ...p, metadataNeedsApproval: needsById.get(p.id) || false }
-              : p,
-          ),
-        );
+        for (const m of metaResults) metaNeedsById.set(m.id, m.needs);
       }
       // For "contract" proposals, check whether the contract has actually
       // been signed by the author. The backend may keep proposal_status as
@@ -699,15 +693,17 @@ function AuthorDashboard() {
             }
           }),
         );
-        const signedMap = new Map(results.map((r) => [r.id, r.signed]));
-        setMyProposals((prev) =>
-          prev.map((p) =>
-            signedMap.get(p.id)
-              ? { ...p, status: "signed" as StatusKey }
-              : p,
-          ),
-        );
+        for (const r of results) contractSignedById.set(r.id, r.signed);
       }
+      const enriched: LocalProposalWithInfo[] = mapped.map((p) => ({
+        ...p,
+        ...(infoById.has(p.id) ? { openInfoRequest: infoById.get(p.id) || null } : {}),
+        ...(metaNeedsById.has(p.id)
+          ? { metadataNeedsApproval: metaNeedsById.get(p.id) || false }
+          : {}),
+        ...(contractSignedById.get(p.id) ? { status: "signed" as StatusKey } : {}),
+      }));
+      setMyProposals(enriched);
     } catch {
       if (!silent) setLoadError("Network error. Please try again.");
     } finally {
