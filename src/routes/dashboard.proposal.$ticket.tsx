@@ -2726,6 +2726,12 @@ function ProposalDetailPage() {
                                   ? formatDate(latestContract.docusign_sent_at)
                                   : "—"}
                               </ContractField>
+                              {isPostContractStatus(data?.status) && (
+                                <ContractField label="Manuscript Submission Deadline">
+                                  {formatMsSubmissionDeadline(data?.ms_submission_deadline)}
+                                </ContractField>
+                              )}
+
                               {latestContract.docusign_completed_at && (
                                 <ContractField label="Completed">
                                   {formatDate(latestContract.docusign_completed_at)}
