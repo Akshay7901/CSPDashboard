@@ -972,20 +972,18 @@ function DecisionReviewerDashboard() {
                 type="button"
                 onClick={() => setActiveFilter(key)}
                 className={`group inline-flex items-center gap-2 rounded-full border px-4 py-2 font-sans text-sm transition-colors ${
-                  active
-                    ? "border-[#0E3D2F] bg-[#0E3D2F] text-white"
-                    : "border-stone-200 bg-white text-stone-700 hover:border-stone-300"
+                  active ? ACTIVE_TAB_CLASS[key] : "border-stone-200 bg-white text-stone-700 hover:border-stone-300"
                 }`}
               >
                 <span
                   className={`h-2 w-2 rounded-full ${
-                    isAll && active ? "bg-white" : dot
+                    isAll && active ? "bg-black" : dot
                   }`}
                 />
                 <span className="font-medium">{label}</span>
                 <span
                   className={`ml-1 inline-flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 font-sans text-xs font-medium ${
-                    active ? "bg-white/20 text-white" : "bg-stone-100 text-stone-600"
+                    active ? "bg-black/10 text-black" : "bg-stone-100 text-stone-600"
                   }`}
                 >
                   {count}
