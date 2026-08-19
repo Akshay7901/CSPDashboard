@@ -290,6 +290,20 @@ const TABS: { key: TabKey; label: string; dot: string }[] = (
   dot: t.key === "all" ? "bg-stone-400" : tabDot(t.key, t.label),
 }));
 
+const ACTIVE_TAB_CLASS: Record<TabKey, string> = {
+  all: "border-stone-300 bg-stone-100 text-black",
+  new: "border-amber-200 bg-amber-50 text-black",
+  awaiting_more_info: "border-orange-200 bg-orange-50 text-black",
+  in_review: "border-sky-200 bg-sky-50 text-black",
+  review_returned: "border-indigo-200 bg-indigo-50 text-black",
+  contract_issued: "border-violet-200 bg-violet-50 text-black",
+  queries_raised: "border-red-200 bg-red-50 text-black",
+  awaiting_author_approval: "border-purple-200 bg-purple-50 text-black",
+  author_approved: "border-green-200 bg-green-50 text-black",
+  locked: "border-emerald-200 bg-emerald-50 text-black",
+  declined: "border-stone-200 bg-stone-100 text-black",
+};
+
 const normalizeRaw = (raw?: string) =>
   (raw || "").trim().toLowerCase().replace(/\s+/g, "_");
 
@@ -958,20 +972,18 @@ function DecisionReviewerDashboard() {
                 type="button"
                 onClick={() => setActiveFilter(key)}
                 className={`group inline-flex items-center gap-2 rounded-full border px-4 py-2 font-sans text-sm transition-colors ${
-                  active
-                    ? "border-[#0E3D2F] bg-[#0E3D2F] text-white"
-                    : "border-stone-200 bg-white text-stone-700 hover:border-stone-300"
+                  active ? ACTIVE_TAB_CLASS[key] : "border-stone-200 bg-white text-stone-700 hover:border-stone-300"
                 }`}
               >
                 <span
                   className={`h-2 w-2 rounded-full ${
-                    isAll && active ? "bg-white" : dot
+                    isAll && active ? "bg-black" : dot
                   }`}
                 />
                 <span className="font-medium">{label}</span>
                 <span
                   className={`ml-1 inline-flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 font-sans text-xs font-medium ${
-                    active ? "bg-white/20 text-white" : "bg-stone-100 text-stone-600"
+                    active ? "bg-black/10 text-black" : "bg-stone-100 text-stone-600"
                   }`}
                 >
                   {count}
