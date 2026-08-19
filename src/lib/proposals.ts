@@ -27,7 +27,7 @@ export const STATUS_META: Record<StatusKey, StatusMeta> = {
     label: "New",
     filterLabel: "New",
     dot: "bg-amber-400",
-    badgeClass: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
+    badgeClass: "bg-amber-50 text-black ring-1 ring-amber-200",
     rowBar: "bg-amber-400",
   },
   revisions: {
@@ -35,7 +35,7 @@ export const STATUS_META: Record<StatusKey, StatusMeta> = {
     label: "Revisions Requested",
     filterLabel: "Revisions",
     dot: "bg-orange-500",
-    badgeClass: "bg-orange-50 text-orange-700 ring-1 ring-orange-200",
+    badgeClass: "bg-orange-50 text-black ring-1 ring-orange-200",
     rowBar: "bg-orange-500",
   },
   in_review: {
@@ -43,7 +43,7 @@ export const STATUS_META: Record<StatusKey, StatusMeta> = {
     label: "Under Review",
     filterLabel: "In Review",
     dot: "bg-sky-500",
-    badgeClass: "bg-sky-50 text-sky-700 ring-1 ring-sky-200",
+    badgeClass: "bg-sky-50 text-black ring-1 ring-sky-200",
     rowBar: "bg-sky-500",
   },
   review_returned: {
@@ -51,7 +51,7 @@ export const STATUS_META: Record<StatusKey, StatusMeta> = {
     label: "Review Returned",
     filterLabel: "Review Returned",
     dot: "bg-indigo-500",
-    badgeClass: "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200",
+    badgeClass: "bg-indigo-50 text-black ring-1 ring-indigo-200",
     rowBar: "bg-indigo-500",
   },
   major_revisions: {
@@ -59,7 +59,7 @@ export const STATUS_META: Record<StatusKey, StatusMeta> = {
     label: "Major Revisions Required",
     filterLabel: "Major Revisions",
     dot: "bg-rose-500",
-    badgeClass: "bg-rose-50 text-rose-700 ring-1 ring-rose-200",
+    badgeClass: "bg-rose-50 text-black ring-1 ring-rose-200",
     rowBar: "bg-rose-500",
   },
   question: {
@@ -75,7 +75,7 @@ export const STATUS_META: Record<StatusKey, StatusMeta> = {
     label: "Contract Issued",
     filterLabel: "Contract",
     dot: "bg-violet-500",
-    badgeClass: "bg-violet-50 text-violet-700 ring-1 ring-violet-200",
+    badgeClass: "bg-violet-50 text-black ring-1 ring-violet-200",
     rowBar: "bg-violet-400",
   },
   signed: {
@@ -83,7 +83,7 @@ export const STATUS_META: Record<StatusKey, StatusMeta> = {
     label: "Contract Signed",
     filterLabel: "Signed",
     dot: "bg-emerald-500",
-    badgeClass: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
+    badgeClass: "bg-emerald-50 text-black ring-1 ring-emerald-200",
     rowBar: "bg-emerald-500",
   },
   approved: {
@@ -91,7 +91,7 @@ export const STATUS_META: Record<StatusKey, StatusMeta> = {
     label: "Metadata Approved",
     filterLabel: "Approved",
     dot: "bg-emerald-500",
-    badgeClass: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
+    badgeClass: "bg-emerald-50 text-black ring-1 ring-emerald-200",
     rowBar: "bg-emerald-500",
   },
   proofreader_review: {
@@ -99,7 +99,7 @@ export const STATUS_META: Record<StatusKey, StatusMeta> = {
     label: "Proofreader Review",
     filterLabel: "Proofreader Review",
     dot: "bg-purple-500",
-    badgeClass: "bg-purple-50 text-purple-700 ring-1 ring-purple-200",
+    badgeClass: "bg-purple-50 text-black ring-1 ring-purple-200",
     rowBar: "bg-purple-500",
   },
   author_approved: {
@@ -107,7 +107,7 @@ export const STATUS_META: Record<StatusKey, StatusMeta> = {
     label: "Author Approved",
     filterLabel: "Author Approved",
     dot: "bg-green-500",
-    badgeClass: "bg-green-50 text-green-700 ring-1 ring-green-200",
+    badgeClass: "bg-green-50 text-black ring-1 ring-green-200",
     rowBar: "bg-green-500",
   },
   declined: {
@@ -115,7 +115,7 @@ export const STATUS_META: Record<StatusKey, StatusMeta> = {
     label: "Declined",
     filterLabel: "Declined",
     dot: "bg-stone-400",
-    badgeClass: "bg-stone-100 text-stone-600 ring-1 ring-stone-200",
+    badgeClass: "bg-stone-100 text-black ring-1 ring-stone-200",
     rowBar: "bg-stone-300",
   },
 };
