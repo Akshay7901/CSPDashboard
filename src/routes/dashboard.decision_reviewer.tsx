@@ -290,6 +290,20 @@ const TABS: { key: TabKey; label: string; dot: string }[] = (
   dot: t.key === "all" ? "bg-stone-400" : tabDot(t.key, t.label),
 }));
 
+const ACTIVE_TAB_CLASS: Record<TabKey, string> = {
+  all: "border-stone-300 bg-stone-100 text-black",
+  new: "border-amber-200 bg-amber-50 text-black",
+  awaiting_more_info: "border-orange-200 bg-orange-50 text-black",
+  in_review: "border-sky-200 bg-sky-50 text-black",
+  review_returned: "border-indigo-200 bg-indigo-50 text-black",
+  contract_issued: "border-violet-200 bg-violet-50 text-black",
+  queries_raised: "border-red-200 bg-red-50 text-black",
+  awaiting_author_approval: "border-purple-200 bg-purple-50 text-black",
+  author_approved: "border-green-200 bg-green-50 text-black",
+  locked: "border-emerald-200 bg-emerald-50 text-black",
+  declined: "border-stone-200 bg-stone-100 text-black",
+};
+
 const normalizeRaw = (raw?: string) =>
   (raw || "").trim().toLowerCase().replace(/\s+/g, "_");
 
