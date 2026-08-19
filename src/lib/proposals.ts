@@ -67,7 +67,7 @@ export const STATUS_META: Record<StatusKey, StatusMeta> = {
     label: "Question Raised",
     filterLabel: "Question",
     dot: "bg-red-500",
-    badgeClass: "bg-red-50 text-red-700 ring-1 ring-red-200",
+    badgeClass: "bg-red-50 text-black ring-1 ring-red-200",
     rowBar: "bg-red-500",
   },
   contract: {
