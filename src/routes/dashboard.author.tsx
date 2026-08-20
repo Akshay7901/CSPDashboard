@@ -15,6 +15,7 @@ import {
 import cspLogo from "@/assets/csp-logo.png";
 import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
 import { ChangePasswordButton } from "@/components/change-password-dialog";
+import { ChangeEmailButton } from "@/components/change-email-dialog";
 import { formatDate, initialsFromName, type Proposal, type StatusKey } from "@/lib/proposals";
 import { proposalApiFetch } from "@/lib/proposalApi";
 import { getContract } from "@/lib/contractsApi";
@@ -837,6 +838,10 @@ function AuthorDashboard() {
             </div>
             <span className="text-stone-300">|</span>
             <ChangePasswordButton
+              triggerClassName="font-sans text-sm text-text-muted transition-colors hover:text-text inline-flex items-center gap-1.5"
+            />
+            <span className="text-stone-300">|</span>
+            <ChangeEmailButton
               triggerClassName="font-sans text-sm text-text-muted transition-colors hover:text-text inline-flex items-center gap-1.5"
             />
             <span className="text-stone-300">|</span>
