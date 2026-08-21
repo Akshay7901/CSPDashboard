@@ -47,3 +47,22 @@ export async function runAiReview(ticket: string): Promise<void> {
     throw new Error(msg);
   }
 }
+
+export async function fetchAiScores(tickets: string[]): Promise<Record<string, number | null>> {
+  const results: Record<string, number | null> = {};
+  await Promise.all(
+    tickets.map(async (ticket) => {
+      try {
+        const data = await getAiReview(ticket);
+        if (data.status === "completed" && data.final_score != null) {
+          results[ticket] = Number(data.final_score);
+        } else {
+          results[ticket] = null;
+        }
+      } catch {
+        results[ticket] = null;
+      }
+    }),
+  );
+  return results;
+}

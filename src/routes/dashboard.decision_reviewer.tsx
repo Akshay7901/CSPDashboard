@@ -35,6 +35,7 @@ import {
 } from "@/lib/proofreaderApi";
 import { ChangePasswordButton } from "@/components/change-password-dialog";
 import { getDefaultReviewerEmail, setDefaultReviewerEmail } from "@/lib/defaultReviewer";
+import { fetchAiScores } from "@/lib/aiReviewApi";
 
 type PeerReviewer = {
   id: number;
@@ -103,6 +104,7 @@ type ProposalRow = {
   actionRequired?: boolean;
   currentReviewerEmail?: string;
   currentReviewerStatus?: string;
+  aiScore?: number | null;
 };
 
 const STATUS_MAP: Record<string, StatusKey> = {
@@ -215,6 +217,7 @@ const mapApiProposal = (p: ApiProposal): ProposalRow => {
     actionRequired: p.action_required,
     currentReviewerEmail: activeAssign?.reviewer_email,
     currentReviewerStatus: activeAssign?.peer_reviewer_status || activeAssign?.display_status,
+    aiScore: null,
   };
 };
 
@@ -583,7 +586,18 @@ function DecisionReviewerDashboard() {
           if (!merged.has(p.ticket_number)) merged.set(p.ticket_number, p);
         }
       }
-      setApiProposals(Array.from(merged.values()).map(mapApiProposal));
+      const rows = Array.from(merged.values()).map(mapApiProposal);
+      if (checkIsAdmin()) {
+        try {
+          const scores = await fetchAiScores(rows.map((r) => r.id));
+          for (const row of rows) {
+            if (scores[row.id] !== undefined) row.aiScore = scores[row.id];
+          }
+        } catch {
+          // Non-fatal: AI scores are a dashboard convenience only.
+        }
+      }
+      setApiProposals(rows);
       setStatusSummary((defaultBody.status_summary as Record<string, number>) || {});
     } catch {
       if (!silent) setProposalsError("Network error. Please try again.");
@@ -1049,12 +1063,17 @@ function DecisionReviewerDashboard() {
 
         {/* Table */}
         <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
-          <div className="hidden grid-cols-[2.2fr_1.3fr_1fr_1fr_1.1fr_100px] items-center gap-6 border-b border-stone-200 bg-stone-50/60 px-6 py-3 font-sans text-xs font-semibold uppercase tracking-wider text-[#7A6A5A] md:grid">
+          <div
+            className={`hidden items-center gap-6 border-b border-stone-200 bg-stone-50/60 px-6 py-3 font-sans text-xs font-semibold uppercase tracking-wider text-[#7A6A5A] md:grid ${
+              isAdmin ? "grid-cols-[2fr_1.2fr_0.9fr_0.9fr_1fr_1fr_100px]" : "grid-cols-[2.2fr_1.3fr_1fr_1fr_1.1fr_100px]"
+            }`}
+          >
             <HeaderCell label="Title" />
             <HeaderCell label="Author" />
             <HeaderCell label="Country" />
             <HeaderCell label="Submitted" active sort={sort === "newest" ? "desc" : "asc"} />
             <HeaderCell label="Status" />
+            {isAdmin && <HeaderCell label="AI Score" />}
             <div />
           </div>
 
@@ -1064,7 +1083,11 @@ function DecisionReviewerDashboard() {
               return (
                 <li
                   key={p.id}
-                  className="relative grid grid-cols-1 items-center gap-6 border-b border-stone-100 px-6 py-5 last:border-b-0 md:grid-cols-[2.2fr_1.3fr_1fr_1fr_1.1fr_100px]"
+                  className={`relative grid grid-cols-1 items-center gap-6 border-b border-stone-100 px-6 py-5 last:border-b-0 ${
+                    isAdmin
+                      ? "md:grid-cols-[2fr_1.2fr_0.9fr_0.9fr_1fr_1fr_100px]"
+                      : "md:grid-cols-[2.2fr_1.3fr_1fr_1fr_1.1fr_100px]"
+                  }`}
                 >
                   <span
                     className={`absolute left-0 top-0 h-full w-1.5 ${meta.rowBar}`}
@@ -1131,6 +1154,17 @@ function DecisionReviewerDashboard() {
                       )}
                     </span>
                   </div>
+                  {isAdmin && (
+                    <div className="font-sans text-sm text-[#7A6A5A]">
+                      {p.aiScore != null ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 font-sans text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200">
+                          {p.aiScore.toFixed(1)} / 10
+                        </span>
+                      ) : (
+                        <span className="font-sans text-xs text-stone-400">—</span>
+                      )}
+                    </div>
+                  )}
                   <div className="flex items-center gap-4 justify-self-end">
                     <Link
                       to="/dashboard/proposal/$ticket"
