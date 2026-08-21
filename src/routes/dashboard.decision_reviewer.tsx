@@ -217,6 +217,7 @@ const mapApiProposal = (p: ApiProposal): ProposalRow => {
     actionRequired: p.action_required,
     currentReviewerEmail: activeAssign?.reviewer_email,
     currentReviewerStatus: activeAssign?.peer_reviewer_status || activeAssign?.display_status,
+    aiScore: null,
   };
 };
 
