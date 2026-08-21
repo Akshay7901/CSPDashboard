@@ -1063,12 +1063,17 @@ function DecisionReviewerDashboard() {
 
         {/* Table */}
         <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
-          <div className="hidden grid-cols-[2.2fr_1.3fr_1fr_1fr_1.1fr_100px] items-center gap-6 border-b border-stone-200 bg-stone-50/60 px-6 py-3 font-sans text-xs font-semibold uppercase tracking-wider text-[#7A6A5A] md:grid">
+          <div
+            className={`hidden items-center gap-6 border-b border-stone-200 bg-stone-50/60 px-6 py-3 font-sans text-xs font-semibold uppercase tracking-wider text-[#7A6A5A] md:grid ${
+              isAdmin ? "grid-cols-[2fr_1.2fr_0.9fr_0.9fr_1fr_1fr_100px]" : "grid-cols-[2.2fr_1.3fr_1fr_1fr_1.1fr_100px]"
+            }`}
+          >
             <HeaderCell label="Title" />
             <HeaderCell label="Author" />
             <HeaderCell label="Country" />
             <HeaderCell label="Submitted" active sort={sort === "newest" ? "desc" : "asc"} />
             <HeaderCell label="Status" />
+            {isAdmin && <HeaderCell label="AI Score" />}
             <div />
           </div>
 
