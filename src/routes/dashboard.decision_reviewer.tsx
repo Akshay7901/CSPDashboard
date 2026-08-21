@@ -104,6 +104,7 @@ type ProposalRow = {
   actionRequired?: boolean;
   currentReviewerEmail?: string;
   currentReviewerStatus?: string;
+  aiScore?: number | null;
 };
 
 const STATUS_MAP: Record<string, StatusKey> = {
