@@ -61,7 +61,9 @@ export function AiReviewPanel({ ticket }: { ticket: string }) {
     setStarting(true);
     try {
       await runAiReview(ticket);
-      setReview((r) => ({ ...r, status: "pending", error_message: null }));
+      // Clear previous score/report while the new review runs so the UI
+      // doesn't show stale results from an earlier run.
+      setReview({ status: "pending", final_score: null, report_url: null, error_message: null });
       toast.success("AI review started");
       void load();
     } catch (err) {
