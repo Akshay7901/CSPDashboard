@@ -139,8 +139,10 @@ export function AiReviewPanel({ ticket }: { ticket: string }) {
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent className="bg-white">
           <AlertDialogHeader>
-            <AlertDialogTitle>Run AI review?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="font-sans text-lg font-semibold text-stone-900">
+              Run AI review?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="font-sans text-sm text-stone-600">
               This will run a Gemini AI analysis on the uploaded proposal files. Continue?
             </AlertDialogDescription>
           </AlertDialogHeader>
