@@ -1154,6 +1154,17 @@ function DecisionReviewerDashboard() {
                       )}
                     </span>
                   </div>
+                  {isAdmin && (
+                    <div className="font-sans text-sm text-[#7A6A5A]">
+                      {p.aiScore != null ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 font-sans text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200">
+                          {p.aiScore.toFixed(1)} / 10
+                        </span>
+                      ) : (
+                        <span className="font-sans text-xs text-stone-400">—</span>
+                      )}
+                    </div>
+                  )}
                   <div className="flex items-center gap-4 justify-self-end">
                     <Link
                       to="/dashboard/proposal/$ticket"
