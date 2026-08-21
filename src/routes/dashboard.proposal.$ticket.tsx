@@ -2825,8 +2825,8 @@ function ProposalDetailPage() {
                         />
                       )}
 
-                    {/* AI Proposal Review — admins only */}
-                    {isAdmin() && <AiReviewPanel ticket={ticket} />}
+
+
 
 
                     {/* Peer + Decision Reviewer feedback (collapsible) */}
