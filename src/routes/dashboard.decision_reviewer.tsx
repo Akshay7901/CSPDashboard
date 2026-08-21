@@ -586,7 +586,18 @@ function DecisionReviewerDashboard() {
           if (!merged.has(p.ticket_number)) merged.set(p.ticket_number, p);
         }
       }
-      setApiProposals(Array.from(merged.values()).map(mapApiProposal));
+      const rows = Array.from(merged.values()).map(mapApiProposal);
+      if (checkIsAdmin()) {
+        try {
+          const scores = await fetchAiScores(rows.map((r) => r.id));
+          for (const row of rows) {
+            if (scores[row.id] !== undefined) row.aiScore = scores[row.id];
+          }
+        } catch {
+          // Non-fatal: AI scores are a dashboard convenience only.
+        }
+      }
+      setApiProposals(rows);
       setStatusSummary((defaultBody.status_summary as Record<string, number>) || {});
     } catch {
       if (!silent) setProposalsError("Network error. Please try again.");
