@@ -61,7 +61,9 @@ export function AiReviewPanel({ ticket }: { ticket: string }) {
     setStarting(true);
     try {
       await runAiReview(ticket);
-      setReview((r) => ({ ...r, status: "pending", error_message: null }));
+      // Clear previous score/report while the new review runs so the UI
+      // doesn't show stale results from an earlier run.
+      setReview({ status: "pending", final_score: null, report_url: null, error_message: null });
       toast.success("AI review started");
       void load();
     } catch (err) {
@@ -100,11 +102,14 @@ export function AiReviewPanel({ ticket }: { ticket: string }) {
 
       {status === "completed" && (
         <div className="mt-4 flex flex-wrap items-center gap-4">
-          {typeof review.final_score === "number" && (
-            <p className="font-sans text-sm font-semibold text-stone-800">
-              Score: {review.final_score} / 10
-            </p>
-          )}
+          <div className="inline-flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5">
+            <span className="font-sans text-xs font-semibold uppercase tracking-wider text-emerald-800">
+              Score
+            </span>
+            <span className="font-sans text-lg font-bold text-emerald-900">
+              {review.final_score != null ? Number(review.final_score).toFixed(1) : "—"} / 10
+            </span>
+          </div>
           {review.report_url && (
             <a
               href={review.report_url}
