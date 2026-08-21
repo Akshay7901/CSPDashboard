@@ -35,6 +35,7 @@ import {
 } from "@/lib/proofreaderApi";
 import { ChangePasswordButton } from "@/components/change-password-dialog";
 import { getDefaultReviewerEmail, setDefaultReviewerEmail } from "@/lib/defaultReviewer";
+import { fetchAiScores } from "@/lib/aiReviewApi";
 
 type PeerReviewer = {
   id: number;
