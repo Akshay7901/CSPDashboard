@@ -2654,7 +2654,10 @@ function ProposalDetailPage() {
                     </div>
                   </Card>
                 )}
+                {/* AI Proposal Review — admins only, all proposal states */}
+                {isAdmin() && <AiReviewPanel ticket={ticket} />}
                 {isContractIssued && (
+
                   <>
                     {/* Contract & Feedback preview */}
                     <Card>
@@ -2825,8 +2828,8 @@ function ProposalDetailPage() {
                         />
                       )}
 
-                    {/* AI Proposal Review — admins only */}
-                    {isAdmin() && <AiReviewPanel ticket={ticket} />}
+
+
 
 
                     {/* Peer + Decision Reviewer feedback (collapsible) */}
