@@ -69,6 +69,8 @@ import {
 import { ContractPdfModal } from "@/components/contract-pdf-modal";
 import { ContractQueries } from "@/components/contract-queries";
 import { ContributorsPanel } from "@/components/contributors-panel";
+import { AiReviewPanel } from "@/components/ai-review-panel";
+
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -2822,6 +2824,10 @@ function ProposalDetailPage() {
                           onChanged={() => setContractsReloadKey((k) => k + 1)}
                         />
                       )}
+
+                    {/* AI Proposal Review — admins only */}
+                    {isAdmin() && <AiReviewPanel ticket={ticket} />}
+
 
                     {/* Peer + Decision Reviewer feedback (collapsible) */}
                     {peerReview && (
