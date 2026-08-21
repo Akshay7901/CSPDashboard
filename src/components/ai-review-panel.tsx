@@ -139,14 +139,17 @@ export function AiReviewPanel({ ticket }: { ticket: string }) {
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent className="bg-white">
           <AlertDialogHeader>
-            <AlertDialogTitle>Run AI review?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="font-sans text-lg font-semibold text-stone-900">
+              Run AI review?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="font-sans text-sm text-stone-600">
               This will run a Gemini AI analysis on the uploaded proposal files. Continue?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="font-sans text-stone-800">Cancel</AlertDialogCancel>
             <AlertDialogAction
+              className="bg-stone-900 font-sans text-white hover:bg-stone-800"
               onClick={(e) => {
                 e.preventDefault();
                 void onRun();
