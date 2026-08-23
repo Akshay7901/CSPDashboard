@@ -3669,8 +3669,19 @@ function ProposalDetailPage() {
                       </>
                     ) : (
                       <>
-                        {isReviewReturned && (
+                        {(isReviewReturned || isContractVoided) && (
                           <>
+                            {isContractVoided && (
+                              <div className="rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3">
+                                <p className="font-sans text-sm font-semibold text-amber-900">
+                                  Contract voided
+                                </p>
+                                <p className="mt-0.5 font-sans text-xs text-amber-800/80">
+                                  The previous contract was voided. You can issue a new contract to
+                                  the author.
+                                </p>
+                              </div>
+                            )}
                             <button
                               type="button"
                               onClick={openIssueContract}
@@ -3679,10 +3690,12 @@ function ProposalDetailPage() {
                               <FileText className="mt-0.5 h-4 w-4 text-white" />
                               <div>
                                 <p className="font-sans text-sm font-medium text-white">
-                                  Issue Contract
+                                  {isContractVoided ? "Send Contract Again" : "Issue Contract"}
                                 </p>
                                 <p className="font-sans text-xs font-normal text-white">
-                                  Send contract &amp; review comments to author
+                                  {isContractVoided
+                                    ? "Reissue contract to author (previous one voided)"
+                                    : "Send contract & review comments to author"}
                                 </p>
                               </div>
                             </button>
@@ -3703,7 +3716,8 @@ function ProposalDetailPage() {
                             </button>
                           </>
                         )}
-                        {!assignedReviewer && !isReviewReturned && (
+                        {!assignedReviewer && !isReviewReturned && !isContractVoided && (
+
                           <button
                             type="button"
                             onClick={openReviewers}
