@@ -1572,12 +1572,17 @@ function ProposalDetailPage() {
     const t = Date.parse(exp);
     return Number.isFinite(t) && t <= Date.now();
   }, [latestContract]);
+  const isContractVoided = useMemo(() => {
+    const cs = (latestContract?.status || "").toLowerCase();
+    return cs === "voided" || cs === "cancelled" || cs === "canceled";
+  }, [latestContract]);
   const isContractSigned = useMemo(() => {
     const cs = (latestContract?.status || "").toLowerCase();
     if (cs !== "signed") return false;
     const ps = (data?.status || "").toLowerCase().replace(/\s+/g, "_");
     return ["contract_signed", "contract_received"].includes(ps);
   }, [latestContract, data?.status]);
+
 
   const hasSignedContract = useMemo(
     () => (latestContract?.status || "").toLowerCase() === "signed",
