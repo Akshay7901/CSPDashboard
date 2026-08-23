@@ -1469,10 +1469,12 @@ function ProposalDetailPage() {
 
   const assignedReviewer = data?.assignments?.[0];
 
+  const hasSubmittedReview = useMemo(() => reviews.some((r) => r.is_submitted), [reviews]);
+
   const isReviewReturned = useMemo(() => {
     const s = (data?.status || "").toLowerCase().replace(/\s+/g, "_");
-    return s === "review_returned" && reviews.some((r) => r.is_submitted);
-  }, [data?.status, reviews]);
+    return s === "review_returned" && hasSubmittedReview;
+  }, [data?.status, hasSubmittedReview]);
 
   const isDeclined = useMemo(() => {
     const s = (data?.status || "").toLowerCase().replace(/\s+/g, "_");
@@ -2955,7 +2957,7 @@ function ProposalDetailPage() {
                   </>
                 )}
 
-                {isReviewReturned && !isContractIssued && (
+                {(isReviewReturned || hasSubmittedReview) && !isContractIssued && (
                   <>
                     {/* Review Returned hero */}
                     <Card>
@@ -3540,7 +3542,7 @@ function ProposalDetailPage() {
                     </div>
                   )}
 
-                  {assignedReviewer && !isReviewReturned && !isDeclined && !isContractIssued && (
+                  {assignedReviewer && !isReviewReturned && !hasSubmittedReview && !isDeclined && !isContractIssued && (
                     <div className="mx-5 mb-4 rounded-xl bg-indigo-50/70 px-5 py-4 ring-1 ring-indigo-100">
                       <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-indigo-700">
                         Assigned Reviewer
