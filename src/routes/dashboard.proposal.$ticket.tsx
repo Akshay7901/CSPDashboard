@@ -1572,12 +1572,17 @@ function ProposalDetailPage() {
     const t = Date.parse(exp);
     return Number.isFinite(t) && t <= Date.now();
   }, [latestContract]);
+  const isContractVoided = useMemo(() => {
+    const cs = (latestContract?.status || "").toLowerCase();
+    return cs === "voided" || cs === "cancelled" || cs === "canceled";
+  }, [latestContract]);
   const isContractSigned = useMemo(() => {
     const cs = (latestContract?.status || "").toLowerCase();
     if (cs !== "signed") return false;
     const ps = (data?.status || "").toLowerCase().replace(/\s+/g, "_");
     return ["contract_signed", "contract_received"].includes(ps);
   }, [latestContract, data?.status]);
+
 
   const hasSignedContract = useMemo(
     () => (latestContract?.status || "").toLowerCase() === "signed",
@@ -2656,7 +2661,90 @@ function ProposalDetailPage() {
                 )}
                 {/* AI Proposal Review — admins only, all proposal states */}
                 {isAdmin() && <AiReviewPanel ticket={ticket} />}
+
+                {/* Author Question — prominent DR response panel (any state) */}
+                {hasOpenQuery && openQuery && (
+                  <div ref={authorQuestionRef} className="scroll-mt-24">
+                    <Card>
+                      <div className="rounded-t-2xl border-b border-teal-200 bg-teal-50/70 px-6 py-4">
+                        <h2 className="flex items-center gap-2 font-serif text-base font-bold text-stone-900">
+                          <MessageSquare className="h-4 w-4 text-teal-700" />
+                          Author Question
+                        </h2>
+                        <p className="mt-0.5 font-sans text-sm text-teal-800/80">
+                          Awaiting your response before the author can sign
+                        </p>
+                      </div>
+                      <div className="space-y-4 px-6 py-5">
+                        <div className="rounded-xl border border-teal-200 bg-teal-50/40 px-4 py-3">
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="font-sans text-xs font-semibold uppercase tracking-[0.12em] text-teal-800">
+                              Author&apos;s question
+                              {openQuery.raised_by_name
+                                ? ` · ${openQuery.raised_by_name}`
+                                : openQuery.raised_by
+                                  ? ` · ${displayNameFromEmail(openQuery.raised_by)}`
+                                  : ""}
+                            </p>
+                            <p className="font-sans text-xs text-stone-500">
+                              {formatDate(openQuery.created_at)}
+                            </p>
+                          </div>
+                          <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-800">
+                            {openQuery.text}
+                          </p>
+                        </div>
+
+                        <form onSubmit={submitQueryResponse} className="space-y-3">
+                          <label className="block font-sans text-sm font-semibold text-stone-800">
+                            Your response
+                          </label>
+                          <textarea
+                            value={queryResponseText}
+                            onChange={(e) => setQueryResponseText(e.target.value)}
+                            rows={5}
+                            placeholder="Reply to the author's question…"
+                            className="w-full resize-none rounded-xl border border-stone-200 bg-white px-3.5 py-3 font-sans text-sm text-stone-800 placeholder:text-stone-400 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100"
+                          />
+                          {queryResponseError && (
+                            <p className="rounded-lg bg-rose-50 px-3 py-2 font-sans text-xs text-rose-700 ring-1 ring-rose-200">
+                              {queryResponseError}
+                            </p>
+                          )}
+                          {queryResponseSuccess && (
+                            <p className="rounded-lg bg-emerald-50 px-3 py-2 font-sans text-xs text-emerald-700 ring-1 ring-emerald-200">
+                              {queryResponseSuccess}
+                            </p>
+                          )}
+                          <button
+                            type="submit"
+                            disabled={queryResponseSubmitting || !queryResponseText.trim()}
+                            className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-5 py-2.5 font-sans text-sm font-semibold text-white shadow-sm hover:bg-teal-800 disabled:opacity-50"
+                          >
+                            {queryResponseSubmitting ? "Sending…" : "Send Response"}
+                          </button>
+                        </form>
+                      </div>
+                    </Card>
+                  </div>
+                )}
+
+                {/* Status says queries raised but nothing is actually open */}
+                {hasOpenQuery && !openQuery && (
+                  <Card>
+                    <div className="px-6 py-5">
+                      <p className="font-serif text-base font-bold text-stone-900">
+                        No open author queries
+                      </p>
+                      <p className="mt-1 font-sans text-sm text-stone-600">
+                        This proposal is flagged as “Queries Raised”, but every author query has
+                        already been answered. No action is required here.
+                      </p>
+                    </div>
+                  </Card>
+                )}
                 {isContractIssued && (
+
 
                   <>
                     {/* Contract & Feedback preview */}
@@ -2846,72 +2934,8 @@ function ProposalDetailPage() {
                       />
                     )}
 
-                    {/* Author Question — prominent DR response panel */}
-                    {hasOpenQuery && openQuery && (
-                      <div ref={authorQuestionRef} className="scroll-mt-24">
-                        <Card>
-                          <div className="rounded-t-2xl border-b border-teal-200 bg-teal-50/70 px-6 py-4">
-                            <h2 className="flex items-center gap-2 font-serif text-base font-bold text-stone-900">
-                              <MessageSquare className="h-4 w-4 text-teal-700" />
-                              Author Question
-                            </h2>
-                            <p className="mt-0.5 font-sans text-sm text-teal-800/80">
-                              Awaiting your response before the author can sign
-                            </p>
-                          </div>
-                          <div className="space-y-4 px-6 py-5">
-                            <div className="rounded-xl border border-teal-200 bg-teal-50/40 px-4 py-3">
-                              <div className="flex items-center justify-between gap-3">
-                                <p className="font-sans text-xs font-semibold uppercase tracking-[0.12em] text-teal-800">
-                                  Author's question
-                                  {openQuery.raised_by_name
-                                    ? ` · ${openQuery.raised_by_name}`
-                                    : openQuery.raised_by
-                                      ? ` · ${displayNameFromEmail(openQuery.raised_by)}`
-                                      : ""}
-                                </p>
-                                <p className="font-sans text-xs text-stone-500">
-                                  {formatDate(openQuery.created_at)}
-                                </p>
-                              </div>
-                              <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-800">
-                                {openQuery.text}
-                              </p>
-                            </div>
 
-                            <form onSubmit={submitQueryResponse} className="space-y-3">
-                              <label className="block font-sans text-sm font-semibold text-stone-800">
-                                Your response
-                              </label>
-                              <textarea
-                                value={queryResponseText}
-                                onChange={(e) => setQueryResponseText(e.target.value)}
-                                rows={5}
-                                placeholder="Reply to the author's question…"
-                                className="w-full resize-none rounded-xl border border-stone-200 bg-white px-3.5 py-3 font-sans text-sm text-stone-800 placeholder:text-stone-400 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100"
-                              />
-                              {queryResponseError && (
-                                <p className="rounded-lg bg-rose-50 px-3 py-2 font-sans text-xs text-rose-700 ring-1 ring-rose-200">
-                                  {queryResponseError}
-                                </p>
-                              )}
-                              {queryResponseSuccess && (
-                                <p className="rounded-lg bg-emerald-50 px-3 py-2 font-sans text-xs text-emerald-700 ring-1 ring-emerald-200">
-                                  {queryResponseSuccess}
-                                </p>
-                              )}
-                              <button
-                                type="submit"
-                                disabled={queryResponseSubmitting || !queryResponseText.trim()}
-                                className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-5 py-2.5 font-sans text-sm font-semibold text-white shadow-sm hover:bg-teal-800 disabled:opacity-50"
-                              >
-                                {queryResponseSubmitting ? "Sending…" : "Send Response"}
-                              </button>
-                            </form>
-                          </div>
-                        </Card>
-                      </div>
-                    )}
+
 
                     {/* Collapsible toggle for original proposal */}
                     <button
@@ -3483,26 +3507,28 @@ function ProposalDetailPage() {
                       Editorial Decision
                     </h2>
                     <p className="mt-1 font-sans text-sm text-stone-500">
-                      {isContractIssued && hasOpenQuery
+                      {hasOpenQuery && openQuery
                         ? "Author has raised a question"
-                        : isContractIssued
-                          ? isAwaitingSignature
-                            ? "Contract sent — awaiting signature"
-                            : (latestContract?.status || "").toLowerCase() === "signed"
-                              ? "Contract signed"
-                              : "Contract declined"
-                          : isAwaitingMoreInfo
-                            ? "Revisions requested — awaiting author"
-                            : isDeclined
-                              ? "Declined"
-                              : isReviewReturned
-                                ? "Review returned — add notes and send to author"
-                                : assignedReviewer
-                                  ? "With proposal reviewer"
-                                  : "Awaiting initial assessment"}
+                        : isContractVoided
+                          ? "Contract voided — issue a new contract"
+                          : isContractIssued
+                            ? isAwaitingSignature
+                              ? "Contract sent — awaiting signature"
+                              : (latestContract?.status || "").toLowerCase() === "signed"
+                                ? "Contract signed"
+                                : "Contract declined"
+                            : isAwaitingMoreInfo
+                              ? "Revisions requested — awaiting author"
+                              : isDeclined
+                                ? "Declined"
+                                : isReviewReturned
+                                  ? "Review returned — add notes and send to author"
+                                  : assignedReviewer
+                                    ? "With proposal reviewer"
+                                    : "Awaiting initial assessment"}
                     </p>
                   </div>
-                  {isContractIssued && hasOpenQuery && (
+                  {hasOpenQuery && openQuery && (
                     <div className="mx-5 mb-4 rounded-xl bg-amber-50 px-4 py-3 ring-1 ring-amber-200">
                       <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-amber-800">
                         Author Question
@@ -3513,6 +3539,7 @@ function ProposalDetailPage() {
                       </p>
                     </div>
                   )}
+
                   {assignedReviewer && !isReviewReturned && !isDeclined && !isContractIssued && (
                     <div className="mx-5 mb-4 rounded-xl bg-indigo-50/70 px-5 py-4 ring-1 ring-indigo-100">
                       <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-indigo-700">
@@ -3669,8 +3696,19 @@ function ProposalDetailPage() {
                       </>
                     ) : (
                       <>
-                        {isReviewReturned && (
+                        {(isReviewReturned || isContractVoided) && (
                           <>
+                            {isContractVoided && (
+                              <div className="rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3">
+                                <p className="font-sans text-sm font-semibold text-amber-900">
+                                  Contract voided
+                                </p>
+                                <p className="mt-0.5 font-sans text-xs text-amber-800/80">
+                                  The previous contract was voided. You can issue a new contract to
+                                  the author.
+                                </p>
+                              </div>
+                            )}
                             <button
                               type="button"
                               onClick={openIssueContract}
@@ -3679,10 +3717,12 @@ function ProposalDetailPage() {
                               <FileText className="mt-0.5 h-4 w-4 text-white" />
                               <div>
                                 <p className="font-sans text-sm font-medium text-white">
-                                  Issue Contract
+                                  {isContractVoided ? "Send Contract Again" : "Issue Contract"}
                                 </p>
                                 <p className="font-sans text-xs font-normal text-white">
-                                  Send contract &amp; review comments to author
+                                  {isContractVoided
+                                    ? "Reissue contract to author (previous one voided)"
+                                    : "Send contract & review comments to author"}
                                 </p>
                               </div>
                             </button>
@@ -3703,7 +3743,8 @@ function ProposalDetailPage() {
                             </button>
                           </>
                         )}
-                        {!assignedReviewer && !isReviewReturned && (
+                        {!assignedReviewer && !isReviewReturned && !isContractVoided && (
+
                           <button
                             type="button"
                             onClick={openReviewers}
