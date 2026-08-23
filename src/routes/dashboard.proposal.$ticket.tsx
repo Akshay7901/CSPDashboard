@@ -2957,7 +2957,7 @@ function ProposalDetailPage() {
                   </>
                 )}
 
-                {isReviewReturned && !isContractIssued && (
+                {(isReviewReturned || hasSubmittedReview) && !isContractIssued && (
                   <>
                     {/* Review Returned hero */}
                     <Card>
@@ -3542,7 +3542,7 @@ function ProposalDetailPage() {
                     </div>
                   )}
 
-                  {assignedReviewer && !isReviewReturned && !isDeclined && !isContractIssued && (
+                  {assignedReviewer && !isReviewReturned && !hasSubmittedReview && !isDeclined && !isContractIssued && (
                     <div className="mx-5 mb-4 rounded-xl bg-indigo-50/70 px-5 py-4 ring-1 ring-indigo-100">
                       <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-indigo-700">
                         Assigned Reviewer
