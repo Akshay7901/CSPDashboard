@@ -3507,26 +3507,28 @@ function ProposalDetailPage() {
                       Editorial Decision
                     </h2>
                     <p className="mt-1 font-sans text-sm text-stone-500">
-                      {isContractIssued && hasOpenQuery
+                      {hasOpenQuery && openQuery
                         ? "Author has raised a question"
-                        : isContractIssued
-                          ? isAwaitingSignature
-                            ? "Contract sent — awaiting signature"
-                            : (latestContract?.status || "").toLowerCase() === "signed"
-                              ? "Contract signed"
-                              : "Contract declined"
-                          : isAwaitingMoreInfo
-                            ? "Revisions requested — awaiting author"
-                            : isDeclined
-                              ? "Declined"
-                              : isReviewReturned
-                                ? "Review returned — add notes and send to author"
-                                : assignedReviewer
-                                  ? "With proposal reviewer"
-                                  : "Awaiting initial assessment"}
+                        : isContractVoided
+                          ? "Contract voided — issue a new contract"
+                          : isContractIssued
+                            ? isAwaitingSignature
+                              ? "Contract sent — awaiting signature"
+                              : (latestContract?.status || "").toLowerCase() === "signed"
+                                ? "Contract signed"
+                                : "Contract declined"
+                            : isAwaitingMoreInfo
+                              ? "Revisions requested — awaiting author"
+                              : isDeclined
+                                ? "Declined"
+                                : isReviewReturned
+                                  ? "Review returned — add notes and send to author"
+                                  : assignedReviewer
+                                    ? "With proposal reviewer"
+                                    : "Awaiting initial assessment"}
                     </p>
                   </div>
-                  {isContractIssued && hasOpenQuery && (
+                  {hasOpenQuery && openQuery && (
                     <div className="mx-5 mb-4 rounded-xl bg-amber-50 px-4 py-3 ring-1 ring-amber-200">
                       <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-amber-800">
                         Author Question
@@ -3537,6 +3539,7 @@ function ProposalDetailPage() {
                       </p>
                     </div>
                   )}
+
                   {assignedReviewer && !isReviewReturned && !isDeclined && !isContractIssued && (
                     <div className="mx-5 mb-4 rounded-xl bg-indigo-50/70 px-5 py-4 ring-1 ring-indigo-100">
                       <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-indigo-700">
