@@ -2851,72 +2851,8 @@ function ProposalDetailPage() {
                       />
                     )}
 
-                    {/* Author Question — prominent DR response panel */}
-                    {hasOpenQuery && openQuery && (
-                      <div ref={authorQuestionRef} className="scroll-mt-24">
-                        <Card>
-                          <div className="rounded-t-2xl border-b border-teal-200 bg-teal-50/70 px-6 py-4">
-                            <h2 className="flex items-center gap-2 font-serif text-base font-bold text-stone-900">
-                              <MessageSquare className="h-4 w-4 text-teal-700" />
-                              Author Question
-                            </h2>
-                            <p className="mt-0.5 font-sans text-sm text-teal-800/80">
-                              Awaiting your response before the author can sign
-                            </p>
-                          </div>
-                          <div className="space-y-4 px-6 py-5">
-                            <div className="rounded-xl border border-teal-200 bg-teal-50/40 px-4 py-3">
-                              <div className="flex items-center justify-between gap-3">
-                                <p className="font-sans text-xs font-semibold uppercase tracking-[0.12em] text-teal-800">
-                                  Author's question
-                                  {openQuery.raised_by_name
-                                    ? ` · ${openQuery.raised_by_name}`
-                                    : openQuery.raised_by
-                                      ? ` · ${displayNameFromEmail(openQuery.raised_by)}`
-                                      : ""}
-                                </p>
-                                <p className="font-sans text-xs text-stone-500">
-                                  {formatDate(openQuery.created_at)}
-                                </p>
-                              </div>
-                              <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-800">
-                                {openQuery.text}
-                              </p>
-                            </div>
 
-                            <form onSubmit={submitQueryResponse} className="space-y-3">
-                              <label className="block font-sans text-sm font-semibold text-stone-800">
-                                Your response
-                              </label>
-                              <textarea
-                                value={queryResponseText}
-                                onChange={(e) => setQueryResponseText(e.target.value)}
-                                rows={5}
-                                placeholder="Reply to the author's question…"
-                                className="w-full resize-none rounded-xl border border-stone-200 bg-white px-3.5 py-3 font-sans text-sm text-stone-800 placeholder:text-stone-400 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100"
-                              />
-                              {queryResponseError && (
-                                <p className="rounded-lg bg-rose-50 px-3 py-2 font-sans text-xs text-rose-700 ring-1 ring-rose-200">
-                                  {queryResponseError}
-                                </p>
-                              )}
-                              {queryResponseSuccess && (
-                                <p className="rounded-lg bg-emerald-50 px-3 py-2 font-sans text-xs text-emerald-700 ring-1 ring-emerald-200">
-                                  {queryResponseSuccess}
-                                </p>
-                              )}
-                              <button
-                                type="submit"
-                                disabled={queryResponseSubmitting || !queryResponseText.trim()}
-                                className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-5 py-2.5 font-sans text-sm font-semibold text-white shadow-sm hover:bg-teal-800 disabled:opacity-50"
-                              >
-                                {queryResponseSubmitting ? "Sending…" : "Send Response"}
-                              </button>
-                            </form>
-                          </div>
-                        </Card>
-                      </div>
-                    )}
+
 
                     {/* Collapsible toggle for original proposal */}
                     <button
