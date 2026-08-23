@@ -1469,10 +1469,12 @@ function ProposalDetailPage() {
 
   const assignedReviewer = data?.assignments?.[0];
 
+  const hasSubmittedReview = useMemo(() => reviews.some((r) => r.is_submitted), [reviews]);
+
   const isReviewReturned = useMemo(() => {
     const s = (data?.status || "").toLowerCase().replace(/\s+/g, "_");
-    return s === "review_returned" && reviews.some((r) => r.is_submitted);
-  }, [data?.status, reviews]);
+    return s === "review_returned" && hasSubmittedReview;
+  }, [data?.status, hasSubmittedReview]);
 
   const isDeclined = useMemo(() => {
     const s = (data?.status || "").toLowerCase().replace(/\s+/g, "_");
