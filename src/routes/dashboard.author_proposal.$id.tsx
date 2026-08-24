@@ -948,9 +948,11 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
         />
       </section>
 
-      <div className="mt-6">
-        <ContributorsPanel ticket={proposal.ticket} />
-      </div>
+      {proposal.cd?.book_type && !/monograph/i.test(proposal.cd.book_type) ? (
+        <div className="mt-6">
+          <ContributorsPanel ticket={proposal.ticket} />
+        </div>
+      ) : null}
 
       <AuthorMetadataPanel
         ticket={proposal.ticket}
