@@ -62,6 +62,7 @@ export function ContributorsPanel({ ticket }: { ticket: string }) {
     role: ROLES[0] as string,
   });
   const [saving, setSaving] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -81,10 +82,15 @@ export function ContributorsPanel({ ticket }: { ticket: string }) {
     void load();
   }, [load]);
 
+  useEffect(() => {
+    if (addError) setAddError(null);
+  }, [form]);
+
   const onAdd = async (e: FormEvent) => {
     e.preventDefault();
     if (!form.name.trim() || !form.email.trim()) return;
     setSaving(true);
+    setAddError(null);
     try {
       const affiliation = [form.affiliation.trim(), form.country.trim()]
         .filter(Boolean)
@@ -103,7 +109,7 @@ export function ContributorsPanel({ ticket }: { ticket: string }) {
       }
       await load();
     } catch (err) {
-      toast.error((err as Error).message);
+      setAddError((err as Error).message);
     } finally {
       setSaving(false);
     }
@@ -202,6 +208,11 @@ export function ContributorsPanel({ ticket }: { ticket: string }) {
             {saving ? "Saving…" : "Save Contributor"}
           </button>
         </div>
+        {addError && (
+          <p className="mt-3 rounded-lg bg-rose-50 px-3 py-2 font-sans text-sm text-rose-700 ring-1 ring-rose-200">
+            {addError}
+          </p>
+        )}
       </form>
 
       {loading ? (
