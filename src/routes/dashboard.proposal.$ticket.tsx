@@ -33,6 +33,7 @@ import {
   CalendarCheck,
   User as UserIcon,
   Lock,
+  RefreshCw,
 } from "lucide-react";
 import { History } from "lucide-react";
 import {
@@ -157,6 +158,7 @@ type ProposalDetail = {
   submitted_at: string;
   updated_at?: string;
   ms_submission_deadline?: string | null;
+  is_resubmission?: boolean;
   current_data: Record<string, unknown>;
   assignments?: Assignment[];
   timeline?: TimelineStage[];
@@ -2340,6 +2342,14 @@ function ProposalDetailPage() {
             <div className="mt-6 grid w-full grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
               {/* Main column */}
               <div className="min-w-0 space-y-6">
+                {data?.is_resubmission === true && (
+                  <div className="flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3">
+                    <RefreshCw className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
+                    <p className="font-sans text-sm font-medium text-amber-900">
+                      This proposal has been resubmitted by the author.
+                    </p>
+                  </div>
+                )}
                 {hasSignedContract && (
                   <Card className="overflow-hidden border-stone-200">
                     {/* Header */}
