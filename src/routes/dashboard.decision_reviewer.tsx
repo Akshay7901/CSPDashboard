@@ -106,6 +106,7 @@ type ProposalRow = {
   currentReviewerEmail?: string;
   currentReviewerStatus?: string;
   aiScore?: number | null;
+  isResubmission?: boolean;
 };
 
 const STATUS_MAP: Record<string, StatusKey> = {
@@ -219,6 +220,7 @@ const mapApiProposal = (p: ApiProposal): ProposalRow => {
     currentReviewerEmail: activeAssign?.reviewer_email,
     currentReviewerStatus: activeAssign?.peer_reviewer_status || activeAssign?.display_status,
     aiScore: null,
+    isResubmission: p.is_resubmission === true,
   };
 };
 
@@ -1106,6 +1108,11 @@ function DecisionReviewerDashboard() {
                     )}
                     <p className="font-sans text-sm font-medium leading-snug text-[#2C1A0E]">
                       {p.title}
+                      {p.isResubmission && (
+                        <span className="ml-2 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 align-middle font-sans text-[10px] font-semibold uppercase tracking-wide text-amber-900 ring-1 ring-amber-300">
+                          Resubmission
+                        </span>
+                      )}
                     </p>
                     <p className="mt-1 font-sans text-xs text-[#7A6A5A]">{p.kind}</p>
                   </div>
