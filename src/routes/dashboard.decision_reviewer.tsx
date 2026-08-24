@@ -55,6 +55,7 @@ type ApiProposal = {
   status: string;
   display_status?: string;
   action_required?: boolean;
+  is_resubmission?: boolean;
   current_data?: Record<string, string | undefined>;
   assignments?:
     | Array<{
