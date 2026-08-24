@@ -82,6 +82,10 @@ export function ContributorsPanel({ ticket }: { ticket: string }) {
     void load();
   }, [load]);
 
+  useEffect(() => {
+    if (addError) setAddError(null);
+  }, [form]);
+
   const onAdd = async (e: FormEvent) => {
     e.preventDefault();
     if (!form.name.trim() || !form.email.trim()) return;
