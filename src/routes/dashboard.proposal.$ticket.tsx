@@ -33,6 +33,7 @@ import {
   CalendarCheck,
   User as UserIcon,
   Lock,
+  RefreshCw,
 } from "lucide-react";
 import { History } from "lucide-react";
 import {
