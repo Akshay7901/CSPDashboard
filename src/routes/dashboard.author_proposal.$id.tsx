@@ -948,7 +948,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
         />
       </section>
 
-      {proposal.cd?.book_type && !/monograph/i.test(proposal.cd.book_type) ? (
+      {!/monograph/i.test((proposal.cd.book_type || "").trim()) ? (
         <div className="mt-6">
           <ContributorsPanel ticket={proposal.ticket} />
         </div>
