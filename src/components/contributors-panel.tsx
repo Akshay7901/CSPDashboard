@@ -62,6 +62,7 @@ export function ContributorsPanel({ ticket }: { ticket: string }) {
     role: ROLES[0] as string,
   });
   const [saving, setSaving] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
