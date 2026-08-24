@@ -86,6 +86,7 @@ export function ContributorsPanel({ ticket }: { ticket: string }) {
     e.preventDefault();
     if (!form.name.trim() || !form.email.trim()) return;
     setSaving(true);
+    setAddError(null);
     try {
       const affiliation = [form.affiliation.trim(), form.country.trim()]
         .filter(Boolean)
@@ -104,7 +105,7 @@ export function ContributorsPanel({ ticket }: { ticket: string }) {
       }
       await load();
     } catch (err) {
-      toast.error((err as Error).message);
+      setAddError((err as Error).message);
     } finally {
       setSaving(false);
     }
