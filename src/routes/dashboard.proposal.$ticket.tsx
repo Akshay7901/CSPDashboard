@@ -3506,6 +3506,8 @@ function ProposalDetailPage() {
                 {(() => {
                   const r = (getPortalSession()?.role || "").toLowerCase();
                   if (r !== "admin" && r !== "decision_reviewer") return null;
+                  const bookType = (cd.book_type || "").trim();
+                  if (/monograph/i.test(bookType)) return null;
                   return <ContributorsPanel ticket={ticket} />;
                 })()}
               </div>
