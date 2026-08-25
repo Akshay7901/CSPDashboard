@@ -70,6 +70,7 @@ import {
 import { ContractPdfModal } from "@/components/contract-pdf-modal";
 import { ContractQueries } from "@/components/contract-queries";
 import { ContributorsPanel } from "@/components/contributors-panel";
+import { CoAuthorsPanel } from "@/components/co-authors-panel";
 import { AiReviewPanel } from "@/components/ai-review-panel";
 
 import { Input } from "@/components/ui/input";
@@ -3502,6 +3503,13 @@ function ProposalDetailPage() {
                   </Card>
                 )}
 
+                {/* Co-Authors / Co-Editors */}
+                {(() => {
+                  const r = (getPortalSession()?.role || "").toLowerCase();
+                  if (r !== "admin" && r !== "decision_reviewer") return null;
+                  return <CoAuthorsPanel ticket={ticket} />;
+                })()}
+
                 {/* Contributors */}
                 {(() => {
                   const r = (getPortalSession()?.role || "").toLowerCase();
@@ -3510,6 +3518,7 @@ function ProposalDetailPage() {
                   if (/monograph/i.test(bookType)) return null;
                   return <ContributorsPanel ticket={ticket} />;
                 })()}
+
               </div>
 
               {/* Sidebar */}
