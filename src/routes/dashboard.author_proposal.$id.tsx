@@ -811,19 +811,22 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
     ...(() => {
       const cv = (cd as any).author_cv;
       const cvUrl = (cd as any).author_cv_url;
-      if (cv && typeof cv === "object" && cv.url) {
-        return [
-          {
-            url: cv.url,
-            filename: cv.filename || cv.url.split("/").pop() || "Author CV",
-            size_bytes: cv.size_bytes,
-          },
-        ];
-      }
-      if (typeof cvUrl === "string" && cvUrl) {
-        return [{ url: cvUrl, filename: cvUrl.split("/").pop() || "Author CV" }];
-      }
-      return [];
+      const normalize = (v: any) => {
+        if (v && typeof v === "object" && (v.url || v.file_url)) {
+          const url = v.url || v.file_url;
+          return {
+            url,
+            filename: v.filename || v.name || String(url).split("/").pop() || "Author CV",
+            size_bytes: v.size_bytes,
+          };
+        }
+        if (typeof v === "string" && v) {
+          return { url: v, filename: v.split("/").pop() || "Author CV" };
+        }
+        return null;
+      };
+      const doc = normalize(cv) || normalize(cvUrl);
+      return doc ? [doc] : [];
     })(),
     ...(files.sampleChapter ? [files.sampleChapter] : []),
     ...(files.additionalFiles || []),
