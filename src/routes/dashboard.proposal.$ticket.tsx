@@ -70,6 +70,7 @@ import {
 import { ContractPdfModal } from "@/components/contract-pdf-modal";
 import { ContractQueries } from "@/components/contract-queries";
 import { ContributorsPanel } from "@/components/contributors-panel";
+import { CoAuthorsPanel } from "@/components/co-authors-panel";
 import { AiReviewPanel } from "@/components/ai-review-panel";
 
 import { Input } from "@/components/ui/input";
