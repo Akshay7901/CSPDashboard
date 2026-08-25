@@ -261,7 +261,10 @@ function extractProposalDocuments(currentData: Record<string, unknown>) {
     documents.push({ url: cv, filename: filenameFromUrl(cv) || "Author CV", label: "Author CV" });
   } else {
     const cvUrl = currentData.author_cv_url;
-    if (typeof cvUrl === "string" && cvUrl) {
+    if (isRecord(cvUrl)) {
+      const doc = toProposalDocument(cvUrl, "Author CV");
+      if (doc) documents.push({ ...doc, label: "Author CV" });
+    } else if (typeof cvUrl === "string" && cvUrl) {
       documents.push({
         url: cvUrl,
         filename: filenameFromUrl(cvUrl) || "Author CV",
