@@ -3502,6 +3502,13 @@ function ProposalDetailPage() {
                   </Card>
                 )}
 
+                {/* Co-Authors / Co-Editors */}
+                {(() => {
+                  const r = (getPortalSession()?.role || "").toLowerCase();
+                  if (r !== "admin" && r !== "decision_reviewer") return null;
+                  return <CoAuthorsPanel ticket={ticket} />;
+                })()}
+
                 {/* Contributors */}
                 {(() => {
                   const r = (getPortalSession()?.role || "").toLowerCase();
@@ -3510,6 +3517,7 @@ function ProposalDetailPage() {
                   if (/monograph/i.test(bookType)) return null;
                   return <ContributorsPanel ticket={ticket} />;
                 })()}
+
               </div>
 
               {/* Sidebar */}
