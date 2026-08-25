@@ -559,26 +559,48 @@ function DecisionReviewerDashboard() {
       // terminal states (declined / signed) that the default endpoint omits
       // are still shown under "All".
       const headers = authHeaders();
-      const defaultRes = await proposalApiFetch("?limit=100&sort_order=desc", { headers });
-      const defaultBody = (await defaultRes.json().catch(() => ({}))) as Record<string, unknown>;
-      if (!defaultRes.ok) {
-        if (!silent) setProposalsError((defaultBody.error as string) || "Failed to load proposals.");
-        return;
-      }
+      const PAGE = 100;
+      const MAX_PAGES = 40;
+      // Fetch every page of a list query so the row count matches the
+      // API's status_summary totals (the list is capped at 100 per call).
+      const fetchAllPages = async (
+        base: string,
+      ): Promise<{ proposals: ApiProposal[]; firstBody: Record<string, unknown> }> => {
+        const all: ApiProposal[] = [];
+        let firstBody: Record<string, unknown> = {};
+        for (let page = 0; page < MAX_PAGES; page += 1) {
+          const offset = page * PAGE;
+          const r = await proposalApiFetch(`${base}&limit=${PAGE}&offset=${offset}`, { headers });
+          if (!r.ok) {
+            if (page === 0) throw new Error(String(r.status));
+            break;
+          }
+          const b = (await r.json().catch(() => ({}))) as Record<string, unknown>;
+          if (page === 0) firstBody = b;
+          const list = (b.proposals as ApiProposal[]) || [];
+          all.push(...list);
+          if (list.length < PAGE) break;
+        }
+        return { proposals: all, firstBody };
+      };
+
+      let defaultBody: Record<string, unknown> = {};
       const merged = new Map<string, ApiProposal>();
-      for (const p of (defaultBody.proposals as ApiProposal[]) || []) {
-        merged.set(p.ticket_number, p);
+      try {
+        const { proposals, firstBody } = await fetchAllPages("?sort_order=desc");
+        defaultBody = firstBody;
+        for (const p of proposals) merged.set(p.ticket_number, p);
+      } catch {
+        if (!silent) setProposalsError("Failed to load proposals.");
+        return;
       }
       const extraLists = await Promise.all(
         ALL_API_STATUSES.map(async (status) => {
           try {
-            const r = await proposalApiFetch(
-              `?limit=100&sort_order=desc&status=${encodeURIComponent(status)}`,
-              { headers },
+            const { proposals } = await fetchAllPages(
+              `?sort_order=desc&status=${encodeURIComponent(status)}`,
             );
-            if (!r.ok) return [] as ApiProposal[];
-            const b = (await r.json().catch(() => ({}))) as Record<string, unknown>;
-            return ((b.proposals as ApiProposal[]) || []);
+            return proposals;
           } catch {
             return [] as ApiProposal[];
           }
@@ -589,6 +611,7 @@ function DecisionReviewerDashboard() {
           if (!merged.has(p.ticket_number)) merged.set(p.ticket_number, p);
         }
       }
+
       const rows = Array.from(merged.values()).map(mapApiProposal);
       if (checkIsAdmin()) {
         try {
