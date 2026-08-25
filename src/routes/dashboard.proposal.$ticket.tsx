@@ -272,6 +272,11 @@ function extractProposalDocuments(currentData: Record<string, unknown>) {
 
   const mf = currentData.manuscript_files;
   if (isRecord(mf)) {
+    const complete = mf.completeManuscript ?? mf.complete_manuscript;
+    if (isRecord(complete)) {
+      const doc = toProposalDocument(complete, "Complete Manuscript");
+      if (doc) documents.push({ ...doc, label: "Complete Manuscript" });
+    }
     const sample = mf.sampleChapter ?? mf.sample_chapter;
     if (isRecord(sample)) {
       const doc = toProposalDocument(sample, "Sample Chapter");
