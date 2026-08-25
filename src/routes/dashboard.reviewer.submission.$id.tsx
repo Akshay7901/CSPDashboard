@@ -1050,22 +1050,22 @@ function ProposalDetails({
   const sample = manuscriptFiles?.sampleChapter;
   const additional = manuscriptFiles?.additionalFiles ?? [];
   const cvFile = (() => {
-    const cv = rawCd.author_cv as
-      | { url?: string; filename?: string; size_bytes?: number }
-      | undefined;
-    const cvUrl = rawCd.author_cv_url as string | undefined;
-    if (cv && typeof cv === "object" && cv.url) {
-      return {
-        url: cv.url,
-        filename: cv.filename || cv.url.split("/").pop() || "Author CV",
-        size_bytes: cv.size_bytes,
-        label: "Author CV",
-      };
-    }
-    if (typeof cvUrl === "string" && cvUrl) {
-      return { url: cvUrl, filename: cvUrl.split("/").pop() || "Author CV", label: "Author CV" };
-    }
-    return null;
+    const normalize = (v: any) => {
+      if (v && typeof v === "object" && (v.url || v.file_url)) {
+        const url = v.url || v.file_url;
+        return {
+          url,
+          filename: v.filename || v.name || String(url).split("/").pop() || "Author CV",
+          size_bytes: v.size_bytes,
+          label: "Author CV",
+        };
+      }
+      if (typeof v === "string" && v) {
+        return { url: v, filename: v.split("/").pop() || "Author CV", label: "Author CV" };
+      }
+      return null;
+    };
+    return normalize(rawCd.author_cv) || normalize(rawCd.author_cv_url);
   })();
   const allFiles = [
     ...(cvFile ? [cvFile] : []),
