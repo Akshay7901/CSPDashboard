@@ -179,14 +179,35 @@ export async function getTwoStageContract(ticket: string): Promise<TwoStageContr
   });
   if (!res.ok) return null;
   const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
-  const inner = (body.contract ?? body) as Record<string, unknown>;
-  const stages = inner.stages as TwoStageContract["stages"];
-  if (!stages || typeof stages !== "object") return null;
-  return {
-    contract_version: inner.contract_version as number | undefined,
-    publishing_agreement_signed: inner.publishing_agreement_signed as boolean | undefined,
-    stages,
-  };
+  // Tolerate several wrapper shapes: top-level, `contract`, `data`, or
+  // `data.contract`.
+  const candidates = [
+    body,
+    body.contract,
+    body.data,
+    (body.data as Record<string, unknown> | undefined)?.contract,
+  ].filter((v): v is Record<string, unknown> => !!v && typeof v === "object");
+  for (const inner of candidates) {
+    let stages = inner.stages as TwoStageContract["stages"];
+    // Some payloads expose the two stages directly without a `stages` wrapper.
+    if (
+      (!stages || typeof stages !== "object") &&
+      (inner.publishing_agreement || inner.author_contract)
+    ) {
+      stages = {
+        publishing_agreement: inner.publishing_agreement as ContractStageInfo,
+        author_contract: inner.author_contract as ContractStageInfo,
+      };
+    }
+    if (stages && typeof stages === "object") {
+      return {
+        contract_version: inner.contract_version as number | undefined,
+        publishing_agreement_signed: inner.publishing_agreement_signed as boolean | undefined,
+        stages,
+      };
+    }
+  }
+  return null;
 }
 
 export async function fetchContractPdfBlob(ticket: string): Promise<string> {
