@@ -71,11 +71,24 @@ export async function getContract(ticket: string): Promise<ContractDetail[]> {
   if (!res.ok) return [];
   const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
   if (Array.isArray(body.contracts)) return body.contracts as ContractDetail[];
-  if (body.contract) return [body.contract as ContractDetail];
+  if (body.contract && typeof body.contract === "object") {
+    return [body.contract as ContractDetail];
+  }
   // Newer two-stage payloads return the contract fields at the top level
   // (no `contract` / `contracts` wrapper). Treat that as a single contract.
-  if (body.stages || body.contract_version || body.docusign_envelope_id || body.contract_type) {
-    return [body as ContractDetail];
+  const inner = (body.data && typeof body.data === "object" ? body.data : body) as Record<
+    string,
+    unknown
+  >;
+  if (
+    inner.stages ||
+    inner.publishing_agreement ||
+    inner.author_contract ||
+    inner.contract_version ||
+    inner.docusign_envelope_id ||
+    inner.contract_type
+  ) {
+    return [inner as ContractDetail];
   }
   return [];
 }
