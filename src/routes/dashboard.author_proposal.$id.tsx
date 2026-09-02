@@ -1775,12 +1775,22 @@ function ContractIssuedView({
     const load = async (showLoading: boolean) => {
       if (showLoading) setLoading(true);
       try {
-        const list = await getContract(ticket);
+        const [list, two] = await Promise.all([
+          getContract(ticket),
+          getTwoStageContract(ticket),
+        ]);
         if (cancelled) return;
-        const latest = list[0] || null;
+        let latest = list[0] || null;
+        // If the legacy single-contract shape wasn't recognized but the
+        // two-stage payload exists, synthesize a minimal contract record so
+        // the section still renders and the stage cards can drive signing.
+        if (!latest && two?.stages) {
+          latest = {
+            status: "sent",
+            contract_version: two.contract_version,
+          } as ContractDetail;
+        }
         setContract(latest);
-        const two = await getTwoStageContract(ticket);
-        if (cancelled) return;
         setTwoStage(two);
         // Poll while the contract is still awaiting signature so the author
         // dashboard flips to "Contract Signed" automatically.
