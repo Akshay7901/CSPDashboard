@@ -279,6 +279,23 @@ function SubmissionDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [proposal.id]);
 
+  // Fetch the issued contract (if any) so editors can see its signing state.
+  useEffect(() => {
+    let cancelled = false;
+    const ref = proposal.ref || proposal.id;
+    if (!ref) return;
+    getContract(ref)
+      .then((list) => {
+        if (!cancelled && list.length > 0) setIssuedContract(list[list.length - 1]);
+      })
+      .catch(() => {
+        // no contract issued yet (or endpoint unavailable) — hide the card
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [proposal.id, proposal.ref]);
+
   const displayName = userEmail ? "James Mitchell" : displayNameFromEmail(userEmail);
   const meta = STATUS_META[effectiveStatus];
 
