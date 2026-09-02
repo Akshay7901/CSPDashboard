@@ -1779,11 +1779,21 @@ function ContractIssuedView({
         if (cancelled) return;
         const latest = list[0] || null;
         setContract(latest);
+        const two = await getTwoStageContract(ticket);
+        if (cancelled) return;
+        setTwoStage(two);
         // Poll while the contract is still awaiting signature so the author
         // dashboard flips to "Contract Signed" automatically.
         const st = (latest?.status || "").toLowerCase();
         const completed = !!latest?.docusign_completed_at;
         const pending = (st === "sent" || st === "draft") && !completed;
+        const stageSigned = (s?: { status?: string }) =>
+          (s?.status || "").toLowerCase() === "signed" ||
+          (s?.status || "").toLowerCase() === "completed";
+        const twoPending =
+          !!two?.stages &&
+          (!stageSigned(two.stages.publishing_agreement) ||
+            !stageSigned(two.stages.author_contract));
         if (pending) {
           // Poll faster (4s) right after the author clicked "Sign", so the
           // page flips to "Contract Signed" as soon as DocuSign confirms.
