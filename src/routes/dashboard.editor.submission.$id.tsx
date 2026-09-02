@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
 import { portalLogout, getPortalSession } from "@/lib/auth";
+import { getContract, type ContractDetail } from "@/lib/contractsApi";
 import {
   PROPOSALS,
   STATUS_META,
