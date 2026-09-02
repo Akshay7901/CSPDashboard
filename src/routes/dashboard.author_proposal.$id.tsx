@@ -1794,7 +1794,7 @@ function ContractIssuedView({
           !!two?.stages &&
           (!stageSigned(two.stages.publishing_agreement) ||
             !stageSigned(two.stages.author_contract));
-        if (pending) {
+        if (pending || twoPending) {
           // Poll faster (4s) right after the author clicked "Sign", so the
           // page flips to "Contract Signed" as soon as DocuSign confirms.
           // Tightened so the page flips to "Contract Signed" as soon as
