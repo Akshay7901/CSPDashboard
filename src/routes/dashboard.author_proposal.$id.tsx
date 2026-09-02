@@ -2547,8 +2547,25 @@ function ContractIssuedView({
                 agreement with Cambridge Scholars Publishing.
               </p>
             )}
+            {twoStage?.stages && (
+              <div className="mt-5 space-y-4 text-left">
+                {renderStageCard(
+                  "publishing_agreement",
+                  "Publishing Agreement",
+                  twoStage.stages.publishing_agreement,
+                  false,
+                )}
+                {renderStageCard(
+                  "author_contract",
+                  contract.contract_type === "editor" ? "Editor Contract" : "Author Contract",
+                  twoStage.stages.author_contract,
+                  !stageIsSigned(twoStage.stages.publishing_agreement) ||
+                    twoStage.stages.author_contract?.locked === true,
+                )}
+              </div>
+            )}
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-stretch sm:justify-center">
-              {canSign && (
+              {canSign && !twoStage?.stages && (
                 <TooltipProvider delayDuration={0}>
                   <Tooltip>
                     <TooltipTrigger asChild>
