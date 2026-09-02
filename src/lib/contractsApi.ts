@@ -69,12 +69,58 @@ function authHeaders(): HeadersInit {
   };
 }
 
+/**
+ * Normalise a `versions[]` entry (newer API shape) into a ContractDetail.
+ */
+function fromVersionEntry(v: Record<string, unknown>): ContractDetail {
+  const stages = (v.stages || {}) as Record<string, Record<string, unknown>>;
+  const pa = stages.publishing_agreement;
+  const ac = stages.author_contract;
+  // Overall status: the furthest stage that exists drives the summary.
+  const primary = (ac || pa || {}) as Record<string, unknown>;
+  return {
+    ...(v as ContractDetail),
+    id: (primary.id as number) ?? (v.id as number) ?? 0,
+    contract_version: (v.contract_version as number) ?? (primary.contract_version as number),
+    contract_type:
+      (v.contract_type as ContractDetail["contract_type"]) ??
+      (primary.contract_type as ContractDetail["contract_type"]),
+    status: (v.status as string) ?? (primary.status as string),
+    docusign_envelope_id: primary.docusign_envelope_id as string | undefined,
+    docusign_status: primary.docusign_status as string | undefined,
+    docusign_signing_url: primary.docusign_signing_url as string | undefined,
+    docusign_sent_at: (primary.docusign_sent_at ?? primary.created_at) as string | undefined,
+    docusign_completed_at: primary.docusign_completed_at as string | null | undefined,
+    docusign_declined_at: primary.docusign_declined_at as string | null | undefined,
+    docusign_decline_reason: primary.docusign_decline_reason as string | null | undefined,
+    docusign_expires_at: primary.docusign_expires_at as string | undefined,
+    recipient_email: primary.recipient_email as string | undefined,
+    recipient_name: primary.recipient_name as string | undefined,
+    created_at: (v.created_at ?? primary.created_at) as string | undefined,
+    publishing_agreement_signed:
+      (v.publishing_agreement_signed as boolean | undefined) ??
+      (pa ? String(pa.status).toLowerCase() === "signed" : undefined),
+    stages: (stages as ContractDetail["stages"]) ?? undefined,
+  };
+}
+
+function extractVersions(body: Record<string, unknown>): ContractDetail[] {
+  const raw = (body.versions ||
+    (body.data as Record<string, unknown> | undefined)?.versions) as unknown;
+  if (!Array.isArray(raw)) return [];
+  return (raw as Record<string, unknown>[])
+    .map(fromVersionEntry)
+    .sort((a, b) => (b.contract_version || 0) - (a.contract_version || 0));
+}
+
 export async function getContract(ticket: string): Promise<ContractDetail[]> {
   const res = await proposalApiFetch(`/${encodeURIComponent(ticket)}/contract`, {
     headers: authHeaders(),
   });
   if (!res.ok) return [];
   const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+  const versions = extractVersions(body);
+  if (versions.length) return versions;
   if (Array.isArray(body.contracts)) return body.contracts as ContractDetail[];
   if (body.contract && typeof body.contract === "object") {
     return [body.contract as ContractDetail];
@@ -97,6 +143,7 @@ export async function getContract(ticket: string): Promise<ContractDetail[]> {
   }
   return [];
 }
+
 
 export async function getQueries(ticket: string): Promise<QueryThreadResponse> {
   const res = await proposalApiFetch(`/${encodeURIComponent(ticket)}/contract/queries`, {
