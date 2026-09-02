@@ -71,11 +71,24 @@ export async function getContract(ticket: string): Promise<ContractDetail[]> {
   if (!res.ok) return [];
   const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
   if (Array.isArray(body.contracts)) return body.contracts as ContractDetail[];
-  if (body.contract) return [body.contract as ContractDetail];
+  if (body.contract && typeof body.contract === "object") {
+    return [body.contract as ContractDetail];
+  }
   // Newer two-stage payloads return the contract fields at the top level
   // (no `contract` / `contracts` wrapper). Treat that as a single contract.
-  if (body.stages || body.contract_version || body.docusign_envelope_id || body.contract_type) {
-    return [body as ContractDetail];
+  const inner = (body.data && typeof body.data === "object" ? body.data : body) as Record<
+    string,
+    unknown
+  >;
+  if (
+    inner.stages ||
+    inner.publishing_agreement ||
+    inner.author_contract ||
+    inner.contract_version ||
+    inner.docusign_envelope_id ||
+    inner.contract_type
+  ) {
+    return [inner as ContractDetail];
   }
   return [];
 }
@@ -179,14 +192,35 @@ export async function getTwoStageContract(ticket: string): Promise<TwoStageContr
   });
   if (!res.ok) return null;
   const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
-  const inner = (body.contract ?? body) as Record<string, unknown>;
-  const stages = inner.stages as TwoStageContract["stages"];
-  if (!stages || typeof stages !== "object") return null;
-  return {
-    contract_version: inner.contract_version as number | undefined,
-    publishing_agreement_signed: inner.publishing_agreement_signed as boolean | undefined,
-    stages,
-  };
+  // Tolerate several wrapper shapes: top-level, `contract`, `data`, or
+  // `data.contract`.
+  const candidates = [
+    body,
+    body.contract,
+    body.data,
+    (body.data as Record<string, unknown> | undefined)?.contract,
+  ].filter((v): v is Record<string, unknown> => !!v && typeof v === "object");
+  for (const inner of candidates) {
+    let stages = inner.stages as TwoStageContract["stages"];
+    // Some payloads expose the two stages directly without a `stages` wrapper.
+    if (
+      (!stages || typeof stages !== "object") &&
+      (inner.publishing_agreement || inner.author_contract)
+    ) {
+      stages = {
+        publishing_agreement: inner.publishing_agreement as ContractStageInfo,
+        author_contract: inner.author_contract as ContractStageInfo,
+      };
+    }
+    if (stages && typeof stages === "object") {
+      return {
+        contract_version: inner.contract_version as number | undefined,
+        publishing_agreement_signed: inner.publishing_agreement_signed as boolean | undefined,
+        stages,
+      };
+    }
+  }
+  return null;
 }
 
 export async function fetchContractPdfBlob(ticket: string): Promise<string> {
