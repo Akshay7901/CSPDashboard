@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
 import { portalLogout, getPortalSession } from "@/lib/auth";
+import { getContract, type ContractDetail } from "@/lib/contractsApi";
 import {
   PROPOSALS,
   STATUS_META,
@@ -68,6 +69,7 @@ function SubmissionDetail() {
   const [assignedReviewerName, setAssignedReviewerName] = useState<string | null>(null);
   const [assignedReviewer, setAssignedReviewer] = useState<PoolReviewer | null>(null);
   const [effectiveStatus, setEffectiveStatus] = useState<Proposal["status"]>(proposal.status);
+  const [issuedContract, setIssuedContract] = useState<ContractDetail | null>(null);
 
   type SubmittedReview = {
     id: string;
@@ -276,6 +278,23 @@ function SubmissionDetail() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [proposal.id]);
+
+  // Fetch the issued contract (if any) so editors can see its signing state.
+  useEffect(() => {
+    let cancelled = false;
+    const ref = proposal.ref || proposal.id;
+    if (!ref) return;
+    getContract(ref)
+      .then((list) => {
+        if (!cancelled && list.length > 0) setIssuedContract(list[list.length - 1]);
+      })
+      .catch(() => {
+        // no contract issued yet (or endpoint unavailable) — hide the card
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [proposal.id, proposal.ref]);
 
   const displayName = userEmail ? "James Mitchell" : displayNameFromEmail(userEmail);
   const meta = STATUS_META[effectiveStatus];
@@ -932,6 +951,126 @@ function SubmissionDetail() {
                 )}
               </div>
             </Card>
+
+            {/* Issued Contract */}
+            {issuedContract && (
+              <Card>
+                <div className="flex items-center justify-between gap-3 border-b border-violet-200 bg-violet-50/70 px-6 py-4">
+                  <h2 className="font-serif text-xl font-bold text-stone-900">Contract</h2>
+                  <span
+                    className={`inline-flex shrink-0 items-center rounded-full px-3 py-1 font-sans text-xs font-semibold ring-1 ${
+                      (issuedContract.status || "").toLowerCase() === "signed"
+                        ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                        : (issuedContract.status || "").toLowerCase() === "declined"
+                          ? "bg-rose-50 text-rose-700 ring-rose-200"
+                          : ["expired", "voided"].includes(
+                                (issuedContract.status || "").toLowerCase(),
+                              )
+                            ? "bg-amber-50 text-amber-700 ring-amber-200"
+                            : "bg-sky-50 text-sky-700 ring-sky-200"
+                    }`}
+                  >
+                    {(issuedContract.status || "").toLowerCase() === "signed"
+                      ? "Signed"
+                      : (issuedContract.status || "").toLowerCase() === "declined"
+                        ? "Declined"
+                        : ["expired", "voided"].includes(
+                              (issuedContract.status || "").toLowerCase(),
+                            )
+                          ? "Expired"
+                          : "Awaiting Signature"}
+                  </span>
+                </div>
+                <div className="space-y-3 px-6 py-5">
+                  {issuedContract.stages ? (
+                    (
+                      [
+                        ["Publishing Agreement", issuedContract.stages.publishing_agreement],
+                        [
+                          issuedContract.contract_type === "editor"
+                            ? "Editor Contract"
+                            : "Author Contract",
+                          issuedContract.stages.author_contract,
+                        ],
+                      ] as const
+                    ).map(([label, stage]) => {
+                      const stageStatus = (stage?.status || "sent").toLowerCase();
+                      const locked = !!stage?.locked;
+                      const signed = stageStatus === "signed";
+                      const declined = stageStatus === "declined";
+                      const expired = stageStatus === "expired" || stageStatus === "voided";
+                      const statusLabel = signed
+                        ? "Signed"
+                        : declined
+                          ? "Declined"
+                          : expired
+                            ? "Expired"
+                            : locked
+                              ? "Locked"
+                              : "Awaiting Signature";
+                      const statusClass = signed
+                        ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                        : declined
+                          ? "bg-rose-50 text-rose-700 ring-rose-200"
+                          : expired
+                            ? "bg-amber-50 text-amber-700 ring-amber-200"
+                            : locked
+                              ? "bg-stone-100 text-stone-600 ring-stone-200"
+                              : "bg-sky-50 text-sky-700 ring-sky-200";
+                      return (
+                        <div
+                          key={label}
+                          className={`flex items-center justify-between gap-3 rounded-xl border px-4 py-3 ${
+                            locked ? "border-stone-200 bg-stone-50" : "border-stone-200 bg-white"
+                          }`}
+                        >
+                          <p className="font-sans text-sm font-semibold text-stone-900">{label}</p>
+                          <span
+                            className={`inline-flex shrink-0 rounded-full px-3 py-1 font-sans text-xs font-semibold ring-1 ${statusClass}`}
+                          >
+                            {statusLabel}
+                          </span>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="space-y-2 font-sans text-sm text-stone-700">
+                      <InfoRow
+                        label="Type"
+                        value={
+                          issuedContract.contract_type
+                            ? issuedContract.contract_type.charAt(0).toUpperCase() +
+                              issuedContract.contract_type.slice(1)
+                            : "—"
+                        }
+                      />
+                      <InfoRow
+                        label="Version"
+                        value={String(issuedContract.contract_version ?? "—")}
+                      />
+                      <InfoRow
+                        label="Recipient"
+                        value={issuedContract.recipient_name || proposal.authorName}
+                      />
+                      <InfoRow
+                        label="Sent"
+                        value={
+                          issuedContract.docusign_sent_at
+                            ? formatDate(issuedContract.docusign_sent_at)
+                            : "—"
+                        }
+                      />
+                    </div>
+                  )}
+                  {issuedContract.docusign_expires_at &&
+                    (issuedContract.status || "").toLowerCase() !== "signed" && (
+                      <p className="font-sans text-xs text-stone-500">
+                        Expires {formatDate(issuedContract.docusign_expires_at)}
+                      </p>
+                    )}
+                </div>
+              </Card>
+            )}
 
             {/* Internal Notes */}
             <Card>
