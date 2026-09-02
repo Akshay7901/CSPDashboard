@@ -25,8 +25,11 @@ import { proposalApiFetch } from "@/lib/proposalApi";
 import {
   getContract,
   getSigningUrl,
+  getTwoStageContract,
   declineContract,
   type ContractDetail,
+  type ContractStageInfo,
+  type TwoStageContract,
 } from "@/lib/contractsApi";
 import { getQueries, raiseQuery } from "@/lib/contractsApi";
 import { ContractPdfModal } from "@/components/contract-pdf-modal";
@@ -1736,6 +1739,10 @@ function ContractIssuedView({
   authorFullName: string;
 }) {
   const [contract, setContract] = useState<ContractDetail | null>(null);
+  const [twoStage, setTwoStage] = useState<TwoStageContract | null>(null);
+  const [signingStage, setSigningStage] = useState<
+    "publishing_agreement" | "author_contract" | null
+  >(null);
   const [loading, setLoading] = useState(true);
   const [pdfOpen, setPdfOpen] = useState(false);
   const [signError, setSignError] = useState<string | null>(null);
