@@ -244,6 +244,15 @@ export async function getTwoStageContract(ticket: string): Promise<TwoStageContr
   });
   if (!res.ok) return null;
   const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+  const versions = extractVersions(body);
+  if (versions.length) {
+    const latest = versions[0];
+    return {
+      contract_version: latest.contract_version,
+      publishing_agreement_signed: latest.publishing_agreement_signed,
+      stages: latest.stages,
+    };
+  }
   // Tolerate several wrapper shapes: top-level, `contract`, `data`, or
   // `data.contract`.
   const candidates = [
