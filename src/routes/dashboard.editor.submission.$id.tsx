@@ -69,6 +69,7 @@ function SubmissionDetail() {
   const [assignedReviewerName, setAssignedReviewerName] = useState<string | null>(null);
   const [assignedReviewer, setAssignedReviewer] = useState<PoolReviewer | null>(null);
   const [effectiveStatus, setEffectiveStatus] = useState<Proposal["status"]>(proposal.status);
+  const [issuedContract, setIssuedContract] = useState<ContractDetail | null>(null);
 
   type SubmittedReview = {
     id: string;
