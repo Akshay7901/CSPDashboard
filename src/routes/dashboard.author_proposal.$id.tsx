@@ -1996,6 +1996,122 @@ function ContractIssuedView({
     }
   };
 
+  const handleSignStage = async (stageKey: "publishing_agreement" | "author_contract") => {
+    setSigningStage(stageKey);
+    setSignError(null);
+    try {
+      // Always fetch a fresh signing URL — never cache.
+      const url = await getSigningUrl(ticket, stageKey);
+      if (url) {
+        window.open(url, "_blank", "noopener,noreferrer");
+        setAwaitingSignature(true);
+        try {
+          window.sessionStorage.setItem(awaitingKey, "1");
+        } catch {
+          // ignore storage errors
+        }
+      } else {
+        setSignError("No signing URL returned.");
+      }
+    } catch (e) {
+      setSignError((e as Error).message);
+    } finally {
+      setSigningStage(null);
+    }
+  };
+
+  const stageIsSigned = (s?: ContractStageInfo) => {
+    const st = (s?.status || "").toLowerCase();
+    return st === "signed" || st === "completed";
+  };
+
+  const stageBadge = (stage: ContractStageInfo | undefined, locked: boolean) => {
+    const st = (stage?.status || "").toLowerCase();
+    if (st === "signed" || st === "completed")
+      return {
+        cls: "border-emerald-200 bg-emerald-100 text-emerald-800",
+        label: "Signed",
+      };
+    if (st === "declined")
+      return {
+        cls: "border-rose-200 bg-rose-100 text-rose-800",
+        label: "Declined — please contact the publisher",
+      };
+    if (st === "expired" || st === "voided")
+      return {
+        cls: "border-amber-200 bg-amber-100 text-amber-800",
+        label: "Expired — please contact the publisher",
+      };
+    if (locked)
+      return { cls: "border-stone-200 bg-stone-100 text-stone-600", label: "Locked" };
+    return { cls: "border-blue-200 bg-blue-100 text-blue-800", label: "Awaiting Signature" };
+  };
+
+  const renderStageCard = (
+    stageKey: "publishing_agreement" | "author_contract",
+    cardTitle: string,
+    stage: ContractStageInfo | undefined,
+    locked: boolean,
+  ) => {
+    const signed = stageIsSigned(stage);
+    const badge = stageBadge(stage, locked && !signed);
+    const loadingThis = signingStage === stageKey;
+    return (
+      <div
+        key={stageKey}
+        className={`rounded-xl border p-4 sm:p-5 ${
+          locked && !signed
+            ? "border-stone-200 bg-stone-50 opacity-70"
+            : signed
+              ? "border-emerald-200 bg-emerald-50/60"
+              : "border-violet-200 bg-white"
+        }`}
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="font-sans text-sm font-bold text-stone-900">{cardTitle}</p>
+            {stage?.docusign_expires_at && !signed && (
+              <p className="mt-0.5 font-sans text-xs text-stone-500">
+                Expires {formatDate(stage.docusign_expires_at)}
+              </p>
+            )}
+          </div>
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 font-sans text-xs font-semibold ${badge.cls}`}
+          >
+            {signed && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
+            {badge.label}
+          </span>
+        </div>
+        {!signed && (
+          <div className="mt-3">
+            {locked ? (
+              <p className="font-sans text-xs text-stone-500">
+                Please sign the Publishing Agreement above first.
+              </p>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  if (hasOpenQuery) {
+                    setSignDisabledDialogOpen(true);
+                    return;
+                  }
+                  void handleSignStage(stageKey);
+                }}
+                disabled={loadingThis}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 py-2.5 font-sans text-sm font-bold text-white shadow-sm transition hover:bg-violet-700 disabled:opacity-60"
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                {loadingThis ? "Opening…" : `Sign ${cardTitle}`}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const handleDownload = async () => {
     setDownloading(true);
     try {
