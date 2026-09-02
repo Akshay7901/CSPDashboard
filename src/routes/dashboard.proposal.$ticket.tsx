@@ -1570,7 +1570,14 @@ function ProposalDetailPage() {
   const isContractIssued = useMemo(() => {
     if (!latestContract) return false;
     const cs = (latestContract.status || "").toLowerCase();
-    return cs === "sent" || cs === "signed" || cs === "declined" || cs === "draft";
+    return (
+      !!latestContract.stages?.publishing_agreement ||
+      !!latestContract.stages?.author_contract ||
+      cs === "sent" ||
+      cs === "signed" ||
+      cs === "declined" ||
+      cs === "draft"
+    );
   }, [latestContract]);
   const isAwaitingSignature = useMemo(() => {
     const cs = (latestContract?.status || "").toLowerCase();
@@ -2802,6 +2809,70 @@ function ProposalDetailPage() {
                         </span>
                       </div>
                       <div className="px-6 py-6">
+                        {latestContract?.stages && (
+                          <div className="mx-auto mb-6 grid max-w-xl gap-3">
+                            {([
+                              ["Publishing Agreement", latestContract.stages.publishing_agreement],
+                              [
+                                latestContract.contract_type === "editor"
+                                  ? "Editor Contract"
+                                  : "Author Contract",
+                                latestContract.stages.author_contract,
+                              ],
+                            ] as const).map(([label, stage]) => {
+                              const stageStatus = (stage?.status || "sent").toLowerCase();
+                              const locked = !!stage?.locked;
+                              const signed = stageStatus === "signed";
+                              const declined = stageStatus === "declined";
+                              const expired = stageStatus === "expired" || stageStatus === "voided";
+                              const statusLabel = signed
+                                ? "Signed"
+                                : declined
+                                  ? "Declined"
+                                  : expired
+                                    ? "Expired"
+                                    : locked
+                                      ? "Locked"
+                                      : "Awaiting Signature";
+                              const statusClass = signed
+                                ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                                : declined
+                                  ? "bg-rose-50 text-rose-700 ring-rose-200"
+                                  : expired
+                                    ? "bg-amber-50 text-amber-700 ring-amber-200"
+                                    : locked
+                                      ? "bg-stone-100 text-stone-600 ring-stone-200"
+                                      : "bg-sky-50 text-sky-700 ring-sky-200";
+
+                              return (
+                                <div
+                                  key={label}
+                                  className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-4 ${
+                                    locked
+                                      ? "border-stone-200 bg-stone-50"
+                                      : "border-stone-200 bg-white"
+                                  }`}
+                                >
+                                  <div>
+                                    <p className="font-sans text-sm font-semibold text-stone-900">
+                                      {label}
+                                    </p>
+                                    {stage?.docusign_expires_at && !signed && (
+                                      <p className="mt-1 font-sans text-xs text-stone-500">
+                                        Expires {formatDate(stage.docusign_expires_at)}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <span
+                                    className={`inline-flex rounded-full px-3 py-1 font-sans text-xs font-semibold ring-1 ${statusClass}`}
+                                  >
+                                    {statusLabel}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                         <div className="mx-auto max-w-xl rounded-xl border border-stone-200 bg-white px-10 py-10 shadow-[0_2px_12px_-6px_rgba(0,0,0,0.08)]">
                           <p className="text-center font-sans text-[11px] font-semibold uppercase tracking-[0.3em] text-stone-500">
                             Cambridge Scholars Publishing

@@ -34,6 +34,11 @@ export type ContractDetail = {
   copies_sold_revenue?: string | number;
   secondary_rights_revenue?: string | number;
   publishing_agreement?: string;
+  publishing_agreement_signed?: boolean;
+  stages?: {
+    publishing_agreement?: ContractStageInfo;
+    author_contract?: ContractStageInfo;
+  };
 };
 
 export type ContractQueryEntry = {
