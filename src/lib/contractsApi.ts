@@ -131,13 +131,57 @@ export async function declineContract(ticket: string, reason: string) {
   return body;
 }
 
-export async function getSigningUrl(ticket: string): Promise<string> {
-  const res = await proposalApiFetch(`/${encodeURIComponent(ticket)}/contract/signing-url`, {
+export async function getSigningUrl(ticket: string, stage?: string): Promise<string> {
+  const qs = stage ? `?stage=${encodeURIComponent(stage)}` : "";
+  const res = await proposalApiFetch(
+    `/${encodeURIComponent(ticket)}/contract/signing-url${qs}`,
+    { headers: authHeaders() },
+  );
+  const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+  if (!res.ok) {
+    if (res.status === 403 && body.locked) {
+      throw new Error("Please sign the Publishing Agreement above first.");
+    }
+    throw new Error((body.error as string) || `Failed (${res.status})`);
+  }
+  return (body.signing_url as string) || "";
+}
+
+export type ContractStageInfo = {
+  status?: string;
+  locked?: boolean;
+  docusign_expires_at?: string;
+  docusign_signed_at?: string;
+};
+
+export type TwoStageContract = {
+  contract_version?: number;
+  publishing_agreement_signed?: boolean;
+  stages?: {
+    publishing_agreement?: ContractStageInfo;
+    author_contract?: ContractStageInfo;
+  };
+};
+
+/**
+ * Fetch the two-stage contract shape (Publishing Agreement + Author/Editor
+ * Contract). Returns null when the backend still returns the legacy single
+ * contract shape.
+ */
+export async function getTwoStageContract(ticket: string): Promise<TwoStageContract | null> {
+  const res = await proposalApiFetch(`/${encodeURIComponent(ticket)}/contract`, {
     headers: authHeaders(),
   });
+  if (!res.ok) return null;
   const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
-  if (!res.ok) throw new Error((body.error as string) || `Failed (${res.status})`);
-  return (body.signing_url as string) || "";
+  const inner = (body.contract ?? body) as Record<string, unknown>;
+  const stages = inner.stages as TwoStageContract["stages"];
+  if (!stages || typeof stages !== "object") return null;
+  return {
+    contract_version: inner.contract_version as number | undefined,
+    publishing_agreement_signed: inner.publishing_agreement_signed as boolean | undefined,
+    stages,
+  };
 }
 
 export async function fetchContractPdfBlob(ticket: string): Promise<string> {

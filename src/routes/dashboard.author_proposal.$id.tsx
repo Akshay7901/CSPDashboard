@@ -25,8 +25,11 @@ import { proposalApiFetch } from "@/lib/proposalApi";
 import {
   getContract,
   getSigningUrl,
+  getTwoStageContract,
   declineContract,
   type ContractDetail,
+  type ContractStageInfo,
+  type TwoStageContract,
 } from "@/lib/contractsApi";
 import { getQueries, raiseQuery } from "@/lib/contractsApi";
 import { ContractPdfModal } from "@/components/contract-pdf-modal";
@@ -1736,6 +1739,10 @@ function ContractIssuedView({
   authorFullName: string;
 }) {
   const [contract, setContract] = useState<ContractDetail | null>(null);
+  const [twoStage, setTwoStage] = useState<TwoStageContract | null>(null);
+  const [signingStage, setSigningStage] = useState<
+    "publishing_agreement" | "author_contract" | null
+  >(null);
   const [loading, setLoading] = useState(true);
   const [pdfOpen, setPdfOpen] = useState(false);
   const [signError, setSignError] = useState<string | null>(null);
@@ -1772,12 +1779,22 @@ function ContractIssuedView({
         if (cancelled) return;
         const latest = list[0] || null;
         setContract(latest);
+        const two = await getTwoStageContract(ticket);
+        if (cancelled) return;
+        setTwoStage(two);
         // Poll while the contract is still awaiting signature so the author
         // dashboard flips to "Contract Signed" automatically.
         const st = (latest?.status || "").toLowerCase();
         const completed = !!latest?.docusign_completed_at;
         const pending = (st === "sent" || st === "draft") && !completed;
-        if (pending) {
+        const stageSigned = (s?: { status?: string }) =>
+          (s?.status || "").toLowerCase() === "signed" ||
+          (s?.status || "").toLowerCase() === "completed";
+        const twoPending =
+          !!two?.stages &&
+          (!stageSigned(two.stages.publishing_agreement) ||
+            !stageSigned(two.stages.author_contract));
+        if (pending || twoPending) {
           // Poll faster (4s) right after the author clicked "Sign", so the
           // page flips to "Contract Signed" as soon as DocuSign confirms.
           // Tightened so the page flips to "Contract Signed" as soon as
@@ -1977,6 +1994,122 @@ function ContractIssuedView({
     } finally {
       setSignLoading(false);
     }
+  };
+
+  const handleSignStage = async (stageKey: "publishing_agreement" | "author_contract") => {
+    setSigningStage(stageKey);
+    setSignError(null);
+    try {
+      // Always fetch a fresh signing URL — never cache.
+      const url = await getSigningUrl(ticket, stageKey);
+      if (url) {
+        window.open(url, "_blank", "noopener,noreferrer");
+        setAwaitingSignature(true);
+        try {
+          window.sessionStorage.setItem(awaitingKey, "1");
+        } catch {
+          // ignore storage errors
+        }
+      } else {
+        setSignError("No signing URL returned.");
+      }
+    } catch (e) {
+      setSignError((e as Error).message);
+    } finally {
+      setSigningStage(null);
+    }
+  };
+
+  const stageIsSigned = (s?: ContractStageInfo) => {
+    const st = (s?.status || "").toLowerCase();
+    return st === "signed" || st === "completed";
+  };
+
+  const stageBadge = (stage: ContractStageInfo | undefined, locked: boolean) => {
+    const st = (stage?.status || "").toLowerCase();
+    if (st === "signed" || st === "completed")
+      return {
+        cls: "border-emerald-200 bg-emerald-100 text-emerald-800",
+        label: "Signed",
+      };
+    if (st === "declined")
+      return {
+        cls: "border-rose-200 bg-rose-100 text-rose-800",
+        label: "Declined — please contact the publisher",
+      };
+    if (st === "expired" || st === "voided")
+      return {
+        cls: "border-amber-200 bg-amber-100 text-amber-800",
+        label: "Expired — please contact the publisher",
+      };
+    if (locked)
+      return { cls: "border-stone-200 bg-stone-100 text-stone-600", label: "Locked" };
+    return { cls: "border-blue-200 bg-blue-100 text-blue-800", label: "Awaiting Signature" };
+  };
+
+  const renderStageCard = (
+    stageKey: "publishing_agreement" | "author_contract",
+    cardTitle: string,
+    stage: ContractStageInfo | undefined,
+    locked: boolean,
+  ) => {
+    const signed = stageIsSigned(stage);
+    const badge = stageBadge(stage, locked && !signed);
+    const loadingThis = signingStage === stageKey;
+    return (
+      <div
+        key={stageKey}
+        className={`rounded-xl border p-4 sm:p-5 ${
+          locked && !signed
+            ? "border-stone-200 bg-stone-50 opacity-70"
+            : signed
+              ? "border-emerald-200 bg-emerald-50/60"
+              : "border-violet-200 bg-white"
+        }`}
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="font-sans text-sm font-bold text-stone-900">{cardTitle}</p>
+            {stage?.docusign_expires_at && !signed && (
+              <p className="mt-0.5 font-sans text-xs text-stone-500">
+                Expires {formatDate(stage.docusign_expires_at)}
+              </p>
+            )}
+          </div>
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 font-sans text-xs font-semibold ${badge.cls}`}
+          >
+            {signed && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
+            {badge.label}
+          </span>
+        </div>
+        {!signed && (
+          <div className="mt-3">
+            {locked ? (
+              <p className="font-sans text-xs text-stone-500">
+                Please sign the Publishing Agreement above first.
+              </p>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  if (hasOpenQuery) {
+                    setSignDisabledDialogOpen(true);
+                    return;
+                  }
+                  void handleSignStage(stageKey);
+                }}
+                disabled={loadingThis}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 py-2.5 font-sans text-sm font-bold text-white shadow-sm transition hover:bg-violet-700 disabled:opacity-60"
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                {loadingThis ? "Opening…" : `Sign ${cardTitle}`}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    );
   };
 
   const handleDownload = async () => {
@@ -2414,8 +2547,25 @@ function ContractIssuedView({
                 agreement with Cambridge Scholars Publishing.
               </p>
             )}
+            {twoStage?.stages && (
+              <div className="mt-5 space-y-4 text-left">
+                {renderStageCard(
+                  "publishing_agreement",
+                  "Publishing Agreement",
+                  twoStage.stages.publishing_agreement,
+                  false,
+                )}
+                {renderStageCard(
+                  "author_contract",
+                  contract.contract_type === "editor" ? "Editor Contract" : "Author Contract",
+                  twoStage.stages.author_contract,
+                  !stageIsSigned(twoStage.stages.publishing_agreement) ||
+                    twoStage.stages.author_contract?.locked === true,
+                )}
+              </div>
+            )}
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-stretch sm:justify-center">
-              {canSign && (
+              {canSign && !twoStage?.stages && (
                 <TooltipProvider delayDuration={0}>
                   <Tooltip>
                     <TooltipTrigger asChild>
