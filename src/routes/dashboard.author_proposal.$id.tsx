@@ -1884,8 +1884,16 @@ function ContractIssuedView({
     cstatus === "voided" ||
     dsStatus === "declined" ||
     dsStatus === "voided";
+  const anyStageSent =
+    !!twoStage?.stages &&
+    [twoStage.stages.publishing_agreement, twoStage.stages.author_contract].some(
+      (s) => stageStatus(s) === "sent" || stageStatus(s) === "delivered",
+    );
   const canSign =
-    (cstatus === "sent" || dsStatus === "sent" || dsStatus === "delivered") &&
+    (cstatus === "sent" ||
+      dsStatus === "sent" ||
+      dsStatus === "delivered" ||
+      anyStageSent) &&
     !isSigned &&
     !isDeclined;
   const hasOpenQuery = proposalStatus === "queries_raised" || proposalStatus === "question_raised";
