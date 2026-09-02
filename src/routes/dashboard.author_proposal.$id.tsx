@@ -1854,12 +1854,20 @@ function ContractIssuedView({
 
   const cstatus = (contract.status || "").toLowerCase();
   const dsStatus = (contract.docusign_status || "").toLowerCase();
+  const stageStatus = (s?: { status?: string }) => (s?.status || "").toLowerCase();
+  const stageDone = (s?: { status?: string }) =>
+    stageStatus(s) === "signed" || stageStatus(s) === "completed";
+  const bothStagesSigned =
+    !!twoStage?.stages &&
+    stageDone(twoStage.stages.publishing_agreement) &&
+    stageDone(twoStage.stages.author_contract);
   const isSigned =
     cstatus === "signed" ||
     cstatus === "completed" ||
     dsStatus === "signed" ||
     dsStatus === "completed" ||
-    !!contract.docusign_completed_at;
+    !!contract.docusign_completed_at ||
+    bothStagesSigned;
   // Once the contract is confirmed signed, clear the awaiting flag so the
   // reassurance banner disappears and the success view takes over.
   if (isSigned && awaitingSignature) {

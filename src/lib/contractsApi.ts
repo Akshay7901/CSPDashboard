@@ -72,6 +72,11 @@ export async function getContract(ticket: string): Promise<ContractDetail[]> {
   const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
   if (Array.isArray(body.contracts)) return body.contracts as ContractDetail[];
   if (body.contract) return [body.contract as ContractDetail];
+  // Newer two-stage payloads return the contract fields at the top level
+  // (no `contract` / `contracts` wrapper). Treat that as a single contract.
+  if (body.stages || body.contract_version || body.docusign_envelope_id || body.contract_type) {
+    return [body as ContractDetail];
+  }
   return [];
 }
 
