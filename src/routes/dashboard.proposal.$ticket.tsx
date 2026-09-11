@@ -152,6 +152,18 @@ type TimelineStage = {
   is_completed?: boolean;
 };
 
+type ContractDefaults = {
+  title?: string;
+  subtitle?: string;
+  num_of_copies?: string;
+  num_of_copies_more_than_one_author?: string;
+  percentage_off?: number;
+  royalty_0_200?: number;
+  royalty_201_400?: number;
+  royalty_401_600?: number;
+  royalty_601?: number;
+};
+
 type ProposalDetail = {
   ticket_number: string;
   status: string;
@@ -160,6 +172,10 @@ type ProposalDetail = {
   updated_at?: string;
   ms_submission_deadline?: string | null;
   is_resubmission?: boolean;
+  has_final_manuscript?: boolean;
+  contract_defaults?: ContractDefaults;
+  proposal_title?: string | null;
+  proposal_subtitle?: string | null;
   current_data: Record<string, unknown>;
   assignments?: Assignment[];
   timeline?: TimelineStage[];
@@ -556,7 +572,13 @@ function ProposalDetailPage() {
         );
         return;
       }
-      toast.success((body.message as string) || `Proposal ${ticket} locked.`);
+      const manuscriptNote =
+        typeof body.has_final_manuscript === "boolean"
+          ? body.has_final_manuscript
+            ? " Final manuscript is on file."
+            : " No final manuscript is on file yet."
+          : "";
+      toast.success(((body.message as string) || `Proposal ${ticket} locked.`) + manuscriptNote);
       const refreshed = await proposalApiFetch(`/${encodeURIComponent(ticket)}`, {
         headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       });
@@ -788,14 +810,13 @@ function ProposalDetailPage() {
   const [contractFields, setContractFields] = useState({
     title: "",
     subtitle: "",
-    language: "in all languages",
-    author_copies: "two copies",
-    if_two_author_copies: "two copies",
-    if_three_or_four_author_copies: "one copy",
-    copies_sold_revenue: "10",
-    secondary_rights_revenue: "20",
-    publishing_agreement:
-      "This publishing agreement will run in perpetuity, unless agreed otherwise by both the Publisher and the Author/Editor.",
+    num_of_copies: "",
+    num_of_copies_more_than_one_author: "",
+    percentage_off: "",
+    royalty_0_200: "",
+    royalty_201_400: "",
+    royalty_401_600: "",
+    royalty_601: "",
   });
 
   const openIssueContract = () => {
@@ -809,11 +830,25 @@ function ProposalDetailPage() {
     // For resends (e.g. after the author raised a query), skip straight to
     // the contract summary.
     setContractStep(contracts.length > 0 ? 2 : 1);
-    setContractFields((f) => ({
-      ...f,
-      title: cd.main_title || title || "",
-      subtitle: cd.sub_title || "",
-    }));
+    // Stage 2 (Author/Editor Contract) terms are DocuSign template-based —
+    // pre-fill everything from contract_defaults (which reflects the last
+    // sent contract, or system defaults on the first send).
+    const defaults = data?.contract_defaults;
+    setContractFields({
+      title: defaults?.title || cd.main_title || title || "",
+      subtitle: defaults?.subtitle ?? cd.sub_title ?? "",
+      num_of_copies: defaults?.num_of_copies || "",
+      num_of_copies_more_than_one_author: defaults?.num_of_copies_more_than_one_author || "",
+      percentage_off:
+        typeof defaults?.percentage_off === "number" ? String(defaults.percentage_off) : "",
+      royalty_0_200:
+        typeof defaults?.royalty_0_200 === "number" ? String(defaults.royalty_0_200) : "",
+      royalty_201_400:
+        typeof defaults?.royalty_201_400 === "number" ? String(defaults.royalty_201_400) : "",
+      royalty_401_600:
+        typeof defaults?.royalty_401_600 === "number" ? String(defaults.royalty_401_600) : "",
+      royalty_601: typeof defaults?.royalty_601 === "number" ? String(defaults.royalty_601) : "",
+    });
     setContractOpen(true);
   };
 
@@ -889,13 +924,13 @@ function ProposalDetailPage() {
         // from "proposed edit" by comparing to main_title on read.
         title: titleChanged ? enteredTitle : originalTitle,
         expiry_days: contractExpiryDays,
-        language: contractFields.language,
-        author_copies: contractFields.author_copies,
-        if_two_author_copies: contractFields.if_two_author_copies,
-        if_three_or_four_author_copies: contractFields.if_three_or_four_author_copies,
-        copies_sold_revenue: Number(contractFields.copies_sold_revenue) || 0,
-        secondary_rights_revenue: Number(contractFields.secondary_rights_revenue) || 0,
-        publishing_agreement: contractFields.publishing_agreement,
+        num_of_copies: contractFields.num_of_copies,
+        num_of_copies_more_than_one_author: contractFields.num_of_copies_more_than_one_author,
+        percentage_off: Number(contractFields.percentage_off) || 0,
+        royalty_0_200: Number(contractFields.royalty_0_200) || 0,
+        royalty_201_400: Number(contractFields.royalty_201_400) || 0,
+        royalty_401_600: Number(contractFields.royalty_401_600) || 0,
+        royalty_601: Number(contractFields.royalty_601) || 0,
       };
       // Only include subtitle when actually edited, so the backend doesn't
       // record an unchanged value as a "proposed" subtitle.
@@ -2269,6 +2304,23 @@ function ProposalDetailPage() {
                 </p>
               </div>
             )}
+            {(data.internal_status || "").toLowerCase().replace(/\s+/g, "_") ===
+              "author_approved" &&
+              (data.has_final_manuscript ? (
+                <div className="mt-6 flex items-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3">
+                  <Check className="h-4 w-4 shrink-0 text-emerald-700" />
+                  <p className="font-sans text-sm font-medium text-emerald-900">
+                    Final manuscript submitted
+                  </p>
+                </div>
+              ) : (
+                <div className="mt-6 flex items-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3">
+                  <AlertTriangle className="h-4 w-4 shrink-0 text-amber-700" />
+                  <p className="font-sans text-sm font-medium text-amber-900">
+                    No final manuscript on file
+                  </p>
+                </div>
+              ))}
             {/* Title hero card */}
             <section className="mt-6 rounded-2xl border border-stone-200 bg-white px-8 py-7">
               <div className="flex items-start justify-between gap-6">
@@ -4478,7 +4530,7 @@ function ProposalDetailPage() {
               )}
               {contractStep === 2 && (
                 <div className="mt-5 space-y-4">
-                  <h3 className="font-serif text-lg font-bold text-[#2C1A0E]">Contract Details</h3>
+                  <h3 className="font-serif text-lg font-bold text-[#2C1A0E]">Book Details</h3>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div className="sm:col-span-2">
                       <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
@@ -4508,59 +4560,36 @@ function ProposalDetailPage() {
                         className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 focus:border-[#5B2EBA] focus:outline-none focus:ring-2 focus:ring-[#EDE7FA]"
                       />
                     </div>
+                  </div>
+                  <h3 className="pt-2 font-serif text-lg font-bold text-[#2C1A0E]">
+                    Contract Terms
+                  </h3>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
                       <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
-                        Language <span className="text-rose-600">*</span>
+                        Complimentary Copies (sole author){" "}
+                        <span className="text-rose-600">*</span>
                       </label>
                       <input
                         type="text"
-                        value={contractFields.language}
+                        value={contractFields.num_of_copies}
                         onChange={(e) =>
-                          setContractFields((f) => ({ ...f, language: e.target.value }))
+                          setContractFields((f) => ({ ...f, num_of_copies: e.target.value }))
                         }
                         className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 focus:border-[#5B2EBA] focus:outline-none focus:ring-2 focus:ring-[#EDE7FA]"
                       />
                     </div>
                     <div>
                       <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
-                        Publishing Agreement <span className="text-rose-600">*</span>
-                      </label>
-                      <textarea
-                        value={contractFields.publishing_agreement}
-                        onChange={(e) =>
-                          setContractFields((f) => ({
-                            ...f,
-                            publishing_agreement: e.target.value,
-                          }))
-                        }
-                        rows={3}
-                        className="mt-2 w-full resize-none rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 focus:border-[#5B2EBA] focus:outline-none focus:ring-2 focus:ring-[#EDE7FA]"
-                      />
-                    </div>
-                    <div>
-                      <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
-                        Author Copies <span className="text-rose-600">*</span>
+                        Copies Per Author (2+ authors) <span className="text-rose-600">*</span>
                       </label>
                       <input
                         type="text"
-                        value={contractFields.author_copies}
-                        onChange={(e) =>
-                          setContractFields((f) => ({ ...f, author_copies: e.target.value }))
-                        }
-                        className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 focus:border-[#5B2EBA] focus:outline-none focus:ring-2 focus:ring-[#EDE7FA]"
-                      />
-                    </div>
-                    <div>
-                      <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
-                        If Two Authors — Copies Each <span className="text-rose-600">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={contractFields.if_two_author_copies}
+                        value={contractFields.num_of_copies_more_than_one_author}
                         onChange={(e) =>
                           setContractFields((f) => ({
                             ...f,
-                            if_two_author_copies: e.target.value,
+                            num_of_copies_more_than_one_author: e.target.value,
                           }))
                         }
                         className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 focus:border-[#5B2EBA] focus:outline-none focus:ring-2 focus:ring-[#EDE7FA]"
@@ -4568,33 +4597,17 @@ function ProposalDetailPage() {
                     </div>
                     <div>
                       <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
-                        If 3–4 Authors — Copies Each <span className="text-rose-600">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={contractFields.if_three_or_four_author_copies}
-                        onChange={(e) =>
-                          setContractFields((f) => ({
-                            ...f,
-                            if_three_or_four_author_copies: e.target.value,
-                          }))
-                        }
-                        className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 focus:border-[#5B2EBA] focus:outline-none focus:ring-2 focus:ring-[#EDE7FA]"
-                      />
-                    </div>
-                    <div>
-                      <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
-                        Copies Sold Revenue (%) <span className="text-rose-600">*</span>
+                        Author Discount (%) <span className="text-rose-600">*</span>
                       </label>
                       <input
                         type="number"
                         min={0}
                         max={100}
-                        value={contractFields.copies_sold_revenue}
+                        value={contractFields.percentage_off}
                         onChange={(e) =>
                           setContractFields((f) => ({
                             ...f,
-                            copies_sold_revenue: e.target.value,
+                            percentage_off: e.target.value,
                           }))
                         }
                         className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 focus:border-[#5B2EBA] focus:outline-none focus:ring-2 focus:ring-[#EDE7FA]"
@@ -4602,17 +4615,71 @@ function ProposalDetailPage() {
                     </div>
                     <div>
                       <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
-                        Secondary Rights Revenue (%) <span className="text-rose-600">*</span>
+                        Royalty % — Sales 1–200 <span className="text-rose-600">*</span>
                       </label>
                       <input
                         type="number"
                         min={0}
                         max={100}
-                        value={contractFields.secondary_rights_revenue}
+                        value={contractFields.royalty_0_200}
                         onChange={(e) =>
                           setContractFields((f) => ({
                             ...f,
-                            secondary_rights_revenue: e.target.value,
+                            royalty_0_200: e.target.value,
+                          }))
+                        }
+                        className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 focus:border-[#5B2EBA] focus:outline-none focus:ring-2 focus:ring-[#EDE7FA]"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
+                        Royalty % — Sales 201–400 <span className="text-rose-600">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={contractFields.royalty_201_400}
+                        onChange={(e) =>
+                          setContractFields((f) => ({
+                            ...f,
+                            royalty_201_400: e.target.value,
+                          }))
+                        }
+                        className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 focus:border-[#5B2EBA] focus:outline-none focus:ring-2 focus:ring-[#EDE7FA]"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
+                        Royalty % — Sales 401–600 <span className="text-rose-600">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={contractFields.royalty_401_600}
+                        onChange={(e) =>
+                          setContractFields((f) => ({
+                            ...f,
+                            royalty_401_600: e.target.value,
+                          }))
+                        }
+                        className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 focus:border-[#5B2EBA] focus:outline-none focus:ring-2 focus:ring-[#EDE7FA]"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
+                        Royalty % — Sales 601+ <span className="text-rose-600">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={contractFields.royalty_601}
+                        onChange={(e) =>
+                          setContractFields((f) => ({
+                            ...f,
+                            royalty_601: e.target.value,
                           }))
                         }
                         className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 focus:border-[#5B2EBA] focus:outline-none focus:ring-2 focus:ring-[#EDE7FA]"
