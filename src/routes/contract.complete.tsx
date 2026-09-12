@@ -34,7 +34,7 @@ function ContractCompletePage() {
   const { title, message, variant, Icon } = describeContractSigningEvent(event);
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
+    <main className="flex min-h-screen items-center justify-center bg-[#f9f7f2] px-4 py-12">
       <div
         className={`w-full max-w-lg rounded-2xl border p-8 shadow-sm ${contractVariantStyles[variant]}`}
       >
