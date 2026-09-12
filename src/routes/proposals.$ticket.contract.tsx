@@ -27,7 +27,7 @@ export const Route = createFileRoute("/proposals/$ticket/contract")({
 
 const STAGE_LABELS: Record<string, string> = {
   publishing_agreement: "Publishing Agreement",
-  author_contract: "Author/Editor Contract",
+  author_contract: "Contract",
 };
 
 function ProposalContractReturnPage() {
