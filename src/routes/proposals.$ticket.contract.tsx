@@ -9,11 +9,12 @@ import {
 } from "@/lib/contractSigningEvent";
 
 const searchSchema = z.object({
-  ticket: fallback(z.string().optional(), undefined),
+  stage: fallback(z.string().optional(), undefined),
+  status: fallback(z.string().optional(), undefined),
   event: fallback(contractEventSchema.optional(), undefined),
 });
 
-export const Route = createFileRoute("/contract/complete")({
+export const Route = createFileRoute("/proposals/$ticket/contract")({
   validateSearch: zodValidator(searchSchema),
   head: () => ({
     meta: [
@@ -21,17 +22,20 @@ export const Route = createFileRoute("/contract/complete")({
       { name: "robots", content: "noindex" },
     ],
   }),
-  component: ContractCompletePage,
+  component: ProposalContractReturnPage,
 });
 
-function ContractCompletePage() {
-  const { ticket, event } = Route.useSearch();
+const STAGE_LABELS: Record<string, string> = {
+  publishing_agreement: "Publishing Agreement",
+  author_contract: "Author/Editor Contract",
+};
 
-  const dashboardLink = ticket
-    ? { to: "/dashboard/author_proposal/$id" as const, params: { id: ticket } }
-    : { to: "/dashboard/author" as const, params: {} };
+function ProposalContractReturnPage() {
+  const { ticket } = Route.useParams();
+  const { stage, event } = Route.useSearch();
 
   const { title, message, variant, Icon } = describeContractSigningEvent(event);
+  const stageLabel = stage ? STAGE_LABELS[stage] : undefined;
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
@@ -43,18 +47,18 @@ function ContractCompletePage() {
           <h1 className="mt-4 text-2xl font-semibold">{title}</h1>
           <p className="mt-3 text-sm leading-relaxed opacity-90">{message}</p>
 
-          {ticket && (
-            <p className="mt-4 text-xs uppercase tracking-wide opacity-70">
-              Reference: {ticket}
-            </p>
+          {stageLabel && (
+            <p className="mt-4 text-xs uppercase tracking-wide opacity-70">{stageLabel}</p>
           )}
+          <p className="mt-1 text-xs uppercase tracking-wide opacity-70">Reference: {ticket}</p>
 
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <Link
-              {...dashboardLink}
+              to="/dashboard/author_proposal/$id"
+              params={{ id: ticket }}
               className="inline-flex items-center rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
             >
-              {ticket ? "Open proposal" : "Back to dashboard"}
+              Open proposal
             </Link>
             {variant === "success" && (
               <button

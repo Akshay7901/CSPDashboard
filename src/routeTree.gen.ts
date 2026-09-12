@@ -9,52 +9,48 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ProofreaderQueueRouteImport } from './routes/proofreader.queue'
-import { Route as DashboardReviewerRouteImport } from './routes/dashboard.reviewer'
-import { Route as DashboardProofreaderRouteImport } from './routes/dashboard.proofreader'
-import { Route as DashboardEditorRouteImport } from './routes/dashboard.editor'
-import { Route as DashboardDecision_reviewerRouteImport } from './routes/dashboard.decision_reviewer'
-import { Route as DashboardAuthorRouteImport } from './routes/dashboard.author'
-import { Route as DashboardRoleRouteImport } from './routes/dashboard.$role'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as ContractCompleteRouteImport } from './routes/contract.complete'
-import { Route as ProofreaderProposalTicketRouteImport } from './routes/proofreader.proposal.$ticket'
-import { Route as DashboardProposalTicketRouteImport } from './routes/dashboard.proposal.$ticket'
-import { Route as DashboardProofreader_proposalTicketRouteImport } from './routes/dashboard.proofreader_proposal.$ticket'
+import { Route as DashboardRoleRouteImport } from './routes/dashboard.$role'
+import { Route as DashboardAuthorRouteImport } from './routes/dashboard.author'
+import { Route as DashboardDecision_reviewerRouteImport } from './routes/dashboard.decision_reviewer'
+import { Route as DashboardEditorRouteImport } from './routes/dashboard.editor'
+import { Route as DashboardProofreaderRouteImport } from './routes/dashboard.proofreader'
+import { Route as DashboardReviewerRouteImport } from './routes/dashboard.reviewer'
+import { Route as ProofreaderQueueRouteImport } from './routes/proofreader.queue'
 import { Route as DashboardAuthor_proposalIdRouteImport } from './routes/dashboard.author_proposal.$id'
-import { Route as ProposalsContributorConfirmTokenRouteImport } from './routes/proposals.contributor.confirm.$token'
-import { Route as DashboardReviewerSubmissionIdRouteImport } from './routes/dashboard.reviewer.submission.$id'
+import { Route as DashboardProofreader_proposalTicketRouteImport } from './routes/dashboard.proofreader_proposal.$ticket'
+import { Route as DashboardProposalTicketRouteImport } from './routes/dashboard.proposal.$ticket'
+import { Route as ProofreaderProposalTicketRouteImport } from './routes/proofreader.proposal.$ticket'
+import { Route as ProposalsTicketContractRouteImport } from './routes/proposals.$ticket.contract'
 import { Route as DashboardEditorSubmissionIdRouteImport } from './routes/dashboard.editor.submission.$id'
+import { Route as DashboardReviewerSubmissionIdRouteImport } from './routes/dashboard.reviewer.submission.$id'
+import { Route as ProposalsContributorConfirmTokenRouteImport } from './routes/proposals.contributor.confirm.$token'
 
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProofreaderQueueRoute = ProofreaderQueueRouteImport.update({
-  id: '/proofreader/queue',
-  path: '/proofreader/queue',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardReviewerRoute = DashboardReviewerRouteImport.update({
-  id: '/dashboard/reviewer',
-  path: '/dashboard/reviewer',
+const ContractCompleteRoute = ContractCompleteRouteImport.update({
+  id: '/contract/complete',
+  path: '/contract/complete',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardProofreaderRoute = DashboardProofreaderRouteImport.update({
-  id: '/dashboard/proofreader',
-  path: '/dashboard/proofreader',
+const DashboardRoleRoute = DashboardRoleRouteImport.update({
+  id: '/dashboard/$role',
+  path: '/dashboard/$role',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardEditorRoute = DashboardEditorRouteImport.update({
-  id: '/dashboard/editor',
-  path: '/dashboard/editor',
+const DashboardAuthorRoute = DashboardAuthorRouteImport.update({
+  id: '/dashboard/author',
+  path: '/dashboard/author',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardDecision_reviewerRoute =
@@ -63,19 +59,41 @@ const DashboardDecision_reviewerRoute =
     path: '/dashboard/decision_reviewer',
     getParentRoute: () => rootRouteImport,
   } as any)
-const DashboardAuthorRoute = DashboardAuthorRouteImport.update({
-  id: '/dashboard/author',
-  path: '/dashboard/author',
+const DashboardEditorRoute = DashboardEditorRouteImport.update({
+  id: '/dashboard/editor',
+  path: '/dashboard/editor',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardRoleRoute = DashboardRoleRouteImport.update({
-  id: '/dashboard/$role',
-  path: '/dashboard/$role',
+const DashboardProofreaderRoute = DashboardProofreaderRouteImport.update({
+  id: '/dashboard/proofreader',
+  path: '/dashboard/proofreader',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ContractCompleteRoute = ContractCompleteRouteImport.update({
-  id: '/contract/complete',
-  path: '/contract/complete',
+const DashboardReviewerRoute = DashboardReviewerRouteImport.update({
+  id: '/dashboard/reviewer',
+  path: '/dashboard/reviewer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProofreaderQueueRoute = ProofreaderQueueRouteImport.update({
+  id: '/proofreader/queue',
+  path: '/proofreader/queue',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardAuthor_proposalIdRoute =
+  DashboardAuthor_proposalIdRouteImport.update({
+    id: '/dashboard/author_proposal/$id',
+    path: '/dashboard/author_proposal/$id',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const DashboardProofreader_proposalTicketRoute =
+  DashboardProofreader_proposalTicketRouteImport.update({
+    id: '/dashboard/proofreader_proposal/$ticket',
+    path: '/dashboard/proofreader_proposal/$ticket',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const DashboardProposalTicketRoute = DashboardProposalTicketRouteImport.update({
+  id: '/dashboard/proposal/$ticket',
+  path: '/dashboard/proposal/$ticket',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProofreaderProposalTicketRoute =
@@ -84,28 +102,16 @@ const ProofreaderProposalTicketRoute =
     path: '/proofreader/proposal/$ticket',
     getParentRoute: () => rootRouteImport,
   } as any)
-const DashboardProposalTicketRoute = DashboardProposalTicketRouteImport.update({
-  id: '/dashboard/proposal/$ticket',
-  path: '/dashboard/proposal/$ticket',
+const ProposalsTicketContractRoute = ProposalsTicketContractRouteImport.update({
+  id: '/proposals/$ticket/contract',
+  path: '/proposals/$ticket/contract',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardProofreader_proposalTicketRoute =
-  DashboardProofreader_proposalTicketRouteImport.update({
-    id: '/dashboard/proofreader_proposal/$ticket',
-    path: '/dashboard/proofreader_proposal/$ticket',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const DashboardAuthor_proposalIdRoute =
-  DashboardAuthor_proposalIdRouteImport.update({
-    id: '/dashboard/author_proposal/$id',
-    path: '/dashboard/author_proposal/$id',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ProposalsContributorConfirmTokenRoute =
-  ProposalsContributorConfirmTokenRouteImport.update({
-    id: '/proposals/contributor/confirm/$token',
-    path: '/proposals/contributor/confirm/$token',
-    getParentRoute: () => rootRouteImport,
+const DashboardEditorSubmissionIdRoute =
+  DashboardEditorSubmissionIdRouteImport.update({
+    id: '/submission/$id',
+    path: '/submission/$id',
+    getParentRoute: () => DashboardEditorRoute,
   } as any)
 const DashboardReviewerSubmissionIdRoute =
   DashboardReviewerSubmissionIdRouteImport.update({
@@ -113,11 +119,11 @@ const DashboardReviewerSubmissionIdRoute =
     path: '/submission/$id',
     getParentRoute: () => DashboardReviewerRoute,
   } as any)
-const DashboardEditorSubmissionIdRoute =
-  DashboardEditorSubmissionIdRouteImport.update({
-    id: '/submission/$id',
-    path: '/submission/$id',
-    getParentRoute: () => DashboardEditorRoute,
+const ProposalsContributorConfirmTokenRoute =
+  ProposalsContributorConfirmTokenRouteImport.update({
+    id: '/proposals/contributor/confirm/$token',
+    path: '/proposals/contributor/confirm/$token',
+    getParentRoute: () => rootRouteImport,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -135,6 +141,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/proofreader_proposal/$ticket': typeof DashboardProofreader_proposalTicketRoute
   '/dashboard/proposal/$ticket': typeof DashboardProposalTicketRoute
   '/proofreader/proposal/$ticket': typeof ProofreaderProposalTicketRoute
+  '/proposals/$ticket/contract': typeof ProposalsTicketContractRoute
   '/dashboard/editor/submission/$id': typeof DashboardEditorSubmissionIdRoute
   '/dashboard/reviewer/submission/$id': typeof DashboardReviewerSubmissionIdRoute
   '/proposals/contributor/confirm/$token': typeof ProposalsContributorConfirmTokenRoute
@@ -154,6 +161,7 @@ export interface FileRoutesByTo {
   '/dashboard/proofreader_proposal/$ticket': typeof DashboardProofreader_proposalTicketRoute
   '/dashboard/proposal/$ticket': typeof DashboardProposalTicketRoute
   '/proofreader/proposal/$ticket': typeof ProofreaderProposalTicketRoute
+  '/proposals/$ticket/contract': typeof ProposalsTicketContractRoute
   '/dashboard/editor/submission/$id': typeof DashboardEditorSubmissionIdRoute
   '/dashboard/reviewer/submission/$id': typeof DashboardReviewerSubmissionIdRoute
   '/proposals/contributor/confirm/$token': typeof ProposalsContributorConfirmTokenRoute
@@ -174,6 +182,7 @@ export interface FileRoutesById {
   '/dashboard/proofreader_proposal/$ticket': typeof DashboardProofreader_proposalTicketRoute
   '/dashboard/proposal/$ticket': typeof DashboardProposalTicketRoute
   '/proofreader/proposal/$ticket': typeof ProofreaderProposalTicketRoute
+  '/proposals/$ticket/contract': typeof ProposalsTicketContractRoute
   '/dashboard/editor/submission/$id': typeof DashboardEditorSubmissionIdRoute
   '/dashboard/reviewer/submission/$id': typeof DashboardReviewerSubmissionIdRoute
   '/proposals/contributor/confirm/$token': typeof ProposalsContributorConfirmTokenRoute
@@ -195,6 +204,7 @@ export interface FileRouteTypes {
     | '/dashboard/proofreader_proposal/$ticket'
     | '/dashboard/proposal/$ticket'
     | '/proofreader/proposal/$ticket'
+    | '/proposals/$ticket/contract'
     | '/dashboard/editor/submission/$id'
     | '/dashboard/reviewer/submission/$id'
     | '/proposals/contributor/confirm/$token'
@@ -214,6 +224,7 @@ export interface FileRouteTypes {
     | '/dashboard/proofreader_proposal/$ticket'
     | '/dashboard/proposal/$ticket'
     | '/proofreader/proposal/$ticket'
+    | '/proposals/$ticket/contract'
     | '/dashboard/editor/submission/$id'
     | '/dashboard/reviewer/submission/$id'
     | '/proposals/contributor/confirm/$token'
@@ -233,6 +244,7 @@ export interface FileRouteTypes {
     | '/dashboard/proofreader_proposal/$ticket'
     | '/dashboard/proposal/$ticket'
     | '/proofreader/proposal/$ticket'
+    | '/proposals/$ticket/contract'
     | '/dashboard/editor/submission/$id'
     | '/dashboard/reviewer/submission/$id'
     | '/proposals/contributor/confirm/$token'
@@ -253,18 +265,12 @@ export interface RootRouteChildren {
   DashboardProofreader_proposalTicketRoute: typeof DashboardProofreader_proposalTicketRoute
   DashboardProposalTicketRoute: typeof DashboardProposalTicketRoute
   ProofreaderProposalTicketRoute: typeof ProofreaderProposalTicketRoute
+  ProposalsTicketContractRoute: typeof ProposalsTicketContractRoute
   ProposalsContributorConfirmTokenRoute: typeof ProposalsContributorConfirmTokenRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -272,53 +278,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/proofreader/queue': {
-      id: '/proofreader/queue'
-      path: '/proofreader/queue'
-      fullPath: '/proofreader/queue'
-      preLoaderRoute: typeof ProofreaderQueueRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard/reviewer': {
-      id: '/dashboard/reviewer'
-      path: '/dashboard/reviewer'
-      fullPath: '/dashboard/reviewer'
-      preLoaderRoute: typeof DashboardReviewerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard/proofreader': {
-      id: '/dashboard/proofreader'
-      path: '/dashboard/proofreader'
-      fullPath: '/dashboard/proofreader'
-      preLoaderRoute: typeof DashboardProofreaderRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard/editor': {
-      id: '/dashboard/editor'
-      path: '/dashboard/editor'
-      fullPath: '/dashboard/editor'
-      preLoaderRoute: typeof DashboardEditorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard/decision_reviewer': {
-      id: '/dashboard/decision_reviewer'
-      path: '/dashboard/decision_reviewer'
-      fullPath: '/dashboard/decision_reviewer'
-      preLoaderRoute: typeof DashboardDecision_reviewerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard/author': {
-      id: '/dashboard/author'
-      path: '/dashboard/author'
-      fullPath: '/dashboard/author'
-      preLoaderRoute: typeof DashboardAuthorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard/$role': {
-      id: '/dashboard/$role'
-      path: '/dashboard/$role'
-      fullPath: '/dashboard/$role'
-      preLoaderRoute: typeof DashboardRoleRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contract/complete': {
@@ -328,25 +292,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContractCompleteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/proofreader/proposal/$ticket': {
-      id: '/proofreader/proposal/$ticket'
-      path: '/proofreader/proposal/$ticket'
-      fullPath: '/proofreader/proposal/$ticket'
-      preLoaderRoute: typeof ProofreaderProposalTicketRouteImport
+    '/dashboard/$role': {
+      id: '/dashboard/$role'
+      path: '/dashboard/$role'
+      fullPath: '/dashboard/$role'
+      preLoaderRoute: typeof DashboardRoleRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard/proposal/$ticket': {
-      id: '/dashboard/proposal/$ticket'
-      path: '/dashboard/proposal/$ticket'
-      fullPath: '/dashboard/proposal/$ticket'
-      preLoaderRoute: typeof DashboardProposalTicketRouteImport
+    '/dashboard/author': {
+      id: '/dashboard/author'
+      path: '/dashboard/author'
+      fullPath: '/dashboard/author'
+      preLoaderRoute: typeof DashboardAuthorRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard/proofreader_proposal/$ticket': {
-      id: '/dashboard/proofreader_proposal/$ticket'
-      path: '/dashboard/proofreader_proposal/$ticket'
-      fullPath: '/dashboard/proofreader_proposal/$ticket'
-      preLoaderRoute: typeof DashboardProofreader_proposalTicketRouteImport
+    '/dashboard/decision_reviewer': {
+      id: '/dashboard/decision_reviewer'
+      path: '/dashboard/decision_reviewer'
+      fullPath: '/dashboard/decision_reviewer'
+      preLoaderRoute: typeof DashboardDecision_reviewerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/editor': {
+      id: '/dashboard/editor'
+      path: '/dashboard/editor'
+      fullPath: '/dashboard/editor'
+      preLoaderRoute: typeof DashboardEditorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/proofreader': {
+      id: '/dashboard/proofreader'
+      path: '/dashboard/proofreader'
+      fullPath: '/dashboard/proofreader'
+      preLoaderRoute: typeof DashboardProofreaderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/reviewer': {
+      id: '/dashboard/reviewer'
+      path: '/dashboard/reviewer'
+      fullPath: '/dashboard/reviewer'
+      preLoaderRoute: typeof DashboardReviewerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/proofreader/queue': {
+      id: '/proofreader/queue'
+      path: '/proofreader/queue'
+      fullPath: '/proofreader/queue'
+      preLoaderRoute: typeof ProofreaderQueueRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/author_proposal/$id': {
@@ -356,12 +348,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAuthor_proposalIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/proposals/contributor/confirm/$token': {
-      id: '/proposals/contributor/confirm/$token'
-      path: '/proposals/contributor/confirm/$token'
-      fullPath: '/proposals/contributor/confirm/$token'
-      preLoaderRoute: typeof ProposalsContributorConfirmTokenRouteImport
+    '/dashboard/proofreader_proposal/$ticket': {
+      id: '/dashboard/proofreader_proposal/$ticket'
+      path: '/dashboard/proofreader_proposal/$ticket'
+      fullPath: '/dashboard/proofreader_proposal/$ticket'
+      preLoaderRoute: typeof DashboardProofreader_proposalTicketRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/proposal/$ticket': {
+      id: '/dashboard/proposal/$ticket'
+      path: '/dashboard/proposal/$ticket'
+      fullPath: '/dashboard/proposal/$ticket'
+      preLoaderRoute: typeof DashboardProposalTicketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/proofreader/proposal/$ticket': {
+      id: '/proofreader/proposal/$ticket'
+      path: '/proofreader/proposal/$ticket'
+      fullPath: '/proofreader/proposal/$ticket'
+      preLoaderRoute: typeof ProofreaderProposalTicketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/proposals/$ticket/contract': {
+      id: '/proposals/$ticket/contract'
+      path: '/proposals/$ticket/contract'
+      fullPath: '/proposals/$ticket/contract'
+      preLoaderRoute: typeof ProposalsTicketContractRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/editor/submission/$id': {
+      id: '/dashboard/editor/submission/$id'
+      path: '/submission/$id'
+      fullPath: '/dashboard/editor/submission/$id'
+      preLoaderRoute: typeof DashboardEditorSubmissionIdRouteImport
+      parentRoute: typeof DashboardEditorRoute
     }
     '/dashboard/reviewer/submission/$id': {
       id: '/dashboard/reviewer/submission/$id'
@@ -370,12 +390,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardReviewerSubmissionIdRouteImport
       parentRoute: typeof DashboardReviewerRoute
     }
-    '/dashboard/editor/submission/$id': {
-      id: '/dashboard/editor/submission/$id'
-      path: '/submission/$id'
-      fullPath: '/dashboard/editor/submission/$id'
-      preLoaderRoute: typeof DashboardEditorSubmissionIdRouteImport
-      parentRoute: typeof DashboardEditorRoute
+    '/proposals/contributor/confirm/$token': {
+      id: '/proposals/contributor/confirm/$token'
+      path: '/proposals/contributor/confirm/$token'
+      fullPath: '/proposals/contributor/confirm/$token'
+      preLoaderRoute: typeof ProposalsContributorConfirmTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -419,6 +439,7 @@ const rootRouteChildren: RootRouteChildren = {
     DashboardProofreader_proposalTicketRoute,
   DashboardProposalTicketRoute: DashboardProposalTicketRoute,
   ProofreaderProposalTicketRoute: ProofreaderProposalTicketRoute,
+  ProposalsTicketContractRoute: ProposalsTicketContractRoute,
   ProposalsContributorConfirmTokenRoute: ProposalsContributorConfirmTokenRoute,
 }
 export const routeTree = rootRouteImport
