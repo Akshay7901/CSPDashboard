@@ -549,12 +549,11 @@ function ProposalDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [locking, setLocking] = useState(false);
+  const [lockConfirmOpen, setLockConfirmOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
   const handleLockProposal = async () => {
-    if (!confirm(`Lock proposal ${ticket} and generate production files? This cannot be undone.`))
-      return;
     setLocking(true);
     try {
       const token = getPortalToken();
@@ -3748,7 +3747,7 @@ function ProposalDetailPage() {
                     {data.status?.toLowerCase().replace(/\s+/g, "_") === "author_approved" && (
                       <button
                         type="button"
-                        onClick={handleLockProposal}
+                        onClick={() => setLockConfirmOpen(true)}
                         disabled={locking}
                         className="flex w-full items-start gap-3 rounded-xl border border-emerald-300 bg-emerald-50/60 px-4 py-3 text-left transition-colors hover:bg-emerald-50 disabled:opacity-50"
                       >
@@ -4414,6 +4413,62 @@ function ProposalDetailPage() {
                 className="rounded-xl bg-[#C97A6A] px-5 py-2.5 font-sans text-sm font-semibold text-white hover:bg-[#b56656] disabled:cursor-not-allowed disabled:bg-[#E9C8C0] disabled:text-white/80"
               >
                 {reqRevSubmitting ? "Sending…" : "Send Revision Request"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {lockConfirmOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 px-4 py-8">
+          <div className="flex w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <div className="flex items-start justify-between gap-4 px-7 pt-7 pb-5">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                  <Lock className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="font-serif text-2xl font-bold text-[#2C1A0E]">Lock Proposal</h2>
+                  <p className="mt-1 font-sans text-sm text-[#7A6A5A]">
+                    This action cannot be undone.
+                  </p>
+                  <p className="mt-1 font-sans text-sm italic text-[#7A6A5A]">
+                    &ldquo;{title}&rdquo;
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setLockConfirmOpen(false)}
+                className="rounded-md p-1 text-stone-500 hover:bg-stone-200 hover:text-stone-700"
+                aria-label="Close"
+              >
+                <XIcon className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="px-7 pb-5">
+              <p className="font-sans text-sm text-stone-700">
+                Lock proposal <strong>{ticket}</strong> and generate production files? This
+                cannot be undone.
+              </p>
+            </div>
+            <div className="flex items-center justify-between gap-3 border-t border-stone-200 bg-white px-7 py-4">
+              <button
+                type="button"
+                onClick={() => setLockConfirmOpen(false)}
+                className="rounded-xl px-5 py-2.5 font-sans text-sm font-semibold text-stone-700 hover:bg-stone-100"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setLockConfirmOpen(false);
+                  void handleLockProposal();
+                }}
+                disabled={locking}
+                className="rounded-xl bg-emerald-600 px-5 py-2.5 font-sans text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-emerald-300 disabled:text-white/80"
+              >
+                {locking ? "Locking…" : "Lock Proposal"}
               </button>
             </div>
           </div>
