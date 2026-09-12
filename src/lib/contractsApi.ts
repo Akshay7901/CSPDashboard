@@ -157,11 +157,12 @@ export async function raiseQuery(
   ticket: string,
   query_text: string,
   category: string = "contract",
+  stage?: string,
 ) {
   const res = await proposalApiFetch(`/${encodeURIComponent(ticket)}/contract/query`, {
     method: "POST",
     headers: authHeaders(),
-    body: JSON.stringify({ query_text, category }),
+    body: JSON.stringify({ query_text, category, ...(stage ? { stage } : {}) }),
   });
   const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
   if (!res.ok) throw new Error((body.error as string) || `Failed (${res.status})`);

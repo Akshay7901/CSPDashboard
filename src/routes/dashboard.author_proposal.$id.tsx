@@ -1908,13 +1908,21 @@ function ContractIssuedView({
   const hasOpenQuery = proposalStatus === "queries_raised" || proposalStatus === "question_raised";
   const signDisabled = !canSign || hasOpenQuery;
   const showDecline = proposalStatus === "contract_issued" && !isSigned && !isDeclined && canSign;
+  // The stage the author is currently being asked to act on — needed so the
+  // backend can tell which stage a query applies to under the two-stage
+  // (Publishing Agreement / Author Contract) contract model.
+  const activeStage = twoStage?.stages
+    ? !stageDone(twoStage.stages.publishing_agreement)
+      ? "publishing_agreement"
+      : "author_contract"
+    : undefined;
 
   const submitQuery = async () => {
     if (!queryText.trim()) return;
     setQuerySubmitting(true);
     setQueryError(null);
     try {
-      await raiseQuery(ticket, queryText.trim(), queryCategory || "contract");
+      await raiseQuery(ticket, queryText.trim(), queryCategory || "contract", activeStage);
       setQuerySuccess(true);
       setQueryText("");
       setReloadKey((k) => k + 1);
