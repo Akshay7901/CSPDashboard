@@ -34,8 +34,8 @@ function ProposalContractReturnPage() {
   const { ticket } = Route.useParams();
   const { stage, event } = Route.useSearch();
 
-  const { title, message, variant, Icon } = describeContractSigningEvent(event);
   const stageLabel = stage ? STAGE_LABELS[stage] : undefined;
+  const { title, message, variant, Icon } = describeContractSigningEvent(event, stageLabel);
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-12">

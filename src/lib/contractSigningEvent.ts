@@ -30,7 +30,10 @@ export const contractIconStyles: Record<ContractSigningVariant, string> = {
   info: "text-slate-600",
 };
 
-export function describeContractSigningEvent(event: string | undefined): {
+export function describeContractSigningEvent(
+  event: string | undefined,
+  stageLabel?: string,
+): {
   title: string;
   message: string;
   variant: ContractSigningVariant;
@@ -42,7 +45,9 @@ export function describeContractSigningEvent(event: string | undefined): {
       return {
         variant: "success",
         Icon: CheckCircle2,
-        title: "Thank you — your contract has been signed",
+        title: stageLabel
+          ? `Thank you — your ${stageLabel} has been signed`
+          : "Thank you — your contract has been signed",
         message:
           "DocuSign has recorded your signature. You can safely close this tab; your proposal dashboard will update automatically once the signed copy is processed.",
       };
