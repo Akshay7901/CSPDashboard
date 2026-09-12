@@ -1758,7 +1758,6 @@ function ContractIssuedView({
   const [queryError, setQueryError] = useState<string | null>(null);
   const [querySuccess, setQuerySuccess] = useState(false);
   const [proposalStatus, setProposalStatus] = useState<string>("");
-  const [signDisabledDialogOpen, setSignDisabledDialogOpen] = useState(false);
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
   const [declineReason, setDeclineReason] = useState("");
   const [declineLoading, setDeclineLoading] = useState(false);
@@ -2118,15 +2117,10 @@ function ContractIssuedView({
             ) : (
               <button
                 type="button"
-                onClick={() => {
-                  if (hasOpenQuery) {
-                    setSignDisabledDialogOpen(true);
-                    return;
-                  }
-                  void handleSignStage(stageKey);
-                }}
-                disabled={loadingThis}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 py-2.5 font-sans text-sm font-bold text-white shadow-sm transition hover:bg-violet-700 disabled:opacity-60"
+                onClick={() => void handleSignStage(stageKey)}
+                disabled={loadingThis || hasOpenQuery}
+                title={hasOpenQuery ? "Signing is disabled while you have an open query." : undefined}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 py-2.5 font-sans text-sm font-bold text-white shadow-sm transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:bg-violet-300 disabled:opacity-60 disabled:hover:bg-violet-300"
               >
                 <CheckCircle2 className="h-4 w-4" />
                 {loadingThis ? "Opening…" : `Sign ${cardTitle}`}
@@ -2597,15 +2591,9 @@ function ContractIssuedView({
                     <TooltipTrigger asChild>
                       <button
                         type="button"
-                        onClick={() => {
-                          if (hasOpenQuery) {
-                            setSignDisabledDialogOpen(true);
-                            return;
-                          }
-                          void handleSign();
-                        }}
-                        disabled={signLoading}
-                        className={`inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-6 py-3 font-sans text-sm font-bold shadow-sm transition disabled:opacity-60 sm:flex-none sm:min-w-[220px] ${
+                        onClick={() => void handleSign()}
+                        disabled={signLoading || hasOpenQuery}
+                        className={`inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-6 py-3 font-sans text-sm font-bold shadow-sm transition disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none sm:min-w-[220px] ${
                           hasOpenQuery
                             ? "cursor-not-allowed bg-violet-300 text-white hover:bg-violet-300"
                             : "bg-violet-600 text-white hover:bg-violet-700"
@@ -2709,27 +2697,6 @@ function ContractIssuedView({
             </button>
           </p>
         )}
-
-        <AlertDialog open={signDisabledDialogOpen} onOpenChange={setSignDisabledDialogOpen}>
-          <AlertDialogContent className="max-w-md">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="font-serif text-lg text-[#2C1A0E]">
-                Contract signing is paused
-              </AlertDialogTitle>
-              <AlertDialogDescription className="font-sans text-sm leading-relaxed text-stone-600">
-                Contract signing option has been disabled when the author has issued a query.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel
-                asChild
-                className="rounded-lg border border-stone-300 bg-white px-4 py-2 font-sans text-sm font-semibold text-stone-700 hover:bg-stone-50"
-              >
-                <button type="button">Got it</button>
-              </AlertDialogCancel>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
 
         <AlertDialog open={declineDialogOpen} onOpenChange={setDeclineDialogOpen}>
           <AlertDialogContent className="max-w-md bg-card text-card-foreground">
