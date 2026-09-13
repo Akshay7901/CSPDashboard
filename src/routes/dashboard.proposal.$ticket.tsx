@@ -48,7 +48,7 @@ import cspLogo from "@/assets/csp-logo.png";
 import { portalLogout, getPortalSession, getPortalToken, isAdmin } from "@/lib/auth";
 import { deleteCoverImage as apiDeleteCoverImage } from "@/lib/metadataApi";
 import { formatDate, initialsFromName, displayNameFromEmail, getStatusMeta } from "@/lib/proposals";
-import { proposalApiFetch } from "@/lib/proposalApi";
+import { proposalApiFetch, API_BASE_URL } from "@/lib/proposalApi";
 import { getDefaultReviewerEmail } from "@/lib/defaultReviewer";
 import {
   listInternalNotes,
@@ -619,7 +619,18 @@ function ProposalDetailPage() {
     setPreviewBlobUrl(null);
     (async () => {
       try {
-        const token = getPortalToken();
+        // Only attach our portal token when the file is actually served by
+        // our own API — a presigned/third-party storage URL (S3, CDN, etc.)
+        // already carries its own signature in the query string, and adding
+        // an unrelated Authorization header there can make the host reject
+        // the request outright (400) instead of just ignoring it.
+        let isOwnApi = false;
+        try {
+          isOwnApi = new URL(url, window.location.href).origin === new URL(API_BASE_URL).origin;
+        } catch {
+          // ignore — treat as not our API
+        }
+        const token = isOwnApi ? getPortalToken() : "";
         const res = await fetch(url, {
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         });
