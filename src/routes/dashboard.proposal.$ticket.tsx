@@ -2931,9 +2931,7 @@ function ProposalDetailPage() {
                                     <CoSignerLinks
                                       ticket={ticket}
                                       coSigners={coSigners}
-                                      disabled={!signed}
                                       heading="Generate and share these links with co-authors who need to sign the contract."
-                                      disabledNote="Links become available once the author has signed the contract."
                                     />
                                   )}
                                 </div>
