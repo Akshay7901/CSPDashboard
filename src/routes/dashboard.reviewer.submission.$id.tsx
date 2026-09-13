@@ -1219,16 +1219,23 @@ function ProposalDetails({
                 Mailing Address
               </div>
               <p className="mt-2 font-sans text-sm text-stone-800">
-                {[
-                  cd.address_line_1,
-                  cd.address_line_2,
-                  cd.city,
-                  cd.state,
-                  cd.postal_code,
-                  cd.country,
-                ]
-                  .filter(Boolean)
-                  .join(", ") || cd.address}
+                {(() => {
+                  // Some submissions store a full address in `address`,
+                  // others break it into line/city/state/postal fields —
+                  // prefer whichever actually has street-level detail
+                  // instead of always joining the broken-out fields (which,
+                  // if empty, silently drops a populated `address` and
+                  // leaves only the country).
+                  const streetParts = [
+                    cd.address_line_1,
+                    cd.address_line_2,
+                    cd.city,
+                    cd.state,
+                    cd.postal_code,
+                  ].filter(Boolean);
+                  const base = streetParts.length ? streetParts : cd.address ? [cd.address] : [];
+                  return [...base, cd.country].filter(Boolean).join(", ");
+                })()}
               </p>
             </div>
           </>
