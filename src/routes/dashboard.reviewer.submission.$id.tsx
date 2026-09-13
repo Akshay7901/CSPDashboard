@@ -1091,6 +1091,45 @@ function ProposalDetails({
     .filter(Boolean);
 
   const [previewDoc, setPreviewDoc] = useState<{ url: string; filename: string } | null>(null);
+  const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
+  const [previewBlobLoading, setPreviewBlobLoading] = useState(false);
+  const [previewBlobError, setPreviewBlobError] = useState<string | null>(null);
+
+  // Some document hosts serve files with Content-Disposition: attachment,
+  // which makes a plain <iframe src> trigger a native download instead of
+  // rendering — fetch the bytes ourselves and hand the iframe a blob: URL,
+  // which always renders inline regardless of that header.
+  useEffect(() => {
+    const url = previewDoc?.url;
+    if (!url) {
+      setPreviewBlobUrl(null);
+      setPreviewBlobError(null);
+      return;
+    }
+    let cancelled = false;
+    let objectUrl: string | null = null;
+    setPreviewBlobLoading(true);
+    setPreviewBlobError(null);
+    setPreviewBlobUrl(null);
+    (async () => {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`Failed to load document (${res.status}).`);
+        const blob = await res.blob();
+        if (cancelled) return;
+        objectUrl = URL.createObjectURL(blob);
+        setPreviewBlobUrl(objectUrl);
+      } catch (e) {
+        if (!cancelled) setPreviewBlobError((e as Error).message || "Failed to load document.");
+      } finally {
+        if (!cancelled) setPreviewBlobLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [previewDoc?.url]);
 
   return (
     <>
@@ -1455,7 +1494,26 @@ function ProposalDetails({
                   <img src={url} alt={previewDoc.filename} className="max-h-full max-w-full object-contain" />
                 </div>
               ) : isPdf ? (
-                <iframe src={url} title={previewDoc.filename} className="h-full w-full" />
+                previewBlobLoading ? (
+                  <div className="flex h-full items-center justify-center font-sans text-sm text-stone-500">
+                    Loading preview…
+                  </div>
+                ) : previewBlobError ? (
+                  <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
+                    <FileText className="h-10 w-10 text-stone-400" />
+                    <p className="font-sans text-sm text-stone-600">{previewBlobError}</p>
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-md bg-stone-900 px-4 py-2 font-sans text-sm font-semibold text-white hover:bg-stone-800"
+                    >
+                      Open in new tab
+                    </a>
+                  </div>
+                ) : previewBlobUrl ? (
+                  <iframe src={previewBlobUrl} title={previewDoc.filename} className="h-full w-full" />
+                ) : null
               ) : isOffice ? (
                 <iframe
                   src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`}
