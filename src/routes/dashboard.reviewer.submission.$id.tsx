@@ -1132,7 +1132,14 @@ function ProposalDetails({
         const blob = await res.blob();
         if (cancelled) return;
         if (blob.size === 0) throw new Error("The document appears to be empty.");
-        objectUrl = URL.createObjectURL(blob);
+        // Many storage hosts serve files as a generic
+        // application/octet-stream regardless of the real file type. An
+        // untyped blob renders as "unknown binary" and the browser downloads
+        // it instead of displaying it inline — this state is only ever used
+        // for the PDF iframe, so force that MIME type explicitly.
+        const pdfBlob =
+          blob.type === "application/pdf" ? blob : new Blob([blob], { type: "application/pdf" });
+        objectUrl = URL.createObjectURL(pdfBlob);
         setPreviewBlobUrl(objectUrl);
       } catch (e) {
         if (!cancelled) setPreviewBlobError((e as Error).message || "Failed to load document.");
