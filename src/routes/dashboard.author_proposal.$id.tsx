@@ -2138,9 +2138,9 @@ function ContractIssuedView({
           </div>
         )}
         {stageKey === "author_contract" &&
-          !locked &&
+          signed &&
           (stage?.co_signer_urls?.length ?? 0) > 0 && (
-            <CoSignerLinks ticket={ticket} coSigners={stage!.co_signer_urls!} disabled={signed} />
+            <CoSignerLinks ticket={ticket} coSigners={stage!.co_signer_urls!} />
           )}
       </div>
     );

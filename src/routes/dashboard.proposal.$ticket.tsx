@@ -2927,11 +2927,10 @@ function ProposalDetailPage() {
                                       {statusLabel}
                                     </span>
                                   </div>
-                                  {isAuthorStage && !locked && coSigners.length > 0 && (
+                                  {isAuthorStage && signed && coSigners.length > 0 && (
                                     <CoSignerLinks
                                       ticket={ticket}
                                       coSigners={coSigners}
-                                      disabled={signed}
                                       heading="Generate and share these links with co-authors who need to sign the contract."
                                     />
                                   )}
