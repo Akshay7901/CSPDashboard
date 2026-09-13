@@ -1049,19 +1049,21 @@ function ProposalDetails({
     | undefined;
   const sample = manuscriptFiles?.sampleChapter;
   const additional = manuscriptFiles?.additionalFiles ?? [];
+  const filenameFromUrl = (u: string) =>
+    decodeURIComponent(u.split("?")[0].split("/").filter(Boolean).pop() || "");
   const cvFile = (() => {
     const normalize = (v: any) => {
       if (v && typeof v === "object" && (v.url || v.file_url)) {
         const url = v.url || v.file_url;
         return {
           url,
-          filename: v.filename || v.name || String(url).split("/").pop() || "Author CV",
+          filename: v.filename || v.name || filenameFromUrl(String(url)) || "Author CV",
           size_bytes: v.size_bytes,
           label: "Author CV",
         };
       }
       if (typeof v === "string" && v) {
-        return { url: v, filename: v.split("/").pop() || "Author CV", label: "Author CV" };
+        return { url: v, filename: filenameFromUrl(v) || "Author CV", label: "Author CV" };
       }
       return null;
     };
@@ -1427,10 +1429,25 @@ function ProposalDetails({
         </DialogHeader>
         {previewDoc && (() => {
           const url = previewDoc.url;
-          const ext = (previewDoc.filename.split(".").pop() || "").toLowerCase();
-          const isImage = ["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp"].includes(ext);
-          const isPdf = ext === "pdf" || url.toLowerCase().includes(".pdf");
-          const isOffice = ["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(ext);
+          // The display filename can be a human label (e.g. "Author CV")
+          // rather than the real file, and the URL's last path segment can
+          // carry a trailing query string — strip that before checking it.
+          const nameExt = (previewDoc.filename.split(".").pop() || "").toLowerCase();
+          const urlPath = url.split("?")[0];
+          const urlExt = (urlPath.split(".").pop() || "").toLowerCase();
+          const IMAGE_EXTS = ["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp"];
+          const OFFICE_EXTS = ["doc", "docx", "xls", "xlsx", "ppt", "pptx"];
+          const KNOWN_EXTS = new Set(["pdf", ...IMAGE_EXTS, ...OFFICE_EXTS]);
+          const recognizedExt = [nameExt, urlExt].find((e) => KNOWN_EXTS.has(e));
+          const isImage = IMAGE_EXTS.includes(recognizedExt || "");
+          const isOffice = OFFICE_EXTS.includes(recognizedExt || "");
+          // Default to a PDF preview when nothing else matched — most
+          // supporting documents (CVs, manuscripts) are PDFs, and storage
+          // URLs often omit a real file extension.
+          const isPdf =
+            !isImage &&
+            !isOffice &&
+            (recognizedExt === "pdf" || url.toLowerCase().includes(".pdf") || !recognizedExt);
           return (
             <div className="h-[75vh] w-full bg-stone-100">
               {isImage ? (

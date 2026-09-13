@@ -209,6 +209,7 @@ type ProposalDocument = {
   filename: string;
   size_bytes?: number;
   label?: string;
+  content_type?: string;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -265,6 +266,7 @@ function toProposalDocument(value: unknown, fallbackLabel?: string): ProposalDoc
     filename,
     size_bytes: numberFrom(value, ["size_bytes", "file_size_bytes", "file_size", "size"]),
     label: stringFrom(value, ["label", "type", "field_key", "category"]) || fallbackLabel,
+    content_type: stringFrom(value, ["content_type", "mime_type", "mimetype", "contentType"]),
   };
 }
 
@@ -590,7 +592,11 @@ function ProposalDetailPage() {
       setLocking(false);
     }
   };
-  const [previewDoc, setPreviewDoc] = useState<{ url: string; filename: string } | null>(null);
+  const [previewDoc, setPreviewDoc] = useState<{
+    url: string;
+    filename: string;
+    content_type?: string;
+  } | null>(null);
   const [notes, setNotes] = useState("");
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [internalNotes, setInternalNotes] = useState<InternalNote[]>([]);
@@ -3607,7 +3613,11 @@ function ProposalDetailPage() {
                                   <button
                                     type="button"
                                     onClick={() =>
-                                      setPreviewDoc({ url: doc.url!, filename: doc.filename })
+                                      setPreviewDoc({
+                                        url: doc.url!,
+                                        filename: doc.filename,
+                                        content_type: doc.content_type,
+                                      })
                                     }
                                     className="mt-0.5 shrink-0 rounded-md p-1 text-stone-500 hover:bg-stone-100 hover:text-stone-800"
                                     title="Preview document"
@@ -4826,10 +4836,30 @@ function ProposalDetailPage() {
           {previewDoc &&
             (() => {
               const url = previewDoc.url;
-              const ext = (previewDoc.filename.split(".").pop() || "").toLowerCase();
-              const isImage = ["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp"].includes(ext);
-              const isPdf = ext === "pdf" || url.toLowerCase().includes(".pdf");
-              const isOffice = ["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(ext);
+              const contentType = (previewDoc.content_type || "").toLowerCase();
+              // The display filename can be a human label (e.g. "Author CV")
+              // rather than the real file, so also check the extension on the
+              // URL's own path — whichever one actually looks like a known type.
+              const nameExt = (previewDoc.filename.split(".").pop() || "").toLowerCase();
+              const urlExt = (filenameFromUrl(url)?.split(".").pop() || "").toLowerCase();
+              const IMAGE_EXTS = ["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp"];
+              const OFFICE_EXTS = ["doc", "docx", "xls", "xlsx", "ppt", "pptx"];
+              const KNOWN_EXTS = new Set(["pdf", ...IMAGE_EXTS, ...OFFICE_EXTS]);
+              const recognizedExt = [nameExt, urlExt].find((e) => KNOWN_EXTS.has(e));
+              const isImage = contentType
+                ? contentType.startsWith("image/")
+                : IMAGE_EXTS.includes(recognizedExt || "");
+              const isOffice = !contentType && OFFICE_EXTS.includes(recognizedExt || "");
+              // Default to a PDF preview when nothing else matched — most
+              // supporting documents (CVs, manuscripts) are PDFs, and storage
+              // URLs often omit a real file extension.
+              const isPdf = contentType
+                ? contentType.includes("pdf")
+                : !isImage &&
+                  !isOffice &&
+                  (recognizedExt === "pdf" ||
+                    url.toLowerCase().includes(".pdf") ||
+                    !recognizedExt);
               return (
                 <div className="h-[75vh] w-full bg-stone-100">
                   {isImage ? (
