@@ -68,6 +68,7 @@ import {
   type ContractQueryEntry,
 } from "@/lib/contractsApi";
 import { ContractPdfModal } from "@/components/contract-pdf-modal";
+import { CoSignerLinks } from "@/components/co-signer-links";
 import { ContractQueries } from "@/components/contract-queries";
 import { ContributorsPanel } from "@/components/contributors-panel";
 import { CoAuthorsPanel } from "@/components/co-authors-panel";
@@ -2863,14 +2864,19 @@ function ProposalDetailPage() {
                         {latestContract?.stages && (
                           <div className="mx-auto mb-6 grid max-w-xl gap-3">
                             {([
-                              ["Publishing Agreement", latestContract.stages.publishing_agreement],
+                              [
+                                "Publishing Agreement",
+                                latestContract.stages.publishing_agreement,
+                                false,
+                              ],
                               [
                                 latestContract.contract_type === "editor"
                                   ? "Editor Contract"
                                   : "Author Contract",
                                 latestContract.stages.author_contract,
+                                true,
                               ],
-                            ] as const).map(([label, stage]) => {
+                            ] as const).map(([label, stage, isAuthorStage]) => {
                               const stageStatus = (stage?.status || "sent").toLowerCase();
                               const locked = !!stage?.locked;
                               const signed = stageStatus === "signed";
@@ -2894,31 +2900,41 @@ function ProposalDetailPage() {
                                     : locked
                                       ? "bg-stone-100 text-stone-600 ring-stone-200"
                                       : "bg-sky-50 text-sky-700 ring-sky-200";
+                              const coSigners = stage?.contract_data?.co_signer_urls || [];
 
                               return (
-                                <div
-                                  key={label}
-                                  className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-4 ${
-                                    locked
-                                      ? "border-stone-200 bg-stone-50"
-                                      : "border-stone-200 bg-white"
-                                  }`}
-                                >
-                                  <div>
-                                    <p className="font-sans text-sm font-semibold text-stone-900">
-                                      {label}
-                                    </p>
-                                    {stage?.docusign_expires_at && !signed && (
-                                      <p className="mt-1 font-sans text-xs text-stone-500">
-                                        Expires {formatDate(stage.docusign_expires_at)}
-                                      </p>
-                                    )}
-                                  </div>
-                                  <span
-                                    className={`inline-flex rounded-full px-3 py-1 font-sans text-xs font-semibold ring-1 ${statusClass}`}
+                                <div key={label}>
+                                  <div
+                                    className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-4 ${
+                                      locked
+                                        ? "border-stone-200 bg-stone-50"
+                                        : "border-stone-200 bg-white"
+                                    }`}
                                   >
-                                    {statusLabel}
-                                  </span>
+                                    <div>
+                                      <p className="font-sans text-sm font-semibold text-stone-900">
+                                        {label}
+                                      </p>
+                                      {stage?.docusign_expires_at && !signed && (
+                                        <p className="mt-1 font-sans text-xs text-stone-500">
+                                          Expires {formatDate(stage.docusign_expires_at)}
+                                        </p>
+                                      )}
+                                    </div>
+                                    <span
+                                      className={`inline-flex rounded-full px-3 py-1 font-sans text-xs font-semibold ring-1 ${statusClass}`}
+                                    >
+                                      {statusLabel}
+                                    </span>
+                                  </div>
+                                  {isAuthorStage && !locked && coSigners.length > 0 && (
+                                    <CoSignerLinks
+                                      ticket={ticket}
+                                      coSigners={coSigners}
+                                      disabled={signed}
+                                      heading="Generate and share these links with co-authors who need to sign the contract."
+                                    />
+                                  )}
                                 </div>
                               );
                             })}

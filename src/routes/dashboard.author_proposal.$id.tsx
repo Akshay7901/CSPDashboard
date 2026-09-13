@@ -33,6 +33,7 @@ import {
 } from "@/lib/contractsApi";
 import { getQueries, raiseQuery } from "@/lib/contractsApi";
 import { ContractPdfModal } from "@/components/contract-pdf-modal";
+import { CoSignerLinks } from "@/components/co-signer-links";
 import { ContractQueries } from "@/components/contract-queries";
 import { AuthorMetadataPanel } from "@/components/author-metadata-panel";
 import { ContributorsPanel } from "@/components/contributors-panel";
@@ -2136,6 +2137,11 @@ function ContractIssuedView({
             )}
           </div>
         )}
+        {stageKey === "author_contract" &&
+          !locked &&
+          (stage?.co_signer_urls?.length ?? 0) > 0 && (
+            <CoSignerLinks ticket={ticket} coSigners={stage!.co_signer_urls!} disabled={signed} />
+          )}
       </div>
     );
   };

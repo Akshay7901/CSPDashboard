@@ -218,11 +218,50 @@ export async function getSigningUrl(ticket: string, stage?: string): Promise<str
   return (body.signing_url as string) || "";
 }
 
+export type CoSignerUrlResult = {
+  name?: string;
+  email: string;
+  signing_url: string;
+  expires_at?: string;
+};
+
+/**
+ * Co-signer links expire ~5 minutes after issuance, so this always fetches a
+ * fresh one rather than reusing a stored URL.
+ */
+export async function getCoSignerUrl(ticket: string, email: string): Promise<CoSignerUrlResult> {
+  const res = await proposalApiFetch(
+    `/${encodeURIComponent(ticket)}/contract/co-signer-url?email=${encodeURIComponent(email)}`,
+    { headers: authHeaders() },
+  );
+  const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+  if (!res.ok) throw new Error((body.error as string) || `Failed to get signing link (${res.status}).`);
+  return {
+    name: body.name as string | undefined,
+    email: (body.email as string) || email,
+    signing_url: (body.signing_url as string) || "",
+    expires_at: body.expires_at as string | undefined,
+  };
+}
+
+export type CoSignerUrl = {
+  name?: string;
+  email: string;
+  url?: string;
+};
+
 export type ContractStageInfo = {
   status?: string;
   locked?: boolean;
   docusign_expires_at?: string;
   docusign_signed_at?: string;
+  // Author-facing shape: co-signer links live directly on the stage.
+  co_signer_urls?: CoSignerUrl[];
+  // Admin/DR-facing shape: the same data nested under contract_data.
+  contract_data?: {
+    co_signer_urls?: CoSignerUrl[];
+    [key: string]: unknown;
+  };
 };
 
 export type TwoStageContract = {
