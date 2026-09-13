@@ -2138,9 +2138,14 @@ function ContractIssuedView({
           </div>
         )}
         {stageKey === "author_contract" &&
-          signed &&
+          !locked &&
           (stage?.co_signer_urls?.length ?? 0) > 0 && (
-            <CoSignerLinks ticket={ticket} coSigners={stage!.co_signer_urls!} />
+            <CoSignerLinks
+              ticket={ticket}
+              coSigners={stage!.co_signer_urls!}
+              disabled={!signed}
+              disabledNote="Sign the Author Contract above first — links become available once you've signed."
+            />
           )}
       </div>
     );

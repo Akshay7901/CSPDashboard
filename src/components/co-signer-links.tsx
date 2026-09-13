@@ -7,11 +7,13 @@ export function CoSignerLinks({
   coSigners,
   disabled = false,
   heading = "Share these links with your co-authors — they need to sign the contract too.",
+  disabledNote,
 }: {
   ticket: string;
   coSigners: CoSignerUrl[];
   disabled?: boolean;
   heading?: string;
+  disabledNote?: string;
 }) {
   const [links, setLinks] = useState<Record<string, string>>({});
   const [loadingEmail, setLoadingEmail] = useState<string | null>(null);
@@ -56,6 +58,9 @@ export function CoSignerLinks({
     >
       <p className="font-sans text-sm font-bold text-stone-900">Co-signer Links</p>
       <p className="mt-1 font-sans text-xs text-stone-600">{heading}</p>
+      {disabled && disabledNote && (
+        <p className="mt-1 font-sans text-xs italic text-amber-700">{disabledNote}</p>
+      )}
       <div className="mt-3 space-y-3">
         {coSigners.map((signer) => (
           <div key={signer.email} className="rounded-lg border border-stone-200 bg-white p-3">
@@ -70,6 +75,7 @@ export function CoSignerLinks({
                 type="button"
                 onClick={() => void handleGetLink(signer.email)}
                 disabled={disabled || loadingEmail === signer.email}
+                title={disabled ? disabledNote : undefined}
                 className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-1.5 font-sans text-xs font-semibold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Link2 className="h-3.5 w-3.5" />
