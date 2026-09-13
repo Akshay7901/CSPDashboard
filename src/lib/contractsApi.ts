@@ -236,11 +236,25 @@ export async function getCoSignerUrl(ticket: string, email: string): Promise<CoS
   );
   const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
   if (!res.ok) throw new Error((body.error as string) || `Failed to get signing link (${res.status}).`);
+  // Tolerate the fields being nested under `data` in case the backend wraps
+  // the response, and a couple of alternate key names for the URL itself.
+  const inner = (body.data && typeof body.data === "object" ? body.data : body) as Record<
+    string,
+    unknown
+  >;
+  const signingUrl =
+    (inner.signing_url as string) ||
+    (inner.url as string) ||
+    (inner.signingUrl as string) ||
+    "";
+  if (!signingUrl) {
+    throw new Error("No signing link was returned. Please try again.");
+  }
   return {
-    name: body.name as string | undefined,
-    email: (body.email as string) || email,
-    signing_url: (body.signing_url as string) || "",
-    expires_at: body.expires_at as string | undefined,
+    name: inner.name as string | undefined,
+    email: (inner.email as string) || email,
+    signing_url: signingUrl,
+    expires_at: inner.expires_at as string | undefined,
   };
 }
 
