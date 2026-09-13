@@ -1113,10 +1113,14 @@ function ProposalDetails({
     setPreviewBlobUrl(null);
     (async () => {
       try {
-        const res = await fetch(url);
+        const token = getPortalToken();
+        const res = await fetch(url, {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        });
         if (!res.ok) throw new Error(`Failed to load document (${res.status}).`);
         const blob = await res.blob();
         if (cancelled) return;
+        if (blob.size === 0) throw new Error("The document appears to be empty.");
         objectUrl = URL.createObjectURL(blob);
         setPreviewBlobUrl(objectUrl);
       } catch (e) {
