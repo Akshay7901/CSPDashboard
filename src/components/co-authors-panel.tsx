@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { Trash2, Lock } from "lucide-react";
+import { Trash2, Lock, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import {
   listCoAuthors,
   addCoAuthor,
   removeCoAuthor,
+  updateCoAuthor,
   type CoAuthor,
   type CoAuthorRole,
 } from "@/lib/coAuthorsApi";
@@ -43,6 +44,16 @@ export function CoAuthorsPanel({ ticket }: { ticket: string }) {
     role: "author" as CoAuthorRole,
   });
 
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    role: "author" as CoAuthorRole,
+  });
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -68,14 +79,14 @@ export function CoAuthorsPanel({ ticket }: { ticket: string }) {
 
   const onAdd = async (e: FormEvent) => {
     e.preventDefault();
-    if (!form.first_name.trim() || !form.last_name.trim()) return;
+    if (!form.first_name.trim() || !form.last_name.trim() || !form.email.trim()) return;
     setSaving(true);
     setAddError(null);
     try {
       await addCoAuthor(ticket, {
         first_name: form.first_name.trim(),
         last_name: form.last_name.trim(),
-        email: form.email.trim() || undefined,
+        email: form.email.trim(),
         role: form.role,
       });
       setForm({ first_name: "", last_name: "", email: "", role: "author" });
@@ -101,6 +112,47 @@ export function CoAuthorsPanel({ ticket }: { ticket: string }) {
       toast.error((err as Error).message);
     } finally {
       setBusyIndex(null);
+    }
+  };
+
+  const startEdit = (row: CoAuthor) => {
+    setEditingIndex(row.index);
+    setEditError(null);
+    setEditForm({
+      first_name: row.first_name || "",
+      last_name: row.last_name || "",
+      email: row.email || "",
+      role: ((row.role as CoAuthorRole) || "author"),
+    });
+  };
+
+  const cancelEdit = () => {
+    setEditingIndex(null);
+    setEditError(null);
+  };
+
+  const onSaveEdit = async (e: FormEvent, row: CoAuthor) => {
+    e.preventDefault();
+    if (!editForm.email.trim()) {
+      setEditError("Email is required.");
+      return;
+    }
+    setEditSaving(true);
+    setEditError(null);
+    try {
+      await updateCoAuthor(ticket, row.index, {
+        first_name: editForm.first_name.trim(),
+        last_name: editForm.last_name.trim(),
+        email: editForm.email.trim(),
+        role: editForm.role,
+      });
+      toast.success("Co-author updated");
+      setEditingIndex(null);
+      await load();
+    } catch (err) {
+      setEditError((err as Error).message);
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -146,7 +198,8 @@ export function CoAuthorsPanel({ ticket }: { ticket: string }) {
             />
             <input
               type="email"
-              placeholder="Email (optional)"
+              required
+              placeholder="Email"
               value={form.email}
               onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
               className={inputCls}
@@ -193,37 +246,114 @@ export function CoAuthorsPanel({ ticket }: { ticket: string }) {
         </p>
       ) : (
         <ul className="divide-y divide-stone-100 border-t border-stone-100">
-          {rows.map((c) => (
-            <li
-              key={c.index}
-              className="group flex flex-wrap items-center justify-between gap-3 px-6 py-4"
-            >
-              <div className="min-w-0">
-                <p className="font-sans text-[15px] font-semibold text-stone-900">
-                  {[c.first_name, c.last_name].filter(Boolean).join(" ") || "—"}
-                </p>
-                {c.email && (
-                  <p className="mt-0.5 truncate font-sans text-sm text-stone-500">
-                    {c.email}
+          {rows.map((c) =>
+            editingIndex === c.index ? (
+              <li key={c.index} className="bg-stone-50 px-6 py-4">
+                <form onSubmit={(e) => void onSaveEdit(e, c)} className="grid gap-3.5 sm:grid-cols-2">
+                  <input
+                    required
+                    placeholder="First name"
+                    value={editForm.first_name}
+                    onChange={(e) =>
+                      setEditForm((f) => ({ ...f, first_name: e.target.value }))
+                    }
+                    className={inputCls}
+                  />
+                  <input
+                    required
+                    placeholder="Last name"
+                    value={editForm.last_name}
+                    onChange={(e) =>
+                      setEditForm((f) => ({ ...f, last_name: e.target.value }))
+                    }
+                    className={inputCls}
+                  />
+                  <input
+                    type="email"
+                    required
+                    placeholder="Email"
+                    value={editForm.email}
+                    onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))}
+                    className={inputCls}
+                  />
+                  <select
+                    value={editForm.role}
+                    onChange={(e) =>
+                      setEditForm((f) => ({ ...f, role: e.target.value as CoAuthorRole }))
+                    }
+                    className={inputCls}
+                  >
+                    <option value="author">Author</option>
+                    <option value="editor">Editor</option>
+                  </select>
+                  <div className="flex items-center gap-2 sm:col-span-2 sm:justify-end">
+                    <button
+                      type="button"
+                      onClick={cancelEdit}
+                      disabled={editSaving}
+                      className="rounded-lg px-4 py-2 font-sans text-sm font-semibold text-stone-600 hover:bg-stone-100 disabled:opacity-60"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={editSaving}
+                      className="rounded-lg bg-[#0E3D2F]/85 px-5 py-2.5 font-sans text-sm font-semibold text-white hover:bg-[#0E3D2F] disabled:opacity-60"
+                    >
+                      {editSaving ? "Saving…" : "Save"}
+                    </button>
+                  </div>
+                  {editError && (
+                    <p className="rounded-lg bg-rose-50 px-3 py-2 font-sans text-sm text-rose-700 ring-1 ring-rose-200 sm:col-span-2">
+                      {editError}
+                    </p>
+                  )}
+                </form>
+              </li>
+            ) : (
+              <li
+                key={c.index}
+                className="group flex flex-wrap items-center justify-between gap-3 px-6 py-4"
+              >
+                <div className="min-w-0">
+                  <p className="font-sans text-[15px] font-semibold text-stone-900">
+                    {[c.first_name, c.last_name].filter(Boolean).join(" ") || "—"}
                   </p>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <RoleBadge role={c.role} />
-                {editable && (
+                  {c.email ? (
+                    <p className="mt-0.5 truncate font-sans text-sm text-stone-500">
+                      {c.email}
+                    </p>
+                  ) : (
+                    <p className="mt-0.5 font-sans text-sm italic text-amber-700">
+                      No email on file
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <RoleBadge role={c.role} />
                   <button
                     type="button"
-                    disabled={busyIndex === c.index}
-                    onClick={() => void onRemove(c)}
-                    title="Remove co-author"
-                    className="inline-flex items-center rounded-md border border-rose-200 bg-white p-1.5 text-rose-600 opacity-0 transition hover:bg-rose-50 focus:opacity-100 group-hover:opacity-100 disabled:opacity-60"
+                    onClick={() => startEdit(c)}
+                    title="Edit co-author"
+                    className="inline-flex items-center rounded-md border border-stone-200 bg-white p-1.5 text-stone-600 opacity-0 transition hover:bg-stone-50 focus:opacity-100 group-hover:opacity-100"
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <Pencil className="h-3.5 w-3.5" />
                   </button>
-                )}
-              </div>
-            </li>
-          ))}
+                  {editable && (
+                    <button
+                      type="button"
+                      disabled={busyIndex === c.index}
+                      onClick={() => void onRemove(c)}
+                      title="Remove co-author"
+                      className="inline-flex items-center rounded-md border border-rose-200 bg-white p-1.5 text-rose-600 opacity-0 transition hover:bg-rose-50 focus:opacity-100 group-hover:opacity-100 disabled:opacity-60"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+              </li>
+            ),
+          )}
         </ul>
       )}
     </section>

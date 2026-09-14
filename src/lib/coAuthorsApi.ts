@@ -20,7 +20,7 @@ export type CoAuthorsResponse = {
 export type CoAuthorInput = {
   first_name: string;
   last_name: string;
-  email?: string;
+  email: string;
   role: CoAuthorRole;
 };
 
@@ -72,5 +72,21 @@ export async function removeCoAuthor(ticket: string, index: number) {
     `/${encodeURIComponent(ticket)}/co-authors/${index}`,
     { method: "DELETE", headers: authHeaders() },
   );
+  return parse(res);
+}
+
+export type CoAuthorPatch = Partial<{
+  first_name: string;
+  last_name: string;
+  email: string;
+  role: CoAuthorRole;
+}>;
+
+export async function updateCoAuthor(ticket: string, index: number, patch: CoAuthorPatch) {
+  const res = await proposalApiFetch(`/${encodeURIComponent(ticket)}/co-authors/${index}`, {
+    method: "PATCH",
+    headers: authHeaders(),
+    body: JSON.stringify(patch),
+  });
   return parse(res);
 }
