@@ -156,6 +156,7 @@ type TimelineStage = {
 type ContractDefaults = {
   title?: string;
   subtitle?: string;
+  contract_type?: "author" | "editor";
   num_of_copies?: string;
   num_of_copies_more_than_one_author?: string;
   percentage_off?: number;
@@ -867,6 +868,7 @@ function ProposalDetailPage() {
   // Issue Contract modal state
   const [contractOpen, setContractOpen] = useState(false);
   const [contractType, setContractType] = useState<"author" | "editor">("author");
+  const [contractTypeWarningDismissed, setContractTypeWarningDismissed] = useState(false);
   const [contractAmendments, setContractAmendments] = useState("");
   const [contractNote, setContractNote] = useState("");
   const [contractExpiryDays, setContractExpiryDays] = useState(14);
@@ -888,7 +890,16 @@ function ProposalDetailPage() {
   });
 
   const openIssueContract = () => {
-    setContractType((latestContract?.contract_type as "author" | "editor" | undefined) || "author");
+    // Stage 2 (Author/Editor Contract) terms are DocuSign template-based —
+    // pre-fill everything from contract_defaults (which reflects the last
+    // sent contract, or system defaults on the first send).
+    const defaults = data?.contract_defaults;
+    setContractType(
+      defaults?.contract_type ||
+        (latestContract?.contract_type as "author" | "editor" | undefined) ||
+        "author",
+    );
+    setContractTypeWarningDismissed(false);
     setContractAmendments("");
     setContractNote("");
     setContractExpiryDays(14);
@@ -898,10 +909,6 @@ function ProposalDetailPage() {
     // For resends (e.g. after the author raised a query), skip straight to
     // the contract summary.
     setContractStep(contracts.length > 0 ? 2 : 1);
-    // Stage 2 (Author/Editor Contract) terms are DocuSign template-based —
-    // pre-fill everything from contract_defaults (which reflects the last
-    // sent contract, or system defaults on the first send).
-    const defaults = data?.contract_defaults;
     setContractFields({
       title: defaults?.title || cd.main_title || title || "",
       subtitle: defaults?.subtitle ?? cd.sub_title ?? "",
@@ -4712,7 +4719,10 @@ function ProposalDetailPage() {
                             type="radio"
                             name="issue-contract-type"
                             checked={contractType === "author"}
-                            onChange={() => setContractType("author")}
+                            onChange={() => {
+                              setContractType("author");
+                              setContractTypeWarningDismissed(false);
+                            }}
                             className="mt-0.5 h-4 w-4 accent-[#5B2EBA]"
                           />
                           <span>
@@ -4735,7 +4745,10 @@ function ProposalDetailPage() {
                             type="radio"
                             name="issue-contract-type"
                             checked={contractType === "editor"}
-                            onChange={() => setContractType("editor")}
+                            onChange={() => {
+                              setContractType("editor");
+                              setContractTypeWarningDismissed(false);
+                            }}
                             className="mt-0.5 h-4 w-4 accent-[#5B2EBA]"
                           />
                           <span>
@@ -4748,6 +4761,32 @@ function ProposalDetailPage() {
                           </span>
                         </label>
                       </div>
+                      {(() => {
+                        const expectedType = /edited/i.test(contractFields.book_type)
+                          ? "editor"
+                          : "author";
+                        if (contractType === expectedType || contractTypeWarningDismissed) {
+                          return null;
+                        }
+                        const recordedAs = expectedType === "editor" ? "edited volume" : "monograph";
+                        const issuingAs = contractType === "editor" ? "Editor" : "Author";
+                        return (
+                          <div className="mt-3 flex items-start justify-between gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3">
+                            <p className="font-sans text-xs text-amber-900">
+                              This proposal is recorded as a {recordedAs}. You&rsquo;re issuing an{" "}
+                              {issuingAs} contract instead — please confirm this is correct.
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => setContractTypeWarningDismissed(true)}
+                              className="shrink-0 rounded-md p-1 text-amber-700 hover:bg-amber-100"
+                              aria-label="Dismiss"
+                            >
+                              <XIcon className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        );
+                      })()}
                     </div>
                     <div className="sm:col-span-2">
                       <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
