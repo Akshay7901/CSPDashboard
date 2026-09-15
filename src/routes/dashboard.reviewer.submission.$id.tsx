@@ -12,10 +12,10 @@ import cspLogo from "@/assets/csp-logo.png";
 import { initialsFromName, displayNameFromEmail } from "@/lib/proposals";
 import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
 import { proposalApiFetch, API_BASE_URL } from "@/lib/proposalApi";
-import { DrInfoRequests } from "@/components/dr-info-requests";
 import {
   fetchRequestInfoUpdates,
   filenameFromUrl as cleanFilenameFromUrl,
+  REVISION_AREAS,
   type RequestInfoUpdate,
 } from "@/lib/requestInfoUpdates";
 
@@ -799,10 +799,36 @@ function Pill({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Field({ label, value }: { label: string; value: string }) {
+function revisedText(update: RequestInfoUpdate | undefined, original?: string): string | undefined {
+  return update?.text || original;
+}
+
+function UpdatedBadge({ date }: { date?: string }) {
+  return (
+    <span
+      className="ml-1.5 inline-flex items-center rounded-full bg-emerald-50 px-1.5 py-0.5 align-middle font-sans text-[10px] font-semibold normal-case tracking-normal text-emerald-700 ring-1 ring-emerald-200"
+      title={date ? `Updated via revision response on ${formatDate(date)}` : "Updated via revision response"}
+    >
+      Updated
+    </span>
+  );
+}
+
+function Field({
+  label,
+  value,
+  updated,
+}: {
+  label: string;
+  value: string;
+  updated?: RequestInfoUpdate;
+}) {
   return (
     <div>
-      <div className="font-sans text-xs font-medium text-stone-500">{label}</div>
+      <div className="font-sans text-xs font-medium text-stone-500">
+        {label}
+        {updated && <UpdatedBadge date={updated.respondedAt} />}
+      </div>
       <div className="mt-1 font-sans text-sm text-stone-800">{value}</div>
     </div>
   );
@@ -828,7 +854,7 @@ function formatBytes(n?: number) {
   return `${(n / 1024 / 1024).toFixed(1)} MB`;
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children }: { title: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="rounded-2xl border border-stone-200 bg-white p-6">
       <h3 className="font-serif text-sm font-bold text-[#2C1A0E]">{title}</h3>
@@ -837,12 +863,21 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Para({ label, value }: { label: string; value?: string }) {
+function Para({
+  label,
+  value,
+  updated,
+}: {
+  label: string;
+  value?: string;
+  updated?: RequestInfoUpdate;
+}) {
   if (!value) return null;
   return (
     <div className="mt-4 first:mt-0">
       <div className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-500">
         {label}
+        {updated && <UpdatedBadge date={updated.respondedAt} />}
       </div>
       <p className="mt-1.5 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-700">
         {value}
@@ -1259,9 +1294,28 @@ function ProposalDetails({
       <Section title="Primary Author / Editor">
         <div className="-mt-2 mb-4 flex flex-wrap gap-x-8 gap-y-2 font-sans text-sm">
           <Field label="Type" value={cd.book_type || "—"} />
-          <Field label="Words" value={formatNumber(cd.word_count) || "—"} />
-          <Field label="Completion" value={cd.expected_completion_date || "—"} />
+          <Field
+            label="Words"
+            value={formatNumber(revisedText(revisionUpdates.word_count, cd.word_count)) || "—"}
+            updated={revisionUpdates.word_count}
+          />
+          <Field
+            label="Completion"
+            value={revisedText(revisionUpdates.expected_completion, cd.expected_completion_date) || "—"}
+            updated={revisionUpdates.expected_completion}
+          />
         </div>
+        {revisionUpdates.primary_author?.text && (
+          <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2">
+            <p className="font-sans text-xs font-semibold text-emerald-800">
+              Updated via revision response
+              <UpdatedBadge date={revisionUpdates.primary_author.respondedAt} />
+            </p>
+            <p className="mt-1 whitespace-pre-line font-sans text-sm text-emerald-900">
+              {revisionUpdates.primary_author.text}
+            </p>
+          </div>
+        )}
         <hr className="my-4 border-stone-100" />
         <div className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
           <Field label="Name" value={cd.corresponding_author_name || "—"} />
@@ -1274,36 +1328,50 @@ function ProposalDetails({
           cd.city ||
           cd.state ||
           cd.postal_code ||
-          cd.country) && (
+          cd.country ||
+          revisionUpdates.mailing_address?.text) && (
           <>
             <hr className="my-4 border-stone-100" />
             <div>
               <div className="font-sans text-xs uppercase tracking-wide text-stone-500">
                 Mailing Address
+                {revisionUpdates.mailing_address?.text && (
+                  <UpdatedBadge date={revisionUpdates.mailing_address.respondedAt} />
+                )}
               </div>
               <p className="mt-2 font-sans text-sm text-stone-800">
-                {(() => {
-                  // Some submissions store a full address in `address`,
-                  // others break it into line/city/state/postal fields —
-                  // prefer whichever actually has street-level detail
-                  // instead of always joining the broken-out fields (which,
-                  // if empty, silently drops a populated `address` and
-                  // leaves only the country).
-                  const streetParts = [
-                    cd.address_line_1,
-                    cd.address_line_2,
-                    cd.city,
-                    cd.state,
-                    cd.postal_code,
-                  ].filter(Boolean);
-                  const base = streetParts.length ? streetParts : cd.address ? [cd.address] : [];
-                  return [...base, cd.country].filter(Boolean).join(", ");
-                })()}
+                {revisionUpdates.mailing_address?.text ||
+                  (() => {
+                    // Some submissions store a full address in `address`,
+                    // others break it into line/city/state/postal fields —
+                    // prefer whichever actually has street-level detail
+                    // instead of always joining the broken-out fields (which,
+                    // if empty, silently drops a populated `address` and
+                    // leaves only the country).
+                    const streetParts = [
+                      cd.address_line_1,
+                      cd.address_line_2,
+                      cd.city,
+                      cd.state,
+                      cd.postal_code,
+                    ].filter(Boolean);
+                    const base = streetParts.length ? streetParts : cd.address ? [cd.address] : [];
+                    return [...base, cd.country].filter(Boolean).join(", ");
+                  })()}
               </p>
             </div>
           </>
         )}
-        <Para label="Biography" value={cd.biography} />
+        <Para
+          label="Biography"
+          value={revisedText(revisionUpdates.biography, cd.biography)}
+          updated={revisionUpdates.biography}
+        />
+        <Para
+          label="Author Credentials"
+          value={revisedText(revisionUpdates.author_credentials, rawCd.qualifications as string | undefined)}
+          updated={revisionUpdates.author_credentials}
+        />
       </Section>
 
       {/* Co-authors / Editors / Contributors / Translators */}
@@ -1332,29 +1400,68 @@ function ProposalDetails({
             })}
           </ul>
         </Section>
-      ) : cd.co_authors_editors ? (
-        <Section title="Additional Authors / Editors">
+      ) : revisedText(revisionUpdates.additional_authors, cd.co_authors_editors) ? (
+        <Section
+          title={
+            <>
+              Additional Authors / Editors
+              {revisionUpdates.additional_authors?.text && (
+                <UpdatedBadge date={revisionUpdates.additional_authors.respondedAt} />
+              )}
+            </>
+          }
+        >
           <p className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-700">
-            {cd.co_authors_editors}
+            {revisedText(revisionUpdates.additional_authors, cd.co_authors_editors)}
           </p>
         </Section>
       ) : null}
 
       {/* Manuscript Details */}
-      <Section title="Manuscript Details">
+      <Section
+        title={
+          <>
+            Manuscript Details
+            {revisionUpdates.manuscript_details?.text && (
+              <UpdatedBadge date={revisionUpdates.manuscript_details.respondedAt} />
+            )}
+          </>
+        }
+      >
+        {revisionUpdates.manuscript_details?.text && (
+          <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2">
+            <p className="whitespace-pre-line font-sans text-sm text-emerald-900">
+              {revisionUpdates.manuscript_details.text}
+            </p>
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-3">
-          <Field label="Word Count" value={formatNumber(cd.word_count) || "—"} />
+          <Field
+            label="Word Count"
+            value={formatNumber(revisedText(revisionUpdates.word_count, cd.word_count)) || "—"}
+            updated={revisionUpdates.word_count}
+          />
           <Field
             label="illustrations/figures/tables"
             value={formatNumber(cd.illustration_count) || "—"}
           />
           <Field label="Languages" value={cd.languages_used || "—"} />
-          <Field label="Est. Completion" value={cd.expected_completion_date || "—"} />
+          <Field
+            label="Est. Completion"
+            value={revisedText(revisionUpdates.expected_completion, cd.expected_completion_date) || "—"}
+            updated={revisionUpdates.expected_completion}
+          />
           <Field label="Subject" value={cd.subject || "—"} />
         </div>
-        {(cd.intended_audience || cd.manuscript_stage || cd.under_review_elsewhere) && (
+        {(revisedText(revisionUpdates.audience, cd.intended_audience) ||
+          cd.manuscript_stage ||
+          cd.under_review_elsewhere) && (
           <div className="mt-4 flex flex-col gap-4 border-t border-stone-100 pt-4">
-            <Para label="Intended Audience" value={cd.intended_audience} />
+            <Para
+              label="Intended Audience"
+              value={revisedText(revisionUpdates.audience, cd.intended_audience)}
+              updated={revisionUpdates.audience}
+            />
             {cd.manuscript_stage && (
               <Field label="Manuscript Stage" value={cd.manuscript_stage} />
             )}
@@ -1366,15 +1473,20 @@ function ProposalDetails({
       </Section>
 
       {/* Summary & Description */}
-      {(cd.short_description || cd.detailed_description || keywords.length > 0) && (
+      {(revisedText(revisionUpdates.overview, cd.short_description) ||
+        revisedText(revisionUpdates.key_features, cd.detailed_description) ||
+        keywords.length > 0) && (
         <Section title="Summary & Description">
-          {cd.short_description && (
+          {revisedText(revisionUpdates.overview, cd.short_description) && (
             <div>
               <div className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-500">
                 Overview
+                {revisionUpdates.overview?.text && (
+                  <UpdatedBadge date={revisionUpdates.overview.respondedAt} />
+                )}
               </div>
               <p className="mt-1.5 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-700">
-                {cd.short_description}
+                {revisedText(revisionUpdates.overview, cd.short_description)}
               </p>
               {keywords.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -1390,8 +1502,12 @@ function ProposalDetails({
               )}
             </div>
           )}
-          {cd.detailed_description && (
-            <Para label="Key Features & Unique Contribution" value={cd.detailed_description} />
+          {revisedText(revisionUpdates.key_features, cd.detailed_description) && (
+            <Para
+              label="Key Features & Unique Contribution"
+              value={revisedText(revisionUpdates.key_features, cd.detailed_description)}
+              updated={revisionUpdates.key_features}
+            />
           )}
           {cd.key_features && cd.key_features !== cd.detailed_description && (
             <Para label="Key Features / Selling Points" value={cd.key_features} />
@@ -1401,7 +1517,16 @@ function ProposalDetails({
 
       {/* Table of Contents */}
       {toc.length > 0 && (
-        <Section title="Table of Contents">
+        <Section
+          title={
+            <>
+              Table of Contents
+              {revisionUpdates.table_of_contents?.text && (
+                <UpdatedBadge date={revisionUpdates.table_of_contents.respondedAt} />
+              )}
+            </>
+          }
+        >
           <ol className="space-y-2 rounded-xl bg-[#FAF6EE] p-5">
             {toc.map((chapter, idx) => (
               <li key={idx} className="font-sans text-sm leading-relaxed text-stone-800">
@@ -1419,10 +1544,32 @@ function ProposalDetails({
         cd.unique_contribution ||
         cd.conferences ||
         cd.promotional_channels ||
-        cd.marketing_info) && (
+        cd.marketing_info ||
+        revisionUpdates.market_analysis?.text ||
+        revisionUpdates.competition?.text ||
+        revisionUpdates.marketing_promotion?.text) && (
         <Section title="Marketing & Promotion">
-          <Para label="Primary Market" value={cd.primary_market} />
-          <Para label="Competing Titles" value={cd.competing_titles} />
+          {revisionUpdates.marketing_promotion?.text && (
+            <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2">
+              <p className="font-sans text-xs font-semibold text-emerald-800">
+                Updated via revision response
+                <UpdatedBadge date={revisionUpdates.marketing_promotion.respondedAt} />
+              </p>
+              <p className="mt-1 whitespace-pre-line font-sans text-sm text-emerald-900">
+                {revisionUpdates.marketing_promotion.text}
+              </p>
+            </div>
+          )}
+          <Para
+            label="Primary Market"
+            value={revisedText(revisionUpdates.market_analysis, cd.primary_market)}
+            updated={revisionUpdates.market_analysis}
+          />
+          <Para
+            label="Competing Titles"
+            value={revisedText(revisionUpdates.competition, cd.competing_titles)}
+            updated={revisionUpdates.competition}
+          />
           <Para
             label="Unique Contribution vs Competing Titles"
             value={cd.unique_contribution}
@@ -1442,7 +1589,16 @@ function ProposalDetails({
 
       {/* Author-Suggested Reviewers */}
       {suggestedReviewers.length > 0 && (
-        <Section title="Author-Suggested Reviewers">
+        <Section
+          title={
+            <>
+              Author-Suggested Reviewers
+              {revisionUpdates.suggested_reviewers?.text && (
+                <UpdatedBadge date={revisionUpdates.suggested_reviewers.respondedAt} />
+              )}
+            </>
+          }
+        >
           <ol className="divide-y divide-stone-100">
             {suggestedReviewers.map((r, idx) => (
               <li key={idx} className="flex gap-4 py-3 first:pt-0">
@@ -1457,7 +1613,9 @@ function ProposalDetails({
       )}
 
       {/* Additional Comments & Permissions */}
-      {(cd.additional_notes || cd.additional_info || cd.permissions_required) && (
+      {(cd.additional_notes ||
+        cd.additional_info ||
+        revisedText(revisionUpdates.permissions, cd.permissions_required)) && (
         <Section title="Additional Comments & Permissions">
           <Para label="Additional Notes from Author" value={cd.additional_notes} />
           {cd.additional_info && (
@@ -1467,7 +1625,8 @@ function ProposalDetails({
           )}
           <Para
             label="Permissions Required from Copyright Holders"
-            value={cd.permissions_required}
+            value={revisedText(revisionUpdates.permissions, cd.permissions_required)}
+            updated={revisionUpdates.permissions}
           />
         </Section>
       )}
@@ -1509,6 +1668,67 @@ function ProposalDetails({
       {/* Additional Proposal Information (catch-all) */}
       <AdditionalProposalDetails rawCd={rawCd} />
 
+      {/* Any revision response not already shown in a field above */}
+      {(() => {
+        const handled = new Set([
+          "word_count",
+          "expected_completion",
+          "mailing_address",
+          "biography",
+          "author_credentials",
+          "additional_authors",
+          "manuscript_details",
+          "overview",
+          "key_features",
+          "table_of_contents",
+          "audience",
+          "market_analysis",
+          "competition",
+          "marketing_promotion",
+          "suggested_reviewers",
+          "permissions",
+          "supporting_documents",
+          "primary_author",
+        ]);
+        const leftover = Object.entries(revisionUpdates).filter(
+          ([key, u]) => !handled.has(key) && (u.text || u.files?.length),
+        );
+        if (leftover.length === 0) return null;
+        return (
+          <Section title="Other Revision Responses">
+            <div className="space-y-4">
+              {leftover.map(([key, u]) => {
+                const label = REVISION_AREAS.find((a) => a.key === key)?.label || key;
+                return (
+                  <div key={key}>
+                    <div className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-500">
+                      {label}
+                      <UpdatedBadge date={u.respondedAt} />
+                    </div>
+                    {u.text && (
+                      <p className="mt-1.5 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-700">
+                        {u.text}
+                      </p>
+                    )}
+                    {u.files?.map((f) => (
+                      <a
+                        key={f.url}
+                        href={f.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-1.5 block font-sans text-sm font-medium text-[#00422F] hover:underline"
+                      >
+                        {f.filename}
+                      </a>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          </Section>
+        );
+      })()}
+
       {/* Submission Info */}
       <Section title="Submission Info">
         <div className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
@@ -1536,8 +1756,6 @@ function ProposalDetails({
           </div>
         )}
       </Section>
-
-      <DrInfoRequests ticket={proposal.ticket} readOnly />
     </section>
     <Dialog open={!!previewDoc} onOpenChange={(open) => !open && setPreviewDoc(null)}>
       <DialogContent className="max-w-5xl p-0 sm:max-w-5xl">
