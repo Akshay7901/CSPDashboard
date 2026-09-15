@@ -879,7 +879,6 @@ function ProposalDetailPage() {
   const [contractFields, setContractFields] = useState({
     title: "",
     subtitle: "",
-    book_type: "",
     num_of_copies: "",
     num_of_copies_more_than_one_author: "",
     percentage_off: "",
@@ -912,7 +911,6 @@ function ProposalDetailPage() {
     setContractFields({
       title: defaults?.title || cd.main_title || title || "",
       subtitle: defaults?.subtitle ?? cd.sub_title ?? "",
-      book_type: cd.book_type || "",
       num_of_copies: defaults?.num_of_copies || "",
       num_of_copies_more_than_one_author: defaults?.num_of_copies_more_than_one_author || "",
       percentage_off:
@@ -1012,10 +1010,6 @@ function ProposalDetailPage() {
       // record an unchanged value as a "proposed" subtitle.
       if (subtitleChanged && enteredSubtitle) {
         payload.subtitle = enteredSubtitle;
-      }
-      const enteredBookType = (contractFields.book_type || "").trim();
-      if (enteredBookType && enteredBookType !== (cd.book_type || "").trim()) {
-        payload.book_type = enteredBookType;
       }
       if (contractAmendments.trim()) payload.addendum = contractAmendments.trim();
       if (contractNote.trim()) {
@@ -4727,7 +4721,7 @@ function ProposalDetailPage() {
                           />
                           <span>
                             <span className="block font-sans text-sm font-semibold text-stone-900">
-                              Single-Authored Work
+                              Monograph
                             </span>
                             <span className="block font-sans text-xs text-stone-500">
                               Issues an Author Contract
@@ -4762,9 +4756,7 @@ function ProposalDetailPage() {
                         </label>
                       </div>
                       {(() => {
-                        const expectedType = /edited/i.test(contractFields.book_type)
-                          ? "editor"
-                          : "author";
+                        const expectedType = /edited/i.test(cd.book_type || "") ? "editor" : "author";
                         if (contractType === expectedType || contractTypeWarningDismissed) {
                           return null;
                         }
@@ -4787,20 +4779,6 @@ function ProposalDetailPage() {
                           </div>
                         );
                       })()}
-                    </div>
-                    <div className="sm:col-span-2">
-                      <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
-                        Book Type
-                      </label>
-                      <input
-                        type="text"
-                        value={contractFields.book_type}
-                        onChange={(e) =>
-                          setContractFields((f) => ({ ...f, book_type: e.target.value }))
-                        }
-                        placeholder="e.g. Monograph, Edited Volume, Textbook"
-                        className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-800 focus:border-[#5B2EBA] focus:outline-none focus:ring-2 focus:ring-[#EDE7FA]"
-                      />
                     </div>
                     <div className="sm:col-span-2">
                       <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
