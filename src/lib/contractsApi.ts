@@ -75,7 +75,10 @@ function authHeaders(): HeadersInit {
 function fromVersionEntry(v: Record<string, unknown>): ContractDetail {
   const stages = (v.stages || {}) as Record<string, Record<string, unknown>>;
   const pa = stages.publishing_agreement;
-  const ac = stages.author_contract;
+  // Stage 2 is keyed by contract type on the backend — "author_contract"
+  // for author contracts, "editor_contract" for editor contracts. Normalize
+  // to "author_contract" below so the rest of the app only needs one key.
+  const ac = stages.author_contract || stages.editor_contract;
   // Overall status: the furthest stage that exists drives the summary.
   const primary = (ac || pa || {}) as Record<string, unknown>;
   return {
@@ -100,7 +103,13 @@ function fromVersionEntry(v: Record<string, unknown>): ContractDetail {
     publishing_agreement_signed:
       (v.publishing_agreement_signed as boolean | undefined) ??
       (pa ? String(pa.status).toLowerCase() === "signed" : undefined),
-    stages: (stages as ContractDetail["stages"]) ?? undefined,
+    stages:
+      pa || ac
+        ? ({
+            publishing_agreement: pa,
+            author_contract: ac,
+          } as ContractDetail["stages"])
+        : undefined,
   };
 }
 
@@ -316,22 +325,32 @@ export async function getTwoStageContract(ticket: string): Promise<TwoStageContr
     (body.data as Record<string, unknown> | undefined)?.contract,
   ].filter((v): v is Record<string, unknown> => !!v && typeof v === "object");
   for (const inner of candidates) {
-    let stages = inner.stages as TwoStageContract["stages"];
+    let stages = inner.stages as Record<string, unknown> | undefined;
     // Some payloads expose the two stages directly without a `stages` wrapper.
     if (
       (!stages || typeof stages !== "object") &&
-      (inner.publishing_agreement || inner.author_contract)
+      (inner.publishing_agreement || inner.author_contract || inner.editor_contract)
     ) {
       stages = {
-        publishing_agreement: inner.publishing_agreement as ContractStageInfo,
-        author_contract: inner.author_contract as ContractStageInfo,
+        publishing_agreement: inner.publishing_agreement,
+        author_contract: inner.author_contract || inner.editor_contract,
       };
     }
     if (stages && typeof stages === "object") {
+      // Stage 2 is keyed by contract type on the backend —
+      // "author_contract" for author contracts, "editor_contract" for
+      // editor contracts. Normalize to "author_contract" so the rest of
+      // the app only needs one key.
+      const normalizedStages: TwoStageContract["stages"] = {
+        publishing_agreement: stages.publishing_agreement as ContractStageInfo | undefined,
+        author_contract: (stages.author_contract || stages.editor_contract) as
+          | ContractStageInfo
+          | undefined,
+      };
       return {
         contract_version: inner.contract_version as number | undefined,
         publishing_agreement_signed: inner.publishing_agreement_signed as boolean | undefined,
-        stages,
+        stages: normalizedStages,
       };
     }
   }
