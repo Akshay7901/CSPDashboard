@@ -1021,10 +1021,6 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
         </div>
       ) : null}
 
-      <div className="mt-6">
-        <DrInfoRequests ticket={proposal.ticket} readOnly />
-      </div>
-
       <AuthorMetadataPanel
         ticket={proposal.ticket}
         proposalStatus={proposal.status}
@@ -1684,6 +1680,8 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
 
               {/* Dynamic: every other key present in current_data */}
               <DynamicProposalFields data={cd as unknown as Record<string, unknown>} />
+
+              <DrInfoRequests ticket={proposal.ticket} readOnly />
             </div>
           </div>
         </div>
