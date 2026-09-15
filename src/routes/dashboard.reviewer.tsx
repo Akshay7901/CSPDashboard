@@ -13,6 +13,7 @@ import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
 import { ChangePasswordButton } from "@/components/change-password-dialog";
 import { initialsFromName, displayNameFromEmail } from "@/lib/proposals";
 import { proposalApiFetch } from "@/lib/proposalApi";
+import { mapWithConcurrency } from "@/lib/utils";
 
 export const Route = createFileRoute("/dashboard/reviewer")({
   head: () => ({ meta: [{ title: "Reviewer Portal — Your Reviews" }] }),
@@ -170,24 +171,21 @@ function ReviewerDashboard() {
         const mine = proposals.filter((p) => (p.assignments || []).length > 0);
         void email;
 
-        const details = await Promise.all(
-          mine.map(async (p) => {
-            try {
-              const r = await proposalApiFetch(`/${encodeURIComponent(p.ticket_number)}`, { headers });
-              if (!r.ok) return p as ApiProposalDetail;
-              const b = (await r.json()) as ApiProposalDetail;
-              return b;
-            } catch {
-              return p as ApiProposalDetail;
-            }
-          }),
-        );
+        const details = await mapWithConcurrency(mine, 5, async (p) => {
+          try {
+            const r = await proposalApiFetch(`/${encodeURIComponent(p.ticket_number)}`, { headers });
+            if (!r.ok) return p as ApiProposalDetail;
+            const b = (await r.json()) as ApiProposalDetail;
+            return b;
+          } catch {
+            return p as ApiProposalDetail;
+          }
+        });
 
         // Check per-reviewer review status: submitted, draft (in progress), or none.
         const submittedMap = new Map<string, boolean>();
         const draftMap = new Map<string, boolean>();
-        await Promise.all(
-          details.map(async (d) => {
+        await mapWithConcurrency(details, 5, async (d) => {
             try {
               const r = await proposalApiFetch(
                 `/${encodeURIComponent(d.ticket_number)}/review`,
@@ -213,11 +211,10 @@ function ReviewerDashboard() {
               } else {
                 draftMap.set(d.ticket_number, true);
               }
-            } catch {
-              // ignore
-            }
-          }),
-        );
+          } catch {
+            // ignore
+          }
+        });
 
         const items: ReviewItem[] = details.map((d) => {
           const cd = d.current_data || {};

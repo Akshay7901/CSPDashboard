@@ -19,6 +19,7 @@ import { ChangeEmailButton } from "@/components/change-email-dialog";
 import { formatDate, initialsFromName, type Proposal, type StatusKey } from "@/lib/proposals";
 import { proposalApiFetch } from "@/lib/proposalApi";
 import { getContract } from "@/lib/contractsApi";
+import { mapWithConcurrency } from "@/lib/utils";
 import { ContractQueries } from "@/components/contract-queries";
 import { MetadataQueries } from "@/components/metadata-queries";
 import { MessageSquare, ChevronDown } from "lucide-react";
@@ -587,8 +588,7 @@ function AuthorDashboard() {
         isAwaitingInfoRaw(p.rawStatus, p.rawDisplayStatus),
       );
       if (needDetail.length > 0) {
-        const details = await Promise.all(
-          needDetail.map(async (p) => {
+        const details = await mapWithConcurrency(needDetail, 5, async (p) => {
             try {
               const r = await proposalApiFetch(`/${encodeURIComponent(p.id)}`, {
                 headers,
@@ -633,8 +633,7 @@ function AuthorDashboard() {
             } catch {
               return { id: p.id, info: null as OpenInfoRequest | null };
             }
-          }),
-        );
+        });
         for (const d of details) infoById.set(d.id, d.info);
       }
       // For "signed" proposals, check if metadata is awaiting author approval.
@@ -644,26 +643,24 @@ function AuthorDashboard() {
         (p) => p.status === "signed" || p.status === "approved",
       );
       if (signedList.length > 0) {
-        const metaResults = await Promise.all(
-          signedList.map(async (p) => {
-            try {
-              const r = await proposalApiFetch(
-                `/${encodeURIComponent(p.id)}/metadata`,
-                { headers },
-              );
-              if (!r.ok) return { id: p.id, needs: false };
-              const b = (await r.json().catch(() => ({}))) as {
-                metadata_status?: string;
-                approved_at?: string;
-              };
-              const needs =
-                b.metadata_status === "sent_to_author" && !b.approved_at;
-              return { id: p.id, needs };
-            } catch {
-              return { id: p.id, needs: false };
-            }
-          }),
-        );
+        const metaResults = await mapWithConcurrency(signedList, 5, async (p) => {
+          try {
+            const r = await proposalApiFetch(
+              `/${encodeURIComponent(p.id)}/metadata`,
+              { headers },
+            );
+            if (!r.ok) return { id: p.id, needs: false };
+            const b = (await r.json().catch(() => ({}))) as {
+              metadata_status?: string;
+              approved_at?: string;
+            };
+            const needs =
+              b.metadata_status === "sent_to_author" && !b.approved_at;
+            return { id: p.id, needs };
+          } catch {
+            return { id: p.id, needs: false };
+          }
+        });
         for (const m of metaResults) metaNeedsById.set(m.id, m.needs);
       }
       // For "contract" proposals, check whether the contract has actually
@@ -672,28 +669,26 @@ function AuthorDashboard() {
       // promote to "signed" locally once the contract is completed.
       const contractList = mapped.filter((p) => p.status === "contract");
       if (contractList.length > 0) {
-        const results = await Promise.all(
-          contractList.map(async (p) => {
-            try {
-              const contracts = await getContract(p.id);
-              const signed = contracts.some((c) => {
-                const ds = (c.docusign_status || "").toLowerCase();
-                const st = (c.status || "").toLowerCase();
-                return (
-                  !!c.docusign_completed_at ||
-                  ds === "completed" ||
-                  ds === "signed" ||
-                  st === "signed" ||
-                  st === "completed" ||
-                  st === "countersigned"
-                );
-              });
-              return { id: p.id, signed };
-            } catch {
-              return { id: p.id, signed: false };
-            }
-          }),
-        );
+        const results = await mapWithConcurrency(contractList, 5, async (p) => {
+          try {
+            const contracts = await getContract(p.id);
+            const signed = contracts.some((c) => {
+              const ds = (c.docusign_status || "").toLowerCase();
+              const st = (c.status || "").toLowerCase();
+              return (
+                !!c.docusign_completed_at ||
+                ds === "completed" ||
+                ds === "signed" ||
+                st === "signed" ||
+                st === "completed" ||
+                st === "countersigned"
+              );
+            });
+            return { id: p.id, signed };
+          } catch {
+            return { id: p.id, signed: false };
+          }
+        });
         for (const r of results) contractSignedById.set(r.id, r.signed);
       }
       const enriched: LocalProposalWithInfo[] = mapped.map((p) => ({

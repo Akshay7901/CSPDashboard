@@ -1,5 +1,6 @@
 import { proposalApiFetch } from "./proposalApi";
 import { getPortalToken } from "./auth";
+import { mapWithConcurrency } from "./utils";
 
 export type AiReviewStatus = "not_run" | "pending" | "running" | "completed" | "failed";
 
@@ -50,19 +51,17 @@ export async function runAiReview(ticket: string): Promise<void> {
 
 export async function fetchAiScores(tickets: string[]): Promise<Record<string, number | null>> {
   const results: Record<string, number | null> = {};
-  await Promise.all(
-    tickets.map(async (ticket) => {
-      try {
-        const data = await getAiReview(ticket);
-        if (data.status === "completed" && data.final_score != null) {
-          results[ticket] = Number(data.final_score);
-        } else {
-          results[ticket] = null;
-        }
-      } catch {
+  await mapWithConcurrency(tickets, 5, async (ticket) => {
+    try {
+      const data = await getAiReview(ticket);
+      if (data.status === "completed" && data.final_score != null) {
+        results[ticket] = Number(data.final_score);
+      } else {
         results[ticket] = null;
       }
-    }),
-  );
+    } catch {
+      results[ticket] = null;
+    }
+  });
   return results;
 }
