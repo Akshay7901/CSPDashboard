@@ -887,7 +887,7 @@ function ProposalDetailPage() {
   });
 
   const openIssueContract = () => {
-    setContractType("author");
+    setContractType((latestContract?.contract_type as "author" | "editor" | undefined) || "author");
     setContractAmendments("");
     setContractNote("");
     setContractExpiryDays(14);
@@ -4686,6 +4686,63 @@ function ProposalDetailPage() {
                 <div className="mt-5 space-y-4">
                   <h3 className="font-serif text-lg font-bold text-[#2C1A0E]">Book Details</h3>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="sm:col-span-2">
+                      <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
+                        Book Type <span className="text-rose-600">*</span>
+                      </label>
+                      <p className="mt-1 font-sans text-xs text-stone-500">
+                        Determines which contract template is issued — this can be changed
+                        even on a resend.
+                      </p>
+                      <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        <label
+                          className={`flex cursor-pointer items-start gap-2 rounded-xl border px-3.5 py-3 transition-colors ${
+                            contractType === "author"
+                              ? "border-[#5B2EBA] bg-[#5B2EBA]/5"
+                              : "border-stone-200 hover:border-stone-300"
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="issue-contract-book-type"
+                            checked={contractType === "author"}
+                            onChange={() => setContractType("author")}
+                            className="mt-0.5 h-4 w-4 accent-[#5B2EBA]"
+                          />
+                          <span>
+                            <span className="block font-sans text-sm font-semibold text-stone-900">
+                              Single-Authored Work
+                            </span>
+                            <span className="block font-sans text-xs text-stone-500">
+                              Issues an Author Contract
+                            </span>
+                          </span>
+                        </label>
+                        <label
+                          className={`flex cursor-pointer items-start gap-2 rounded-xl border px-3.5 py-3 transition-colors ${
+                            contractType === "editor"
+                              ? "border-[#5B2EBA] bg-[#5B2EBA]/5"
+                              : "border-stone-200 hover:border-stone-300"
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="issue-contract-book-type"
+                            checked={contractType === "editor"}
+                            onChange={() => setContractType("editor")}
+                            className="mt-0.5 h-4 w-4 accent-[#5B2EBA]"
+                          />
+                          <span>
+                            <span className="block font-sans text-sm font-semibold text-stone-900">
+                              Edited Volume
+                            </span>
+                            <span className="block font-sans text-xs text-stone-500">
+                              Issues an Editor Contract
+                            </span>
+                          </span>
+                        </label>
+                      </div>
+                    </div>
                     <div className="sm:col-span-2">
                       <label className="font-sans text-sm font-semibold text-[#2C1A0E]">
                         Title <span className="text-rose-600">*</span>
