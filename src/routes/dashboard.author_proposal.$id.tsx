@@ -1997,12 +1997,7 @@ function ContractIssuedView({
       row.value !== undefined && row.value !== null && String(row.value).trim() !== "",
   );
 
-  const formatLabel =
-    contract.contract_type === "editor"
-      ? "Edited Collection"
-      : cd.book_type
-        ? cd.book_type.charAt(0).toUpperCase() + cd.book_type.slice(1)
-        : "—";
+  const formatLabel = contract.contract_type === "editor" ? "Edited Volume" : "Monograph";
   const expectedCompletion = formatMonthYear(
     cd.estimated_completion_date || cd.expected_completion_date,
   );
