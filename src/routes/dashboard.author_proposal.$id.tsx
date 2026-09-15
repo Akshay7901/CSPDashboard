@@ -2007,6 +2007,13 @@ function ContractIssuedView({
     cd.estimated_completion_date || cd.expected_completion_date,
   );
 
+  // If the signing-url endpoint says the document is already signed, the
+  // stage status backing the "Awaiting Signature" badge/button is stale —
+  // force a refresh instead of leaving the author stuck looking at a
+  // contradictory "sign it" button that just told them it's already done.
+  const isAlreadySignedError = (message: string) =>
+    /already.*sign|sign.*already/i.test(message);
+
   const handleSign = async () => {
     setSignLoading(true);
     setSignError(null);
@@ -2024,7 +2031,13 @@ function ContractIssuedView({
         setSignError("No signing URL returned.");
       }
     } catch (e) {
-      setSignError((e as Error).message);
+      const message = (e as Error).message || "";
+      if (isAlreadySignedError(message)) {
+        setSignError("This contract is already signed — refreshing the page…");
+        setReloadKey((k) => k + 1);
+      } else {
+        setSignError(message);
+      }
     } finally {
       setSignLoading(false);
     }
@@ -2048,7 +2061,13 @@ function ContractIssuedView({
         setSignError("No signing URL returned.");
       }
     } catch (e) {
-      setSignError((e as Error).message);
+      const message = (e as Error).message || "";
+      if (isAlreadySignedError(message)) {
+        setSignError("This contract is already signed — refreshing the page…");
+        setReloadKey((k) => k + 1);
+      } else {
+        setSignError(message);
+      }
     } finally {
       setSigningStage(null);
     }
