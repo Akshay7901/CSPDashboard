@@ -199,7 +199,7 @@ export function CoAuthorsPanel({ ticket }: { ticket: string }) {
             <input
               type="email"
               required
-              placeholder="Email"
+              placeholder="Email *"
               value={form.email}
               onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
               className={inputCls}
@@ -271,7 +271,7 @@ export function CoAuthorsPanel({ ticket }: { ticket: string }) {
                   <input
                     type="email"
                     required
-                    placeholder="Email"
+                    placeholder="Email *"
                     value={editForm.email}
                     onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))}
                     className={inputCls}
