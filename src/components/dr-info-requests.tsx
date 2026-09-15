@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { proposalApiFetch } from "@/lib/proposalApi";
 import { getPortalToken } from "@/lib/auth";
 import { formatDate } from "@/lib/proposals";
+import { REVISION_AREAS } from "@/lib/requestInfoUpdates";
 import {
   Clock,
   Pencil,
@@ -53,34 +54,6 @@ type Props = {
   readOnly?: boolean;
 };
 
-// Kept in sync with the canonical list in dashboard.proposal.$ticket.tsx —
-// update both together.
-const REVISION_AREAS = [
-  { key: "abstract_blurb", label: "Abstract / Blurb" },
-  { key: "table_of_contents", label: "Table of Contents" },
-  { key: "author_credentials", label: "Author Credentials" },
-  { key: "market_analysis", label: "Market Analysis" },
-  { key: "scope_framing", label: "Scope / Framing" },
-  { key: "word_count", label: "Word Count / Length" },
-  { key: "primary_author", label: "Primary Author Info" },
-  { key: "mailing_address", label: "Mailing Address" },
-  { key: "biography", label: "Biography" },
-  { key: "additional_authors", label: "Additional Authors / Contributors" },
-  { key: "manuscript_details", label: "Manuscript Details" },
-  { key: "expected_completion", label: "Expected Completion Date" },
-  { key: "overview", label: "Overview" },
-  { key: "key_features", label: "Key Features / Selling Points" },
-  { key: "marketing_promotion", label: "Marketing & Promotion" },
-  { key: "competition", label: "Competing Titles" },
-  { key: "audience", label: "Target Audience" },
-  { key: "suggested_reviewers", label: "Author-Suggested Reviewers" },
-  { key: "permissions", label: "Copyright & Permissions" },
-  {
-    key: "supporting_documents",
-    label: "Supporting Documents (CV, manuscript files, attachments)",
-  },
-  { key: "other", label: "Other" },
-];
 
 function Card({ children }: { children: React.ReactNode }) {
   return <div className="rounded-2xl border border-stone-200 bg-white shadow-sm">{children}</div>;

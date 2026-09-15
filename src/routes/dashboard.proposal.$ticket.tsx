@@ -6,7 +6,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -73,6 +73,11 @@ import { ContractQueries } from "@/components/contract-queries";
 import { ContributorsPanel } from "@/components/contributors-panel";
 import { CoAuthorsPanel } from "@/components/co-authors-panel";
 import { DrInfoRequests } from "@/components/dr-info-requests";
+import {
+  fetchRequestInfoUpdates,
+  REVISION_AREAS,
+  type RequestInfoUpdate,
+} from "@/lib/requestInfoUpdates";
 import { AiReviewPanel } from "@/components/ai-review-panel";
 
 import { Input } from "@/components/ui/input";
@@ -687,6 +692,7 @@ function ProposalDetailPage() {
   const [reviewsError, setReviewsError] = useState<string | null>(null);
   const [contracts, setContracts] = useState<ContractDetail[]>([]);
   const [contractsLoading, setContractsLoading] = useState(false);
+  const [revisionUpdates, setRevisionUpdates] = useState<Record<string, RequestInfoUpdate>>({});
   const [pdfOpen, setPdfOpen] = useState(false);
   const [voidOpen, setVoidOpen] = useState(false);
   const [voidReason, setVoidReason] = useState("");
@@ -821,32 +827,6 @@ function ProposalDetailPage() {
   const [metaSendSuccess, setMetaSendSuccess] = useState<string | null>(null);
 
   // Request Revisions (request-info) modal state
-  const REVISION_AREAS: { key: string; label: string }[] = [
-    { key: "abstract_blurb", label: "Abstract / Blurb" },
-    { key: "table_of_contents", label: "Table of Contents" },
-    { key: "author_credentials", label: "Author Credentials" },
-    { key: "market_analysis", label: "Market Analysis" },
-    { key: "scope_framing", label: "Scope / Framing" },
-    { key: "word_count", label: "Word Count / Length" },
-    { key: "primary_author", label: "Primary Author Info" },
-    { key: "mailing_address", label: "Mailing Address" },
-    { key: "biography", label: "Biography" },
-    { key: "additional_authors", label: "Additional Authors / Contributors" },
-    { key: "manuscript_details", label: "Manuscript Details" },
-    { key: "expected_completion", label: "Expected Completion Date" },
-    { key: "overview", label: "Overview" },
-    { key: "key_features", label: "Key Features / Selling Points" },
-    { key: "marketing_promotion", label: "Marketing & Promotion" },
-    { key: "competition", label: "Competing Titles" },
-    { key: "audience", label: "Target Audience" },
-    { key: "suggested_reviewers", label: "Author-Suggested Reviewers" },
-    { key: "permissions", label: "Copyright & Permissions" },
-    {
-      key: "supporting_documents",
-      label: "Supporting Documents (CV, manuscript files, attachments)",
-    },
-    { key: "other", label: "Other" },
-  ];
   const [reqRevOpen, setReqRevOpen] = useState(false);
   type RevisionEntry = { id: string; key: string; note: string };
   const newRevisionEntry = (): RevisionEntry => ({
@@ -1362,6 +1342,18 @@ function ProposalDetailPage() {
 
   const displayName = userName || displayNameFromEmail(userEmail);
 
+  const loadRevisionUpdates = useCallback(async () => {
+    try {
+      setRevisionUpdates(await fetchRequestInfoUpdates(ticket));
+    } catch {
+      // Non-fatal: fields just show their original values.
+    }
+  }, [ticket]);
+
+  useEffect(() => {
+    void loadRevisionUpdates();
+  }, [loadRevisionUpdates]);
+
   useEffect(() => {
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
@@ -1561,7 +1553,17 @@ function ProposalDetailPage() {
     return sorted[0];
   })();
   const title = latestContractForHeader?.title || cd.main_title || ticket;
-  const proposalDocuments = extractProposalDocuments(rawCd);
+  const proposalDocuments: ProposalDocument[] = [
+    ...extractProposalDocuments(rawCd),
+    // Files the author uploaded in response to a "Supporting Documents"
+    // revision request — merged in so a newly-requested CV/manuscript file
+    // shows up here rather than only in the Info Requests history.
+    ...(revisionUpdates.supporting_documents?.files || []).map((f) => ({
+      url: f.url,
+      filename: f.filename,
+      label: "Revision Response",
+    })),
+  ];
 
   const keywords = useMemo(
     () =>
@@ -1574,20 +1576,20 @@ function ProposalDetailPage() {
 
   const tocItems = useMemo(
     () =>
-      (cd.table_of_contents || "")
+      (revisedText(revisionUpdates.table_of_contents, cd.table_of_contents) || "")
         .split(/\n+/)
         .map((l) => l.replace(/^\s*\d+[.)]\s*/, "").trim())
         .filter(Boolean),
-    [cd.table_of_contents],
+    [cd.table_of_contents, revisionUpdates.table_of_contents],
   );
 
   const suggestedReviewers = useMemo(
     () =>
-      (cd.referees_reviewers || "")
+      (revisedText(revisionUpdates.suggested_reviewers, cd.referees_reviewers) || "")
         .split(/\n+/)
         .map((l) => l.trim())
         .filter(Boolean),
-    [cd.referees_reviewers],
+    [cd.referees_reviewers, revisionUpdates.suggested_reviewers],
   );
 
   const assignedReviewer = data?.assignments?.[0];
@@ -3333,20 +3335,55 @@ function ProposalDetailPage() {
                           </div>
                           <div className="flex gap-10 font-sans text-sm">
                             {cd.book_type && <Stat label="Type" value={cd.book_type} />}
-                            {cd.word_count && (
-                              <Stat label="Words" value={formatNumber(cd.word_count)} />
+                            {revisedText(revisionUpdates.word_count, cd.word_count) && (
+                              <Stat
+                                label="Words"
+                                value={formatNumber(
+                                  revisedText(revisionUpdates.word_count, cd.word_count)!,
+                                )}
+                                updated={revisionUpdates.word_count}
+                              />
                             )}
-                            {cd.expected_completion_date && (
-                              <Stat label="Completion" value={cd.expected_completion_date} />
+                            {revisedText(
+                              revisionUpdates.expected_completion,
+                              cd.expected_completion_date,
+                            ) && (
+                              <Stat
+                                label="Completion"
+                                value={
+                                  revisedText(
+                                    revisionUpdates.expected_completion,
+                                    cd.expected_completion_date,
+                                  )!
+                                }
+                                updated={revisionUpdates.expected_completion}
+                              />
                             )}
                           </div>
                         </div>
                         <Divider />
+                        {revisionUpdates.primary_author?.text && (
+                          <div className="mx-7 mt-5 rounded-lg border border-emerald-200 bg-emerald-50/60 px-4 py-3">
+                            <p className="font-sans text-xs font-semibold text-emerald-800">
+                              Author's revision response
+                              <UpdatedBadge date={revisionUpdates.primary_author.respondedAt} />
+                            </p>
+                            <p className="mt-1 whitespace-pre-line font-sans text-sm text-emerald-900">
+                              {revisionUpdates.primary_author.text}
+                            </p>
+                          </div>
+                        )}
                         <div className="grid grid-cols-1 gap-6 px-7 py-6 md:grid-cols-3">
                           <DataField label="Name" value={cd.corresponding_author_name} />
                           <DataField label="Email" value={cd.email} />
                           <DataField label="Institution" value={cd.institution} />
                           <DataField label="Country" value={cd.country} />
+                          <DataField
+                            label="Author Credentials"
+                            value={revisedText(revisionUpdates.author_credentials, cd.qualifications)}
+                            updated={revisionUpdates.author_credentials}
+                            multiline
+                          />
                         </div>
                         {(cd.address ||
                           cd.address_line_1 ||
@@ -3357,42 +3394,55 @@ function ProposalDetailPage() {
                           <>
                             <Divider />
                             <div className="px-7 py-6">
-                              <SectionLabel>Mailing Address</SectionLabel>
+                              <SectionLabel>
+                                Mailing Address
+                                {revisionUpdates.mailing_address?.text && (
+                                  <UpdatedBadge
+                                    date={revisionUpdates.mailing_address.respondedAt}
+                                  />
+                                )}
+                              </SectionLabel>
                               <p className="mt-2 font-sans text-sm text-stone-800">
-                                {(() => {
-                                  // Some submissions store a full address in
-                                  // `address`, others break it into
-                                  // line/city/state/postal fields — prefer
-                                  // whichever actually has street-level
-                                  // detail instead of always joining the
-                                  // broken-out fields (which, if empty,
-                                  // silently drops a populated `address` and
-                                  // leaves only the country).
-                                  const streetParts = [
-                                    cd.address_line_1,
-                                    cd.address_line_2,
-                                    cd.city,
-                                    cd.state,
-                                    cd.postal_code,
-                                  ].filter(Boolean);
-                                  const base = streetParts.length
-                                    ? streetParts
-                                    : cd.address
-                                      ? [cd.address]
-                                      : [];
-                                  return [...base, cd.country].filter(Boolean).join(", ");
-                                })()}
+                                {revisionUpdates.mailing_address?.text ||
+                                  (() => {
+                                    // Some submissions store a full address in
+                                    // `address`, others break it into
+                                    // line/city/state/postal fields — prefer
+                                    // whichever actually has street-level
+                                    // detail instead of always joining the
+                                    // broken-out fields (which, if empty,
+                                    // silently drops a populated `address` and
+                                    // leaves only the country).
+                                    const streetParts = [
+                                      cd.address_line_1,
+                                      cd.address_line_2,
+                                      cd.city,
+                                      cd.state,
+                                      cd.postal_code,
+                                    ].filter(Boolean);
+                                    const base = streetParts.length
+                                      ? streetParts
+                                      : cd.address
+                                        ? [cd.address]
+                                        : [];
+                                    return [...base, cd.country].filter(Boolean).join(", ");
+                                  })()}
                               </p>
                             </div>
                           </>
                         )}
-                        {cd.biography && (
+                        {revisedText(revisionUpdates.biography, cd.biography) && (
                           <>
                             <Divider />
                             <div className="px-7 py-6">
-                              <SectionLabel>Biography</SectionLabel>
+                              <SectionLabel>
+                                Biography
+                                {revisionUpdates.biography?.text && (
+                                  <UpdatedBadge date={revisionUpdates.biography.respondedAt} />
+                                )}
+                              </SectionLabel>
                               <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-800">
-                                {cd.biography}
+                                {revisedText(revisionUpdates.biography, cd.biography)}
                               </p>
                             </div>
                           </>
@@ -3436,15 +3486,20 @@ function ProposalDetailPage() {
                             })}
                           </ul>
                         </Card>
-                      ) : cd.co_authors_editors ? (
+                      ) : revisedText(revisionUpdates.additional_authors, cd.co_authors_editors) ? (
                         <Card>
                           <CardHeader
                             title="Additional Authors / Editors"
                             subtitle="Co-authors and contributors"
+                            right={
+                              revisionUpdates.additional_authors?.text ? (
+                                <UpdatedBadge date={revisionUpdates.additional_authors.respondedAt} />
+                              ) : undefined
+                            }
                           />
                           <div className="px-7 py-6">
                             <p className="whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
-                              {cd.co_authors_editors}
+                              {revisedText(revisionUpdates.additional_authors, cd.co_authors_editors)}
                             </p>
                           </div>
                         </Card>
@@ -3452,11 +3507,33 @@ function ProposalDetailPage() {
 
                       {/* Manuscript Details */}
                       <Card>
-                        <CardHeader title="Manuscript Details" />
+                        <CardHeader
+                          title="Manuscript Details"
+                          right={
+                            revisionUpdates.manuscript_details?.text ? (
+                              <UpdatedBadge date={revisionUpdates.manuscript_details.respondedAt} />
+                            ) : undefined
+                          }
+                        />
+                        {revisionUpdates.manuscript_details?.text && (
+                          <div className="mx-7 mt-5 rounded-lg border border-emerald-200 bg-emerald-50/60 px-4 py-3">
+                            <p className="font-sans text-xs font-semibold text-emerald-800">
+                              Author's revision response
+                            </p>
+                            <p className="mt-1 whitespace-pre-line font-sans text-sm text-emerald-900">
+                              {revisionUpdates.manuscript_details.text}
+                            </p>
+                          </div>
+                        )}
                         <div className="grid grid-cols-2 gap-6 px-7 py-6 sm:grid-cols-3">
                           <Stat
                             label="Word Count"
-                            value={formatNumber(cd.word_count) || "—"}
+                            value={
+                              formatNumber(
+                                revisedText(revisionUpdates.word_count, cd.word_count) || "",
+                              ) || "—"
+                            }
+                            updated={revisionUpdates.word_count}
                             large
                           />
                           <Stat
@@ -3467,18 +3544,26 @@ function ProposalDetailPage() {
                           <Stat label="Languages" value={cd.languages_used || "—"} large />
                           <Stat
                             label="Est. Completion"
-                            value={cd.expected_completion_date || "—"}
+                            value={
+                              revisedText(
+                                revisionUpdates.expected_completion,
+                                cd.expected_completion_date,
+                              ) || "—"
+                            }
+                            updated={revisionUpdates.expected_completion}
                             large
                           />
                           <Stat label="Subject" value={cd.subject || "—"} large />
                         </div>
                         {(cd.intended_audience ||
                           cd.manuscript_stage ||
-                          cd.under_review_elsewhere) && (
+                          cd.under_review_elsewhere ||
+                          revisionUpdates.audience?.text) && (
                           <div className="flex flex-col gap-5 border-t border-stone-200 px-7 py-6">
                             <DataField
                               label="Intended Audience"
-                              value={cd.intended_audience}
+                              value={revisedText(revisionUpdates.audience, cd.intended_audience)}
+                              updated={revisionUpdates.audience}
                               multiline
                             />
                             <DataField label="Manuscript Stage" value={cd.manuscript_stage} />
@@ -3491,18 +3576,26 @@ function ProposalDetailPage() {
                       </Card>
 
                       {/* Summary & Description */}
-                      {(cd.short_description || cd.detailed_description || keywords.length > 0) && (
+                      {(revisedText(revisionUpdates.overview, cd.short_description) ||
+                        cd.detailed_description ||
+                        revisedText(revisionUpdates.key_features, cd.key_features) ||
+                        keywords.length > 0) && (
                         <Card>
                           <CardHeader
                             title="Summary & Description"
                             subtitle="Overview, key features and audience"
                           />
                           <div className="space-y-6 px-7 py-6">
-                            {cd.short_description && (
+                            {revisedText(revisionUpdates.overview, cd.short_description) && (
                               <div>
-                                <SectionLabel>Overview</SectionLabel>
+                                <SectionLabel>
+                                  Overview
+                                  {revisionUpdates.overview?.text && (
+                                    <UpdatedBadge date={revisionUpdates.overview.respondedAt} />
+                                  )}
+                                </SectionLabel>
                                 <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
-                                  {cd.short_description}
+                                  {revisedText(revisionUpdates.overview, cd.short_description)}
                                 </p>
                                 {keywords.length > 0 && (
                                   <div className="mt-4 flex flex-wrap gap-2">
@@ -3526,14 +3619,23 @@ function ProposalDetailPage() {
                                 </p>
                               </div>
                             )}
-                            {cd.key_features && cd.key_features !== cd.detailed_description && (
-                              <div className="-mx-7 border-t border-stone-300 px-7 pt-5">
-                                <SectionLabel>Key Features / Selling Points</SectionLabel>
-                                <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
-                                  {cd.key_features}
-                                </p>
-                              </div>
-                            )}
+                            {revisedText(revisionUpdates.key_features, cd.key_features) &&
+                              revisedText(revisionUpdates.key_features, cd.key_features) !==
+                                cd.detailed_description && (
+                                <div className="-mx-7 border-t border-stone-300 px-7 pt-5">
+                                  <SectionLabel>
+                                    Key Features / Selling Points
+                                    {revisionUpdates.key_features?.text && (
+                                      <UpdatedBadge
+                                        date={revisionUpdates.key_features.respondedAt}
+                                      />
+                                    )}
+                                  </SectionLabel>
+                                  <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
+                                    {revisedText(revisionUpdates.key_features, cd.key_features)}
+                                  </p>
+                                </div>
+                              )}
                           </div>
                         </Card>
                       )}
@@ -3544,6 +3646,11 @@ function ProposalDetailPage() {
                           <CardHeader
                             title="Table of Contents"
                             subtitle="Is this coherently planned?"
+                            right={
+                              revisionUpdates.table_of_contents?.text ? (
+                                <UpdatedBadge date={revisionUpdates.table_of_contents.respondedAt} />
+                              ) : undefined
+                            }
                           />
                           <div className="px-7 py-6">
                             <ol className="space-y-3 rounded-xl bg-stone-50 px-6 py-5 font-sans text-sm text-stone-800">
@@ -3564,20 +3671,41 @@ function ProposalDetailPage() {
                         cd.primary_market ||
                         cd.conferences ||
                         cd.promotional_channels ||
-                        cd.marketing_info) && (
+                        cd.marketing_info ||
+                        revisionUpdates.market_analysis?.text ||
+                        revisionUpdates.competition?.text ||
+                        revisionUpdates.marketing_promotion?.text) && (
                         <Card>
                           <CardHeader
                             title="Marketing & Promotion"
                             subtitle="Market positioning, competition and promotion plan"
                           />
+                          {revisionUpdates.marketing_promotion?.text && (
+                            <div className="mx-7 mt-5 rounded-lg border border-emerald-200 bg-emerald-50/60 px-4 py-3">
+                              <p className="font-sans text-xs font-semibold text-emerald-800">
+                                Author's revision response
+                                <UpdatedBadge
+                                  date={revisionUpdates.marketing_promotion.respondedAt}
+                                />
+                              </p>
+                              <p className="mt-1 whitespace-pre-line font-sans text-sm text-emerald-900">
+                                {revisionUpdates.marketing_promotion.text}
+                              </p>
+                            </div>
+                          )}
                           <div className="space-y-5 px-7 py-6">
-                            {cd.primary_market && (
-                              <DataField label="Primary Market" value={cd.primary_market} />
+                            {revisedText(revisionUpdates.market_analysis, cd.primary_market) && (
+                              <DataField
+                                label="Primary Market"
+                                value={revisedText(revisionUpdates.market_analysis, cd.primary_market)}
+                                updated={revisionUpdates.market_analysis}
+                              />
                             )}
-                            {cd.competing_titles && (
+                            {revisedText(revisionUpdates.competition, cd.competing_titles) && (
                               <DataField
                                 label="Competing Titles"
-                                value={cd.competing_titles}
+                                value={revisedText(revisionUpdates.competition, cd.competing_titles)}
+                                updated={revisionUpdates.competition}
                                 multiline
                               />
                             )}
@@ -3621,6 +3749,13 @@ function ProposalDetailPage() {
                           <CardHeader
                             title="Author-Suggested Reviewers"
                             subtitle="Nominated by the author — for consideration only"
+                            right={
+                              revisionUpdates.suggested_reviewers?.text ? (
+                                <UpdatedBadge
+                                  date={revisionUpdates.suggested_reviewers.respondedAt}
+                                />
+                              ) : undefined
+                            }
                           />
                           <ol className="divide-y divide-stone-100 px-2 py-2">
                             {suggestedReviewers.map((r, i) => (
@@ -3638,7 +3773,9 @@ function ProposalDetailPage() {
                       )}
 
                       {/* Additional Notes */}
-                      {(cd.additional_info || cd.additional_notes || cd.permissions_required) && (
+                      {(cd.additional_info ||
+                        cd.additional_notes ||
+                        revisedText(revisionUpdates.permissions, cd.permissions_required)) && (
                         <Card>
                           <CardHeader
                             title="Additional Comments & Permissions"
@@ -3657,10 +3794,14 @@ function ProposalDetailPage() {
                                 {cd.additional_info}
                               </p>
                             )}
-                            {cd.permissions_required && (
+                            {revisedText(revisionUpdates.permissions, cd.permissions_required) && (
                               <DataField
                                 label="Permissions Required from Copyright Holders"
-                                value={cd.permissions_required}
+                                value={revisedText(
+                                  revisionUpdates.permissions,
+                                  cd.permissions_required,
+                                )}
+                                updated={revisionUpdates.permissions}
                                 multiline
                               />
                             )}
@@ -3682,6 +3823,11 @@ function ProposalDetailPage() {
                     <CardHeader
                       title="Supporting Documents"
                       subtitle="Files attached to this proposal"
+                      right={
+                        revisionUpdates.supporting_documents?.files?.length ? (
+                          <UpdatedBadge date={revisionUpdates.supporting_documents.respondedAt} />
+                        ) : undefined
+                      }
                     />
                     {proposalDocuments.length === 0 ? (
                       <div className="px-7 py-8 text-center font-sans text-sm text-stone-500">
@@ -3741,6 +3887,73 @@ function ProposalDetailPage() {
                     )}
                   </Card>
                 )}
+
+                {/* Revision responses without a dedicated display field
+                    (e.g. Abstract/Blurb, Scope/Framing, Other) — shown here
+                    so nothing an author responds to is ever invisible. */}
+                {(() => {
+                  const handled = new Set([
+                    "table_of_contents",
+                    "word_count",
+                    "expected_completion",
+                    "mailing_address",
+                    "biography",
+                    "additional_authors",
+                    "manuscript_details",
+                    "audience",
+                    "overview",
+                    "key_features",
+                    "market_analysis",
+                    "competition",
+                    "marketing_promotion",
+                    "suggested_reviewers",
+                    "permissions",
+                    "supporting_documents",
+                    "primary_author",
+                    "author_credentials",
+                  ]);
+                  const leftover = Object.entries(revisionUpdates).filter(
+                    ([key, u]) => !handled.has(key) && (u.text || u.files?.length),
+                  );
+                  if (leftover.length === 0) return null;
+                  return (
+                    <Card>
+                      <CardHeader
+                        title="Other Revision Responses"
+                        subtitle="Author responses without a dedicated field above"
+                      />
+                      <div className="space-y-4 px-7 py-6">
+                        {leftover.map(([key, u]) => {
+                          const label = REVISION_AREAS.find((a) => a.key === key)?.label || key;
+                          return (
+                            <div key={key}>
+                              <SectionLabel>
+                                {label}
+                                <UpdatedBadge date={u.respondedAt} />
+                              </SectionLabel>
+                              {u.text && (
+                                <p className="mt-1.5 whitespace-pre-line font-sans text-sm text-stone-800">
+                                  {u.text}
+                                </p>
+                              )}
+                              {u.files?.map((f) => (
+                                <a
+                                  key={f.url}
+                                  href={f.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="mt-1.5 block font-sans text-sm font-medium text-[#5B2EBA] hover:underline"
+                                >
+                                  {f.filename}
+                                </a>
+                              ))}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </Card>
+                  );
+                })()}
 
                 {/* Co-Authors / Co-Editors */}
                 {(() => {
@@ -5250,19 +5463,41 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   return <p className="font-sans text-xs uppercase tracking-wide text-stone-500">{children}</p>;
 }
 
+// Prefer a responded revision-request value over the proposal's original
+// field, when one exists for that key.
+function revisedText(update: RequestInfoUpdate | undefined, original?: string): string | undefined {
+  return update?.text || original;
+}
+
+function UpdatedBadge({ date }: { date?: string }) {
+  return (
+    <span
+      className="ml-1.5 inline-flex items-center rounded-full bg-emerald-50 px-1.5 py-0.5 align-middle font-sans text-[10px] font-semibold normal-case tracking-normal text-emerald-700 ring-1 ring-emerald-200"
+      title={date ? `Updated via revision response on ${formatDate(date)}` : "Updated via revision response"}
+    >
+      Updated
+    </span>
+  );
+}
+
 function DataField({
   label,
   value,
   multiline,
+  updated,
 }: {
   label: string;
   value?: string;
   multiline?: boolean;
+  updated?: RequestInfoUpdate;
 }) {
   if (!value) return null;
   return (
     <div className="min-w-0">
-      <SectionLabel>{label}</SectionLabel>
+      <SectionLabel>
+        {label}
+        {updated?.text && <UpdatedBadge date={updated.respondedAt} />}
+      </SectionLabel>
       <p
         className={`mt-1.5 font-sans text-sm font-semibold text-stone-900 break-words ${
           multiline ? "whitespace-pre-line font-normal text-stone-800 leading-relaxed" : ""
@@ -5274,11 +5509,22 @@ function DataField({
   );
 }
 
-function Stat({ label, value, large }: { label: string; value: string; large?: boolean }) {
+function Stat({
+  label,
+  value,
+  large,
+  updated,
+}: {
+  label: string;
+  value: string;
+  large?: boolean;
+  updated?: RequestInfoUpdate;
+}) {
   return (
     <div className="min-w-0">
       <p className="font-sans text-xs uppercase tracking-wide text-stone-500 break-words">
         {label}
+        {updated?.text && <UpdatedBadge date={updated.respondedAt} />}
       </p>
       <p
         className={`mt-1 font-sans font-semibold text-stone-900 ${large ? "text-base" : "text-sm"}`}
