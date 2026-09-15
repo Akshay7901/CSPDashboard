@@ -1824,6 +1824,7 @@ const CONSUMED_CD_KEYS = new Set<string>([
   "author_cv_url",
   "cv",
   "cv_url",
+  "supporting_documents",
 ]);
 
 function humanizeKey(key: string): string {
