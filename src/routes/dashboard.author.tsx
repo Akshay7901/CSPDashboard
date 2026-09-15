@@ -556,10 +556,8 @@ function AuthorDashboard() {
           declined: def.status_summary.declined ?? 0,
         });
       }
-      const extras = await Promise.all(
-        EXTRA_STATUSES.map((s) =>
-          fetchList(`?limit=100&sort_order=desc&status=${encodeURIComponent(s)}`),
-        ),
+      const extras = await mapWithConcurrency(EXTRA_STATUSES, 5, (s) =>
+        fetchList(`?limit=100&sort_order=desc&status=${encodeURIComponent(s)}`),
       );
       const merged = new Map<string, ApiProposalItem>();
       for (const it of def.items || []) merged.set(it.ticket_number, it);

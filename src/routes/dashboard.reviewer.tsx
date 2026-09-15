@@ -153,8 +153,8 @@ function ReviewerDashboard() {
           if (!silent) setLoadError(defaultRes.error || `Failed to load proposals (${defaultRes.status}).`);
           return;
         }
-        const extraResults = await Promise.all(
-          EXTRA_STATUSES.map((s) => fetchList(`?status=${encodeURIComponent(s)}`)),
+        const extraResults = await mapWithConcurrency(EXTRA_STATUSES, 5, (s) =>
+          fetchList(`?status=${encodeURIComponent(s)}`),
         );
         const merged = new Map<string, ApiProposalListItem>();
         for (const it of defaultRes.items || []) merged.set(it.ticket_number, it);

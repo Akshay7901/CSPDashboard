@@ -27,6 +27,7 @@ import {
   getStatusMeta,
 } from "@/lib/proposals";
 import { proposalApiFetch } from "@/lib/proposalApi";
+import { mapWithConcurrency } from "@/lib/utils";
 import { getMetadata, getMetadataQueries } from "@/lib/metadataApi";
 import {
   getProofreaderQueue,
@@ -594,18 +595,16 @@ function DecisionReviewerDashboard() {
         if (!silent) setProposalsError("Failed to load proposals.");
         return;
       }
-      const extraLists = await Promise.all(
-        ALL_API_STATUSES.map(async (status) => {
-          try {
-            const { proposals } = await fetchAllPages(
-              `?sort_order=desc&status=${encodeURIComponent(status)}`,
-            );
-            return proposals;
-          } catch {
-            return [] as ApiProposal[];
-          }
-        }),
-      );
+      const extraLists = await mapWithConcurrency(ALL_API_STATUSES, 5, async (status) => {
+        try {
+          const { proposals } = await fetchAllPages(
+            `?sort_order=desc&status=${encodeURIComponent(status)}`,
+          );
+          return proposals;
+        } catch {
+          return [] as ApiProposal[];
+        }
+      });
       for (const list of extraLists) {
         for (const p of list) {
           if (!merged.has(p.ticket_number)) merged.set(p.ticket_number, p);
