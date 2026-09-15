@@ -12,6 +12,7 @@ import cspLogo from "@/assets/csp-logo.png";
 import { initialsFromName, displayNameFromEmail } from "@/lib/proposals";
 import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
 import { proposalApiFetch, API_BASE_URL } from "@/lib/proposalApi";
+import { DrInfoRequests } from "@/components/dr-info-requests";
 
 export const Route = createFileRoute("/dashboard/reviewer/submission/$id")({
   head: () => ({ meta: [{ title: "Review Submission — Reviewer Portal" }] }),
@@ -1473,6 +1474,8 @@ function ProposalDetails({
           </div>
         )}
       </Section>
+
+      <DrInfoRequests ticket={proposal.ticket} readOnly />
     </section>
     <Dialog open={!!previewDoc} onOpenChange={(open) => !open && setPreviewDoc(null)}>
       <DialogContent className="max-w-5xl p-0 sm:max-w-5xl">
