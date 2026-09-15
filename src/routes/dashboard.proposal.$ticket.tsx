@@ -322,6 +322,16 @@ function extractProposalDocuments(currentData: Record<string, unknown>) {
     }
   }
 
+  // A response to a "Supporting Documents" revision request (e.g. a
+  // re-uploaded CV) lands directly in current_data.supporting_documents —
+  // as a single URL string, a single file object, or an array of either.
+  const supporting = currentData.supporting_documents;
+  const supportingItems = Array.isArray(supporting) ? supporting : supporting ? [supporting] : [];
+  supportingItems.forEach((item) => {
+    const doc = toProposalDocument(item, "Supporting Document");
+    if (doc) documents.push({ ...doc, label: "Supporting Document" });
+  });
+
   const seen = new Set<string>();
   return documents.filter((doc) => {
     const key = `${doc.url || ""}|${doc.filename}`;

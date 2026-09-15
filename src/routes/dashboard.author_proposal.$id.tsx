@@ -833,32 +833,42 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
   const subtitle = contractSubtitleOverride || cd.sub_title;
   const kind = cd.book_type || "Proposal";
   const files = cd.manuscript_files || {};
+  const normalizeFileValue = (v: any, fallbackLabel: string): ManuscriptFile | null => {
+    if (v && typeof v === "object" && (v.url || v.file_url)) {
+      const url = v.url || v.file_url;
+      return {
+        url,
+        filename: v.filename || v.name || String(url).split("/").pop() || fallbackLabel,
+        size_bytes: v.size_bytes,
+      };
+    }
+    if (typeof v === "string" && v) {
+      return { url: v, filename: v.split("/").pop() || fallbackLabel };
+    }
+    return null;
+  };
   const allFiles: ManuscriptFile[] = [
     ...(() => {
       const cv = (cd as any).author_cv;
       const cvUrl = (cd as any).author_cv_url;
-      const normalize = (v: any) => {
-        if (v && typeof v === "object" && (v.url || v.file_url)) {
-          const url = v.url || v.file_url;
-          return {
-            url,
-            filename: v.filename || v.name || String(url).split("/").pop() || "Author CV",
-            size_bytes: v.size_bytes,
-          };
-        }
-        if (typeof v === "string" && v) {
-          return { url: v, filename: v.split("/").pop() || "Author CV" };
-        }
-        return null;
-      };
-      const doc = normalize(cv) || normalize(cvUrl);
+      const doc = normalizeFileValue(cv, "Author CV") || normalizeFileValue(cvUrl, "Author CV");
       return doc ? [doc] : [];
     })(),
     ...(files.completeManuscript ? [files.completeManuscript] : []),
     ...(files.sampleChapter ? [files.sampleChapter] : []),
     ...(files.additionalFiles || []),
+    // A response to a "Supporting Documents" revision request (e.g. a
+    // re-uploaded CV) lands directly in current_data.supporting_documents —
+    // as a single URL string, a single file object, or an array of either.
+    ...(() => {
+      const supporting = (cd as any).supporting_documents;
+      const items = Array.isArray(supporting) ? supporting : supporting ? [supporting] : [];
+      return items
+        .map((item: any) => normalizeFileValue(item, "Supporting Document"))
+        .filter((d: ManuscriptFile | null): d is ManuscriptFile => d !== null);
+    })(),
     // Files the author uploaded in response to a "Supporting Documents"
-    // revision request.
+    // revision request (older backend shape, via the request-info response).
     ...(revisionUpdates.supporting_documents?.files || []).map((f) => ({
       url: f.url,
       filename: f.filename,
