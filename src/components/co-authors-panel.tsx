@@ -184,14 +184,14 @@ export function CoAuthorsPanel({ ticket }: { ticket: string }) {
           <div className="grid gap-3.5 sm:grid-cols-2">
             <input
               required
-              placeholder="First name"
+              placeholder="First name *"
               value={form.first_name}
               onChange={(e) => setForm((f) => ({ ...f, first_name: e.target.value }))}
               className={inputCls}
             />
             <input
               required
-              placeholder="Last name"
+              placeholder="Last name *"
               value={form.last_name}
               onChange={(e) => setForm((f) => ({ ...f, last_name: e.target.value }))}
               className={inputCls}
@@ -252,7 +252,7 @@ export function CoAuthorsPanel({ ticket }: { ticket: string }) {
                 <form onSubmit={(e) => void onSaveEdit(e, c)} className="grid gap-3.5 sm:grid-cols-2">
                   <input
                     required
-                    placeholder="First name"
+                    placeholder="First name *"
                     value={editForm.first_name}
                     onChange={(e) =>
                       setEditForm((f) => ({ ...f, first_name: e.target.value }))
@@ -261,7 +261,7 @@ export function CoAuthorsPanel({ ticket }: { ticket: string }) {
                   />
                   <input
                     required
-                    placeholder="Last name"
+                    placeholder="Last name *"
                     value={editForm.last_name}
                     onChange={(e) =>
                       setEditForm((f) => ({ ...f, last_name: e.target.value }))
