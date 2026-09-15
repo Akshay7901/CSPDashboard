@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { proposalApiFetch } from "@/lib/proposalApi";
 import { getPortalToken } from "@/lib/auth";
 import { formatDate } from "@/lib/proposals";
-import { REVISION_AREAS } from "@/lib/requestInfoUpdates";
+import { REVISION_AREAS, isFileUrl, filenameFromUrl } from "@/lib/requestInfoUpdates";
 import {
   Clock,
   Pencil,
@@ -17,9 +17,13 @@ import {
   SquarePen,
 } from "lucide-react";
 
-type InfoRequestItem = { key?: string; label?: string; response_text?: string };
-type InfoRequestFile = { url?: string; filename?: string; size_bytes?: number; field_key?: string };
+type InfoRequestItem = { key?: string; label?: string };
 
+// The API's per-request "data" is a flat { revisionAreaKey: value } map —
+// there is no response_items/response_files breakdown. A value is either a
+// file URL (from an upload) or plain text. The same shape is used whether
+// the author has submitted a final response (responded_at set) or only
+// saved a draft so far.
 type InfoRequest = {
   id: string | number;
   status?: string;
@@ -30,19 +34,18 @@ type InfoRequest = {
   created_at?: string;
   requested_at?: string;
   items?: InfoRequestItem[];
-  response?: {
-    note?: string;
-    items?: InfoRequestItem[];
-    files?: InfoRequestFile[];
-    submitted_at?: string;
-    is_draft?: boolean;
-  } | null;
-  draft?: {
-    note?: string;
-    items?: InfoRequestItem[];
-    files?: InfoRequestFile[];
-  } | null;
+  respondedAt?: string;
+  responseNote?: string;
+  data: Record<string, unknown>;
 };
+
+function areaLabel(items: InfoRequestItem[] | undefined, key: string): string {
+  return (
+    items?.find((i) => i.key === key)?.label ||
+    REVISION_AREAS.find((a) => a.key === key)?.label ||
+    key
+  );
+}
 
 type Props = {
   ticket: string;
@@ -111,16 +114,9 @@ export function DrInfoRequests({ ticket, onChanged, readOnly = false }: Props) {
         deadline: r.deadline as string | undefined,
         created_at: (r.requested_at as string | undefined) ?? (r.created_at as string | undefined),
         items: (r.items as InfoRequestItem[]) || [],
-        response: r.responded_at
-          ? {
-              note: r.response_note as string | undefined,
-              items: (r.response_items as InfoRequestItem[]) || [],
-              files: (r.response_files as InfoRequestFile[]) || [],
-              submitted_at: r.responded_at as string | undefined,
-              is_draft: !!r.is_draft,
-            }
-          : null,
-        draft: (r.draft_data as InfoRequest["draft"]) || null,
+        respondedAt: r.responded_at as string | undefined,
+        responseNote: (r.response_note as string | undefined) || undefined,
+        data: (r.draft_data as Record<string, unknown>) || {},
       }));
       setRequests(mapped);
     } catch {
@@ -257,7 +253,7 @@ export function DrInfoRequests({ ticket, onChanged, readOnly = false }: Props) {
 
   const isPending = (r: InfoRequest) => {
     const s = (r.status || "").toLowerCase();
-    return s !== "closed" && s !== "completed" && s !== "submitted" && s !== "responded" && !r.response?.submitted_at;
+    return s !== "closed" && s !== "completed" && s !== "submitted" && s !== "responded" && !r.respondedAt;
   };
 
   return (
@@ -318,12 +314,12 @@ export function DrInfoRequests({ ticket, onChanged, readOnly = false }: Props) {
                           className={`inline-flex items-center rounded-full px-2 py-0.5 font-sans text-[11px] font-semibold uppercase tracking-wide ring-1 ${
                             pending
                               ? "bg-amber-100 text-amber-800 ring-amber-200"
-                              : req.response?.submitted_at
+                              : req.respondedAt
                                 ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
                                 : "bg-stone-100 text-stone-600 ring-stone-200"
                           }`}
                         >
-                          {pending ? "Pending" : req.response?.submitted_at ? "Responded" : req.status || "Sent"}
+                          {pending ? "Pending" : req.respondedAt ? "Responded" : req.status || "Sent"}
                         </span>
                         {deadline && (
                           <span className="inline-flex items-center gap-1 font-sans text-[11px] text-stone-500">
@@ -387,36 +383,67 @@ export function DrInfoRequests({ ticket, onChanged, readOnly = false }: Props) {
                           </p>
                         </div>
                       )}
-                      {req.response?.submitted_at && (
+                      {req.respondedAt ? (
                         <div className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2">
                           <p className="font-sans text-xs font-semibold text-emerald-800">
-                            Author responded on {formatDate(req.response.submitted_at)}
+                            Author responded on {formatDate(req.respondedAt)}
                           </p>
-                          {req.response.note && (
+                          {req.responseNote && (
                             <p className="mt-1 whitespace-pre-line font-sans text-sm text-emerald-900">
-                              {req.response.note}
+                              {req.responseNote}
                             </p>
                           )}
+                          {Object.entries(req.data).map(([key, value]) => (
+                            <div key={key} className="mt-1.5">
+                              <p className="font-sans text-xs font-medium text-emerald-700">
+                                {areaLabel(req.items, key)}
+                              </p>
+                              {isFileUrl(value) ? (
+                                <a
+                                  href={value}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="font-sans text-sm text-emerald-900 underline hover:text-emerald-700"
+                                >
+                                  {filenameFromUrl(value)}
+                                </a>
+                              ) : (
+                                <p className="whitespace-pre-line font-sans text-sm text-emerald-900">
+                                  {String(value)}
+                                </p>
+                              )}
+                            </div>
+                          ))}
                         </div>
-                      )}
-                      {req.draft && (
-                        <div className="mb-3 rounded-lg border border-sky-200 bg-sky-50/60 px-3 py-2">
-                          <p className="font-sans text-xs font-semibold text-sky-800">
-                            Author saved a draft
-                          </p>
-                          {(req.draft.items || []).map((it, i) =>
-                            it.response_text ? (
-                              <div key={i} className="mt-1">
+                      ) : (
+                        Object.keys(req.data).length > 0 && (
+                          <div className="mb-3 rounded-lg border border-sky-200 bg-sky-50/60 px-3 py-2">
+                            <p className="font-sans text-xs font-semibold text-sky-800">
+                              Author saved a draft
+                            </p>
+                            {Object.entries(req.data).map(([key, value]) => (
+                              <div key={key} className="mt-1.5">
                                 <p className="font-sans text-xs font-medium text-sky-700">
-                                  {it.label || it.key}
+                                  {areaLabel(req.items, key)}
                                 </p>
-                                <p className="font-sans text-sm text-sky-900 line-clamp-3">
-                                  {it.response_text}
-                                </p>
+                                {isFileUrl(value) ? (
+                                  <a
+                                    href={value}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="font-sans text-sm text-sky-900 underline hover:text-sky-700"
+                                  >
+                                    {filenameFromUrl(value)}
+                                  </a>
+                                ) : (
+                                  <p className="font-sans text-sm text-sky-900 line-clamp-3">
+                                    {String(value)}
+                                  </p>
+                                )}
                               </div>
-                            ) : null,
-                          )}
-                        </div>
+                            ))}
+                          </div>
+                        )
                       )}
                       <p className="font-sans text-[11px] text-stone-400">
                         Created {formatDate(req.created_at || req.requested_at || "")}

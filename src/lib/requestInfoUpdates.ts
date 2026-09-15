@@ -41,12 +41,38 @@ export type RequestInfoUpdate = {
   respondedAt?: string;
 };
 
+export function isFileUrl(value: unknown): value is string {
+  return typeof value === "string" && /^https?:\/\//i.test(value);
+}
+
+export function filenameFromUrl(url: string): string {
+  const last = url.split("/").pop() || "File";
+  try {
+    return decodeURIComponent(last);
+  } catch {
+    return last;
+  }
+}
+
 /**
  * Fetches every past revision/info request for a ticket and flattens the
  * responded ones into a map keyed by revision-area key (the same keys used
  * in REVISION_AREAS), so a display field can look up "was this updated via
  * a revision response, and if so what's the new value" in one lookup.
- * Later responses win when the same key was requested more than once.
+ *
+ * The real API shape has no `response_items`/`response_files` fields — each
+ * request only carries a flat `draft_data: {key: value}` map, and text-only
+ * answers (e.g. a new word count) aren't in there at all because the backend
+ * writes those straight into the ticket's `current_data` instead. So:
+ *  - `items[].key` + `responded_at` is used purely to flag "this field was
+ *    touched by a response" (for the "Updated" badge), even when draft_data
+ *    has nothing for that key.
+ *  - `draft_data` values that look like URLs are file uploads. The backend
+ *    overwrites `current_data.supporting_documents` with only the latest
+ *    upload, so historical files are only recoverable from each past
+ *    request's own draft_data — every request is walked and every distinct
+ *    file URL for a key is accumulated, not just the newest one.
+ *  - Any other draft_data value is treated as plain text, latest wins.
  */
 export async function fetchRequestInfoUpdates(
   ticket: string,
@@ -62,36 +88,49 @@ export async function fetchRequestInfoUpdates(
   const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
   const raw = (body.requests as Array<Record<string, unknown>>) || [];
   const updates: Record<string, RequestInfoUpdate> = {};
+  const seenFileUrls: Record<string, Set<string>> = {};
 
-  for (const r of raw) {
-    const respondedAt = r.responded_at as string | undefined;
-    if (!respondedAt) continue;
+  // Oldest first, so a plain re-assignment gives "latest response wins" for
+  // text, and files end up listed in the order they were uploaded.
+  const responded = raw
+    .filter((r) => !!r.responded_at)
+    .sort((a, b) =>
+      String(a.responded_at || "").localeCompare(String(b.responded_at || "")),
+    );
 
-    const items = (r.response_items as Array<Record<string, unknown>>) || [];
+  const addFile = (key: string, url: string) => {
+    const seen = seenFileUrls[key] || (seenFileUrls[key] = new Set());
+    if (seen.has(url)) return;
+    seen.add(url);
+    const entry = updates[key] || (updates[key] = {});
+    entry.files = [...(entry.files || []), { url, filename: filenameFromUrl(url) }];
+  };
+
+  for (const r of responded) {
+    const respondedAt = r.responded_at as string;
+    const items = (r.items as Array<Record<string, unknown>>) || [];
+    const draftData = (r.draft_data as Record<string, unknown>) || {};
+
     for (const it of items) {
       const key = it.key as string | undefined;
-      const text = (it.response_text as string | undefined)?.trim();
-      if (!key || !text) continue;
-      const existing = updates[key];
-      if (!existing?.respondedAt || existing.respondedAt < respondedAt) {
-        updates[key] = { ...existing, text, respondedAt };
-      }
+      if (!key) continue;
+      const entry = updates[key] || (updates[key] = {});
+      entry.respondedAt = respondedAt;
     }
 
-    const files = (r.response_files as Array<Record<string, unknown>>) || [];
-    for (const f of files) {
-      const key = f.field_key as string | undefined;
-      const url = f.url as string | undefined;
-      if (!key || !url) continue;
-      const entry = updates[key] || {};
-      entry.files = [
-        ...(entry.files || []),
-        { url, filename: (f.filename as string | undefined) || "File" },
-      ];
-      if (!entry.respondedAt || entry.respondedAt < respondedAt) {
-        entry.respondedAt = respondedAt;
+    for (const [key, value] of Object.entries(draftData)) {
+      if (isFileUrl(value)) {
+        addFile(key, value);
+      } else if (Array.isArray(value)) {
+        for (const v of value) {
+          if (isFileUrl(v)) addFile(key, v);
+        }
+      } else if (typeof value === "string" && value.trim()) {
+        const entry = updates[key] || (updates[key] = {});
+        entry.text = value.trim();
       }
-      updates[key] = entry;
+      const entry = updates[key];
+      if (entry) entry.respondedAt = respondedAt;
     }
   }
 
