@@ -72,6 +72,7 @@ import { CoSignerLinks } from "@/components/co-signer-links";
 import { ContractQueries } from "@/components/contract-queries";
 import { ContributorsPanel } from "@/components/contributors-panel";
 import { CoAuthorsPanel } from "@/components/co-authors-panel";
+import { DrInfoRequests } from "@/components/dr-info-requests";
 import { AiReviewPanel } from "@/components/ai-review-panel";
 
 import { Input } from "@/components/ui/input";
@@ -3756,6 +3757,10 @@ function ProposalDetailPage() {
                   if (/monograph/i.test(bookType)) return null;
                   return <ContributorsPanel ticket={ticket} />;
                 })()}
+
+                {/* Revision / info request history — read-only here; requests
+                    are created via the "Request Major Revisions" flow above. */}
+                <DrInfoRequests ticket={ticket} readOnly />
 
               </div>
 

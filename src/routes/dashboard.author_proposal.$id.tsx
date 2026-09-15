@@ -37,6 +37,7 @@ import { CoSignerLinks } from "@/components/co-signer-links";
 import { ContractQueries } from "@/components/contract-queries";
 import { AuthorMetadataPanel } from "@/components/author-metadata-panel";
 import { ContributorsPanel } from "@/components/contributors-panel";
+import { DrInfoRequests } from "@/components/dr-info-requests";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -960,6 +961,10 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
           <ContributorsPanel ticket={proposal.ticket} />
         </div>
       ) : null}
+
+      <div className="mt-6">
+        <DrInfoRequests ticket={proposal.ticket} readOnly />
+      </div>
 
       <AuthorMetadataPanel
         ticket={proposal.ticket}

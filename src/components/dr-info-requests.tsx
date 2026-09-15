@@ -46,16 +46,39 @@ type InfoRequest = {
 type Props = {
   ticket: string;
   onChanged?: () => void;
+  // When true, shows the request/response history only — hides the
+  // create/edit/delete controls. Used to surface this same history on
+  // dashboards that already have their own request-creation flow (or
+  // shouldn't have one at all, e.g. the author's view).
+  readOnly?: boolean;
 };
 
+// Kept in sync with the canonical list in dashboard.proposal.$ticket.tsx —
+// update both together.
 const REVISION_AREAS = [
   { key: "abstract_blurb", label: "Abstract / Blurb" },
   { key: "table_of_contents", label: "Table of Contents" },
-  { key: "supporting_materials", label: "Supporting Materials" },
   { key: "author_credentials", label: "Author Credentials" },
   { key: "market_analysis", label: "Market Analysis" },
   { key: "scope_framing", label: "Scope / Framing" },
   { key: "word_count", label: "Word Count / Length" },
+  { key: "primary_author", label: "Primary Author Info" },
+  { key: "mailing_address", label: "Mailing Address" },
+  { key: "biography", label: "Biography" },
+  { key: "additional_authors", label: "Additional Authors / Contributors" },
+  { key: "manuscript_details", label: "Manuscript Details" },
+  { key: "expected_completion", label: "Expected Completion Date" },
+  { key: "overview", label: "Overview" },
+  { key: "key_features", label: "Key Features / Selling Points" },
+  { key: "marketing_promotion", label: "Marketing & Promotion" },
+  { key: "competition", label: "Competing Titles" },
+  { key: "audience", label: "Target Audience" },
+  { key: "suggested_reviewers", label: "Author-Suggested Reviewers" },
+  { key: "permissions", label: "Copyright & Permissions" },
+  {
+    key: "supporting_documents",
+    label: "Supporting Documents (CV, manuscript files, attachments)",
+  },
   { key: "other", label: "Other" },
 ];
 
@@ -63,7 +86,7 @@ function Card({ children }: { children: React.ReactNode }) {
   return <div className="rounded-2xl border border-stone-200 bg-white shadow-sm">{children}</div>;
 }
 
-export function DrInfoRequests({ ticket, onChanged }: Props) {
+export function DrInfoRequests({ ticket, onChanged, readOnly = false }: Props) {
   const [requests, setRequests] = useState<InfoRequest[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -276,14 +299,16 @@ export function DrInfoRequests({ ticket, onChanged }: Props) {
                 : `${requests.length} request${requests.length === 1 ? "" : "s"}`}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={openCreate}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-white px-3 py-1.5 font-sans text-xs font-semibold text-stone-700 hover:bg-stone-50"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            Request more info
-          </button>
+          {!readOnly && (
+            <button
+              type="button"
+              onClick={openCreate}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-white px-3 py-1.5 font-sans text-xs font-semibold text-stone-700 hover:bg-stone-50"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Request more info
+            </button>
+          )}
         </div>
         <div className="px-5 py-4">
           {loading && (
@@ -342,7 +367,7 @@ export function DrInfoRequests({ ticket, onChanged }: Props) {
                       </p>
                     </div>
                     <div className="flex items-center gap-1">
-                      {pending && (
+                      {!readOnly && pending && (
                         <>
                           <button
                             type="button"
