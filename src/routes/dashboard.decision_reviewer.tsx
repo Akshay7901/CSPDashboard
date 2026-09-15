@@ -796,42 +796,54 @@ function DecisionReviewerDashboard() {
       return;
     }
     let cancelled = false;
+    // Firing 2 requests per proposal for every relevant row at once (via a
+    // single Promise.all) can queue dozens of requests against the
+    // browser's ~6-per-host connection limit, starving the rest of the
+    // page. Cap concurrency and update the badges incrementally per batch
+    // so results show up progressively instead of all-or-nothing.
+    const BATCH_SIZE = 5;
     (async () => {
-      const results = await Promise.all(
-        relevant.map(async (p) => {
-          try {
-            const [queriesBody, metaRes] = await Promise.all([
-              getMetadataQueries(p.id),
-              getMetadata(p.id),
-            ]);
-            const queries = queriesBody.queries || [];
-            const respondedIds = new Set(
-              queries
-                .filter((q) => q.type === "response" && q.parent_query_id != null)
-                .map((q) => q.parent_query_id as number),
-            );
-            const hasOpen = queries.some(
-              (q) =>
-                q.type === "query" &&
-                (q.raised_by_role || "").toLowerCase() === "author" &&
-                !respondedIds.has(q.id),
-            );
-            const meta = metaRes.data;
-            const isPendingApproval =
-              meta?.metadata_status === "sent_to_author" && !meta.approved_at;
-            return { id: p.id, hasOpen, isPendingApproval };
-          } catch {
-            return { id: p.id, hasOpen: false, isPendingApproval: false };
-          }
-        }),
-      );
-      if (cancelled) return;
-      setOpenMetaQueryTickets(
-        new Set(results.filter((r) => r.hasOpen).map((r) => r.id)),
-      );
-      setPendingMetaApprovalTickets(
-        new Set(results.filter((r) => r.isPendingApproval).map((r) => r.id)),
-      );
+      const openIds = new Set<string>();
+      const pendingIds = new Set<string>();
+      for (let i = 0; i < relevant.length; i += BATCH_SIZE) {
+        if (cancelled) return;
+        const batch = relevant.slice(i, i + BATCH_SIZE);
+        const results = await Promise.all(
+          batch.map(async (p) => {
+            try {
+              const [queriesBody, metaRes] = await Promise.all([
+                getMetadataQueries(p.id),
+                getMetadata(p.id),
+              ]);
+              const queries = queriesBody.queries || [];
+              const respondedIds = new Set(
+                queries
+                  .filter((q) => q.type === "response" && q.parent_query_id != null)
+                  .map((q) => q.parent_query_id as number),
+              );
+              const hasOpen = queries.some(
+                (q) =>
+                  q.type === "query" &&
+                  (q.raised_by_role || "").toLowerCase() === "author" &&
+                  !respondedIds.has(q.id),
+              );
+              const meta = metaRes.data;
+              const isPendingApproval =
+                meta?.metadata_status === "sent_to_author" && !meta.approved_at;
+              return { id: p.id, hasOpen, isPendingApproval };
+            } catch {
+              return { id: p.id, hasOpen: false, isPendingApproval: false };
+            }
+          }),
+        );
+        if (cancelled) return;
+        for (const r of results) {
+          if (r.hasOpen) openIds.add(r.id);
+          if (r.isPendingApproval) pendingIds.add(r.id);
+        }
+        setOpenMetaQueryTickets(new Set(openIds));
+        setPendingMetaApprovalTickets(new Set(pendingIds));
+      }
     })();
     return () => {
       cancelled = true;
