@@ -592,9 +592,19 @@ function DecisionReviewerDashboard() {
         defaultBody = firstBody;
         for (const p of proposals) merged.set(p.ticket_number, p);
       } catch {
-        if (!silent) setProposalsError("Failed to load proposals.");
+        if (!silent) {
+          setProposalsError("Failed to load proposals.");
+          setProposalsLoading(false);
+        }
         return;
       }
+      // Render immediately with whatever the default (authoritative) list
+      // already gave us — don't make the user wait for the terminal-status
+      // backfill or AI scores just to see a table on screen.
+      setApiProposals(Array.from(merged.values()).map(mapApiProposal));
+      setStatusSummary((defaultBody.status_summary as Record<string, number>) || {});
+      if (!silent) setProposalsLoading(false);
+
       const extraLists = await mapWithConcurrency(ALL_API_STATUSES, 5, async (status) => {
         try {
           const { proposals } = await fetchAllPages(
@@ -605,28 +615,33 @@ function DecisionReviewerDashboard() {
           return [] as ApiProposal[];
         }
       });
+      let addedTerminal = false;
       for (const list of extraLists) {
         for (const p of list) {
-          if (!merged.has(p.ticket_number)) merged.set(p.ticket_number, p);
+          if (!merged.has(p.ticket_number)) {
+            merged.set(p.ticket_number, p);
+            addedTerminal = true;
+          }
         }
       }
-
       const rows = Array.from(merged.values()).map(mapApiProposal);
+      // Patch in any terminal-status proposals (declined/signed/etc) the
+      // default list omitted, once the backfill resolves.
+      if (addedTerminal) setApiProposals(rows);
       if (checkIsAdmin()) {
         try {
           const scores = await fetchAiScores(rows.map((r) => r.id));
-          for (const row of rows) {
-            if (scores[row.id] !== undefined) row.aiScore = scores[row.id];
-          }
+          setApiProposals((prev) =>
+            prev.map((row) =>
+              scores[row.id] !== undefined ? { ...row, aiScore: scores[row.id] } : row,
+            ),
+          );
         } catch {
           // Non-fatal: AI scores are a dashboard convenience only.
         }
       }
-      setApiProposals(rows);
-      setStatusSummary((defaultBody.status_summary as Record<string, number>) || {});
     } catch {
       if (!silent) setProposalsError("Network error. Please try again.");
-    } finally {
       if (!silent) setProposalsLoading(false);
     }
   };
