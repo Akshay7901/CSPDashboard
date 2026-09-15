@@ -45,13 +45,24 @@ export function isFileUrl(value: unknown): value is string {
   return typeof value === "string" && /^https?:\/\//i.test(value);
 }
 
+// The backend prefixes every uploaded file with the revision-area key and a
+// timestamp before storing it, e.g. an original "ms.pdf" uploaded for
+// Supporting Documents is saved as
+// "supporting_documents_20260915090255_ms.pdf". Strip that prefix so the
+// author's actual filename is what shows up in the UI.
+export function stripUploadPrefix(name: string): string {
+  return name.replace(/^[a-z][a-z0-9]*(?:_[a-z0-9]+)*_\d{10,}_/i, "");
+}
+
 export function filenameFromUrl(url: string): string {
   const last = url.split("/").pop() || "File";
+  let name: string;
   try {
-    return decodeURIComponent(last);
+    name = decodeURIComponent(last);
   } catch {
-    return last;
+    name = last;
   }
+  return stripUploadPrefix(name);
 }
 
 /**

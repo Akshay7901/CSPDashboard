@@ -76,6 +76,7 @@ import { DrInfoRequests } from "@/components/dr-info-requests";
 import {
   fetchRequestInfoUpdates,
   REVISION_AREAS,
+  stripUploadPrefix,
   type RequestInfoUpdate,
 } from "@/lib/requestInfoUpdates";
 import { AiReviewPanel } from "@/components/ai-review-panel";
@@ -244,12 +245,14 @@ function numberFrom(obj: Record<string, unknown>, keys: string[]) {
 
 function filenameFromUrl(url?: string) {
   if (!url) return undefined;
+  let name: string;
   try {
     const parsed = new URL(url);
-    return decodeURIComponent(parsed.pathname.split("/").filter(Boolean).pop() || "");
+    name = decodeURIComponent(parsed.pathname.split("/").filter(Boolean).pop() || "");
   } catch {
-    return decodeURIComponent(url.split("/").filter(Boolean).pop() || "");
+    name = decodeURIComponent(url.split("/").filter(Boolean).pop() || "");
   }
+  return stripUploadPrefix(name);
 }
 
 function toProposalDocument(value: unknown, fallbackLabel?: string): ProposalDocument | null {
@@ -263,10 +266,14 @@ function toProposalDocument(value: unknown, fallbackLabel?: string): ProposalDoc
   }
   if (!isRecord(value)) return null;
   const url = stringFrom(value, ["url", "file_url", "download_url", "s3_url", "public_url"]);
-  const filename =
-    stringFrom(value, ["filename", "file_name", "name", "original_filename", "title"]) ||
-    filenameFromUrl(url) ||
-    fallbackLabel;
+  const rawFilename = stringFrom(value, [
+    "filename",
+    "file_name",
+    "name",
+    "original_filename",
+    "title",
+  ]);
+  const filename = (rawFilename && stripUploadPrefix(rawFilename)) || filenameFromUrl(url) || fallbackLabel;
   if (!filename) return null;
   return {
     url,

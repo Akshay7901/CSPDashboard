@@ -41,6 +41,8 @@ import { DrInfoRequests } from "@/components/dr-info-requests";
 import {
   fetchRequestInfoUpdates,
   REVISION_AREAS,
+  filenameFromUrl,
+  stripUploadPrefix,
   type RequestInfoUpdate,
 } from "@/lib/requestInfoUpdates";
 import {
@@ -838,12 +840,16 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
       const url = v.url || v.file_url;
       return {
         url,
-        filename: v.filename || v.name || String(url).split("/").pop() || fallbackLabel,
+        filename:
+          (v.filename && stripUploadPrefix(v.filename)) ||
+          (v.name && stripUploadPrefix(v.name)) ||
+          filenameFromUrl(String(url)) ||
+          fallbackLabel,
         size_bytes: v.size_bytes,
       };
     }
     if (typeof v === "string" && v) {
-      return { url: v, filename: v.split("/").pop() || fallbackLabel };
+      return { url: v, filename: filenameFromUrl(v) || fallbackLabel };
     }
     return null;
   };
@@ -1845,7 +1851,7 @@ function renderDynamicValue(value: unknown): ReactNode {
   if (typeof value === "number") return String(value);
   if (typeof value === "string") {
     if (isUrl(value)) {
-      const filename = value.split("/").pop() || value;
+      const filename = filenameFromUrl(value) || value;
       return (
         <a
           href={value}
