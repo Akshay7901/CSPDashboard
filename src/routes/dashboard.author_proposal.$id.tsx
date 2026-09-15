@@ -2610,7 +2610,7 @@ function ContractIssuedView({
                 )}
                 {renderStageCard(
                   "author_contract",
-                  contract.contract_type === "editor" ? "Editor Contract" : "Author Contract",
+                  "Contract",
                   twoStage.stages.author_contract,
                   !stageIsSigned(twoStage.stages.publishing_agreement) ||
                     twoStage.stages.author_contract?.locked === true,
