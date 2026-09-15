@@ -13,6 +13,11 @@ import { initialsFromName, displayNameFromEmail } from "@/lib/proposals";
 import { portalLogout, getPortalSession, getPortalToken } from "@/lib/auth";
 import { proposalApiFetch, API_BASE_URL } from "@/lib/proposalApi";
 import { DrInfoRequests } from "@/components/dr-info-requests";
+import {
+  fetchRequestInfoUpdates,
+  filenameFromUrl as cleanFilenameFromUrl,
+  type RequestInfoUpdate,
+} from "@/lib/requestInfoUpdates";
 
 export const Route = createFileRoute("/dashboard/reviewer/submission/$id")({
   head: () => ({ meta: [{ title: "Review Submission — Reviewer Portal" }] }),
@@ -944,6 +949,17 @@ function ProposalDetails({
 }) {
   const rawCd = proposal.cd as Record<string, unknown>;
 
+  const [revisionUpdates, setRevisionUpdates] = useState<Record<string, RequestInfoUpdate>>({});
+  useEffect(() => {
+    let cancelled = false;
+    fetchRequestInfoUpdates(proposal.ticket).then((updates) => {
+      if (!cancelled) setRevisionUpdates(updates);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [proposal.ticket]);
+
   // Mirror the Decision Reviewer's normalization so the Peer Reviewer sees
   // exactly the same field names and values.
   const asStr = (v: unknown): string | undefined => {
@@ -1044,10 +1060,14 @@ function ProposalDetails({
 
   const manuscriptFiles = rawCd.manuscript_files as
     | {
+        completeManuscript?: { url: string; filename: string; size_bytes?: number };
+        complete_manuscript?: { url: string; filename: string; size_bytes?: number };
         sampleChapter?: { url: string; filename: string; size_bytes?: number };
         additionalFiles?: Array<{ url: string; filename: string; size_bytes?: number }>;
       }
     | undefined;
+  const completeManuscript =
+    manuscriptFiles?.completeManuscript ?? manuscriptFiles?.complete_manuscript;
   const sample = manuscriptFiles?.sampleChapter;
   const additional = manuscriptFiles?.additionalFiles ?? [];
   const filenameFromUrl = (u: string) =>
@@ -1070,11 +1090,53 @@ function ProposalDetails({
     };
     return normalize(rawCd.author_cv) || normalize(rawCd.author_cv_url);
   })();
-  const allFiles = [
+  // A response to a "Supporting Documents" revision request (e.g. a
+  // re-uploaded CV) lands directly in current_data.supporting_documents —
+  // as a single URL string, a single file object, or an array of either.
+  const supportingDocuments = (() => {
+    const supporting = rawCd.supporting_documents;
+    const items = Array.isArray(supporting) ? supporting : supporting ? [supporting] : [];
+    return items
+      .map((item: any) => {
+        if (item && typeof item === "object" && (item.url || item.file_url)) {
+          const url = item.url || item.file_url;
+          return {
+            url,
+            filename:
+              item.filename || item.name || cleanFilenameFromUrl(String(url)) || "Supporting Document",
+            size_bytes: item.size_bytes,
+          };
+        }
+        if (typeof item === "string" && item) {
+          return { url: item, filename: cleanFilenameFromUrl(item) || "Supporting Document" };
+        }
+        return null;
+      })
+      .filter((d): d is { url: string; filename: string; size_bytes?: number } => d !== null);
+  })();
+  const allFilesRaw = [
     ...(cvFile ? [cvFile] : []),
+    ...(completeManuscript ? [{ ...completeManuscript, label: "Complete Manuscript" }] : []),
     ...(sample ? [{ ...sample, label: "Sample Chapter" }] : []),
     ...additional.map((f) => ({ ...f, label: "Additional" })),
+    ...supportingDocuments.map((f) => ({ ...f, label: "Supporting Document" })),
+    // Files the author uploaded in response to a "Supporting Documents"
+    // revision request, accumulated across every past request/response.
+    // current_data.supporting_documents only ever holds the latest one, so
+    // this can repeat that same URL — dedupe below.
+    ...(revisionUpdates.supporting_documents?.files || []).map((f) => ({
+      url: f.url,
+      filename: f.filename,
+      size_bytes: undefined as number | undefined,
+      label: "Revision Response",
+    })),
   ];
+  const seenFileUrls = new Set<string>();
+  const allFiles = allFilesRaw.filter((f) => {
+    if (seenFileUrls.has(f.url)) return false;
+    seenFileUrls.add(f.url);
+    return true;
+  });
 
   const toc = (cd.table_of_contents || "")
     .split(/\r?\n/)
