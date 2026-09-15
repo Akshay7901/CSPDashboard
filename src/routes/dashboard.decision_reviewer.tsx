@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useMatchRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Search,
   ChevronDown,
@@ -647,19 +647,55 @@ function DecisionReviewerDashboard() {
   // Fast poll while any proposal is awaiting contract signature so the DR
   // list reflects the DocuSign webhook update within ~5s. Pauses when the
   // tab is hidden.
+  //
+  // This used to call fetchProposals(true) on every tick — a full rebuild
+  // of the list (the default fetch plus a batched fan-out across every
+  // status). Since at least one "contract" proposal exists almost
+  // continuously for any active org, that meant re-running the entire
+  // ~13-request list build every 5 seconds, indefinitely, competing for
+  // the browser's connection pool with everything else on the page.
+  // Instead, only re-fetch the specific tickets actually awaiting
+  // signature and patch just those rows in place.
+  const apiProposalsRef = useRef(apiProposals);
+  useEffect(() => {
+    apiProposalsRef.current = apiProposals;
+  }, [apiProposals]);
   const hasPendingContract = useMemo(
     () => apiProposals.some((p) => p.status === "contract"),
     [apiProposals],
   );
   useEffect(() => {
     if (!hasPendingContract) return;
-    const tick = () => {
+    const tick = async () => {
       if (document.visibilityState === "hidden") return;
-      void fetchProposals(true);
+      const pendingTickets = apiProposalsRef.current
+        .filter((p) => p.status === "contract")
+        .map((p) => p.id);
+      if (pendingTickets.length === 0) return;
+      const headers = authHeaders();
+      const updates = await mapWithConcurrency(pendingTickets, 5, async (ticket) => {
+        try {
+          const r = await proposalApiFetch(`/${encodeURIComponent(ticket)}`, { headers });
+          if (!r.ok) return null;
+          const body = (await r.json().catch(() => ({}))) as ApiProposal;
+          return mapApiProposal(body);
+        } catch {
+          return null;
+        }
+      });
+      setApiProposals((prev) => {
+        const byId = new Map(prev.map((p) => [p.id, p]));
+        for (const updated of updates) {
+          if (!updated) continue;
+          const existing = byId.get(updated.id);
+          byId.set(updated.id, existing ? { ...updated, aiScore: existing.aiScore } : updated);
+        }
+        return Array.from(byId.values());
+      });
     };
-    const id = window.setInterval(tick, 5000);
+    const id = window.setInterval(() => void tick(), 5000);
     const onVisible = () => {
-      if (document.visibilityState === "visible") tick();
+      if (document.visibilityState === "visible") void tick();
     };
     document.addEventListener("visibilitychange", onVisible);
     return () => {
