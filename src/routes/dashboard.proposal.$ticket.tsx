@@ -823,7 +823,6 @@ function ProposalDetailPage() {
   const REVISION_AREAS: { key: string; label: string }[] = [
     { key: "abstract_blurb", label: "Abstract / Blurb" },
     { key: "table_of_contents", label: "Table of Contents" },
-    { key: "supporting_materials", label: "Supporting Materials" },
     { key: "author_credentials", label: "Author Credentials" },
     { key: "market_analysis", label: "Market Analysis" },
     { key: "scope_framing", label: "Scope / Framing" },
@@ -841,7 +840,10 @@ function ProposalDetailPage() {
     { key: "audience", label: "Target Audience" },
     { key: "suggested_reviewers", label: "Author-Suggested Reviewers" },
     { key: "permissions", label: "Copyright & Permissions" },
-    { key: "supporting_documents", label: "Supporting Documents" },
+    {
+      key: "supporting_documents",
+      label: "Supporting Documents (CV, manuscript files, attachments)",
+    },
     { key: "other", label: "Other" },
   ];
   const [reqRevOpen, setReqRevOpen] = useState(false);
