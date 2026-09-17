@@ -601,9 +601,28 @@ function DecisionReviewerDashboard() {
       // Render immediately with whatever the default (authoritative) list
       // already gave us — don't make the user wait for the terminal-status
       // backfill or AI scores just to see a table on screen.
-      setApiProposals(Array.from(merged.values()).map(mapApiProposal));
+      const initialRows = Array.from(merged.values()).map(mapApiProposal);
+      setApiProposals(initialRows);
       setStatusSummary((defaultBody.status_summary as Record<string, number>) || {});
       if (!silent) setProposalsLoading(false);
+
+      const updateAiScore = (ticket: string, score: number | null) => {
+        setApiProposals((prev) =>
+          prev.map((row) => (row.id === ticket ? { ...row, aiScore: score } : row)),
+        );
+      };
+      // Start AI scores immediately, in parallel with the terminal-status
+      // backfill below — they don't depend on it, and previously sat queued
+      // behind that whole (often slow, multi-page) fetch before a single
+      // request even went out.
+      const aiScorePromise = checkIsAdmin()
+        ? fetchAiScores(
+            initialRows.map((r) => r.id),
+            updateAiScore,
+          ).catch(() => {
+            // Non-fatal: AI scores are a dashboard convenience only.
+          })
+        : Promise.resolve();
 
       const extraLists = await mapWithConcurrency(ALL_API_STATUSES, 5, async (status) => {
         try {
@@ -628,21 +647,16 @@ function DecisionReviewerDashboard() {
       // Patch in any terminal-status proposals (declined/signed/etc) the
       // default list omitted, once the backfill resolves.
       if (addedTerminal) setApiProposals(rows);
-      if (checkIsAdmin()) {
-        try {
-          // Update each row's score as its own request resolves rather than
-          // waiting for all ~500 requests to finish — otherwise a fast
-          // result sits hidden behind the slowest straggler in the batch.
-          await fetchAiScores(
-            rows.map((r) => r.id),
-            (ticket, score) => {
-              setApiProposals((prev) =>
-                prev.map((row) => (row.id === ticket ? { ...row, aiScore: score } : row)),
-              );
-            },
-          );
-        } catch {
-          // Non-fatal: AI scores are a dashboard convenience only.
+      await aiScorePromise;
+      if (checkIsAdmin() && addedTerminal) {
+        // Only the rows the backfill newly added need scores — everything
+        // else was already covered by the parallel fetch started above.
+        const initialIds = new Set(initialRows.map((r) => r.id));
+        const newIds = rows.map((r) => r.id).filter((id) => !initialIds.has(id));
+        if (newIds.length) {
+          fetchAiScores(newIds, updateAiScore).catch(() => {
+            // Non-fatal: AI scores are a dashboard convenience only.
+          });
         }
       }
     } catch {

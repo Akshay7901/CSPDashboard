@@ -54,7 +54,7 @@ export async function fetchAiScores(
   onScore?: (ticket: string, score: number | null) => void,
 ): Promise<Record<string, number | null>> {
   const results: Record<string, number | null> = {};
-  await mapWithConcurrency(tickets, 5, async (ticket) => {
+  await mapWithConcurrency(tickets, 10, async (ticket) => {
     let score: number | null = null;
     try {
       const data = await getAiReview(ticket);
