@@ -49,19 +49,23 @@ export async function runAiReview(ticket: string): Promise<void> {
   }
 }
 
-export async function fetchAiScores(tickets: string[]): Promise<Record<string, number | null>> {
+export async function fetchAiScores(
+  tickets: string[],
+  onScore?: (ticket: string, score: number | null) => void,
+): Promise<Record<string, number | null>> {
   const results: Record<string, number | null> = {};
   await mapWithConcurrency(tickets, 5, async (ticket) => {
+    let score: number | null = null;
     try {
       const data = await getAiReview(ticket);
       if (data.status === "completed" && data.final_score != null) {
-        results[ticket] = Number(data.final_score);
-      } else {
-        results[ticket] = null;
+        score = Number(data.final_score);
       }
     } catch {
-      results[ticket] = null;
+      score = null;
     }
+    results[ticket] = score;
+    onScore?.(ticket, score);
   });
   return results;
 }

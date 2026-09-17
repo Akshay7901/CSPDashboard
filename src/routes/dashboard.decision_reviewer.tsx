@@ -630,11 +630,16 @@ function DecisionReviewerDashboard() {
       if (addedTerminal) setApiProposals(rows);
       if (checkIsAdmin()) {
         try {
-          const scores = await fetchAiScores(rows.map((r) => r.id));
-          setApiProposals((prev) =>
-            prev.map((row) =>
-              scores[row.id] !== undefined ? { ...row, aiScore: scores[row.id] } : row,
-            ),
+          // Update each row's score as its own request resolves rather than
+          // waiting for all ~500 requests to finish — otherwise a fast
+          // result sits hidden behind the slowest straggler in the batch.
+          await fetchAiScores(
+            rows.map((r) => r.id),
+            (ticket, score) => {
+              setApiProposals((prev) =>
+                prev.map((row) => (row.id === ticket ? { ...row, aiScore: score } : row)),
+              );
+            },
           );
         } catch {
           // Non-fatal: AI scores are a dashboard convenience only.
