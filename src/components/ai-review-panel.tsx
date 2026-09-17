@@ -147,9 +147,11 @@ export function AiReviewPanel({ ticket }: { ticket: string }) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="font-sans text-stone-800">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="border border-stone-200 bg-stone-100 font-sans text-stone-800 hover:bg-stone-200">
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
-              className="bg-stone-900 font-sans text-white hover:bg-stone-800"
+              className="border border-emerald-200 bg-emerald-50 font-sans text-emerald-800 shadow-none hover:bg-emerald-100"
               onClick={(e) => {
                 e.preventDefault();
                 void onRun();
