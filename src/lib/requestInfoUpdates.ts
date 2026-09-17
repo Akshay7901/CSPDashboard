@@ -55,7 +55,12 @@ export function stripUploadPrefix(name: string): string {
 }
 
 export function filenameFromUrl(url: string): string {
-  const last = url.split("/").pop() || "File";
+  let last: string;
+  try {
+    last = new URL(url).pathname.split("/").pop() || "File";
+  } catch {
+    last = url.split("?")[0].split("/").pop() || "File";
+  }
   let name: string;
   try {
     name = decodeURIComponent(last);
