@@ -31,7 +31,16 @@ function hallucinationLabel(score: number): string {
   return "Not Acceptable";
 }
 
-export function AiReviewPanel({ ticket }: { ticket: string }) {
+export function AiReviewPanel({
+  ticket,
+  canRun = true,
+}: {
+  ticket: string;
+  // Triggering a review (POST) is admin-only; viewing results (GET) is not.
+  // Callers that render this for a non-admin (e.g. a decision reviewer)
+  // should pass canRun={false} to hide the trigger button.
+  canRun?: boolean;
+}) {
   const [review, setReview] = useState<AiReview>({ status: "not_run" });
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
@@ -104,15 +113,17 @@ export function AiReviewPanel({ ticket }: { ticket: string }) {
             {meta.label}
           </span>
         </div>
-        <button
-          type="button"
-          disabled={inFlight || starting || loading}
-          onClick={() => setConfirmOpen(true)}
-          className="inline-flex items-center gap-2 rounded-xl bg-stone-900 px-4 py-2 font-sans text-sm font-semibold text-white hover:bg-stone-800 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {starting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-          Run AI Review
-        </button>
+        {canRun && (
+          <button
+            type="button"
+            disabled={inFlight || starting || loading}
+            onClick={() => setConfirmOpen(true)}
+            className="inline-flex items-center gap-2 rounded-xl bg-stone-900 px-4 py-2 font-sans text-sm font-semibold text-white hover:bg-stone-800 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {starting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            Run AI Review
+          </button>
+        )}
       </div>
 
       {status === "completed" && (
@@ -164,32 +175,34 @@ export function AiReviewPanel({ ticket }: { ticket: string }) {
         </p>
       )}
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent className="bg-white">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="font-sans text-lg font-semibold text-stone-900">
-              Run AI review?
-            </AlertDialogTitle>
-            <AlertDialogDescription className="font-sans text-sm text-stone-600">
-              This will run a Gemini AI analysis on the uploaded proposal files. Continue?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="border border-stone-200 bg-stone-100 font-sans text-stone-800 hover:bg-stone-200 hover:text-stone-800">
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              className="border border-stone-200 bg-stone-100 font-sans text-stone-800 shadow-none hover:bg-stone-200 hover:text-stone-800"
-              onClick={(e) => {
-                e.preventDefault();
-                void onRun();
-              }}
-            >
-              Continue
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {canRun && (
+        <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+          <AlertDialogContent className="bg-white">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="font-sans text-lg font-semibold text-stone-900">
+                Run AI review?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="font-sans text-sm text-stone-600">
+                This will run a Gemini AI analysis on the uploaded proposal files. Continue?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="border border-stone-200 bg-stone-100 font-sans text-stone-800 hover:bg-stone-200 hover:text-stone-800">
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                className="border border-stone-200 bg-stone-100 font-sans text-stone-800 shadow-none hover:bg-stone-200 hover:text-stone-800"
+                onClick={(e) => {
+                  e.preventDefault();
+                  void onRun();
+                }}
+              >
+                Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </section>
   );
 }

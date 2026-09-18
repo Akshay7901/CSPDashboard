@@ -2835,8 +2835,12 @@ function ProposalDetailPage() {
                     </div>
                   </Card>
                 )}
-                {/* AI Proposal Review — admins only, all proposal states */}
-                {isAdmin() && <AiReviewPanel ticket={ticket} />}
+                {/* AI Proposal Review — viewable by admins and decision
+                    reviewers; only admins can trigger a new run. */}
+                {(isAdmin() ||
+                  (getPortalSession()?.role || "").toLowerCase() === "decision_reviewer") && (
+                  <AiReviewPanel ticket={ticket} canRun={isAdmin()} />
+                )}
 
                 {/* Author Question — prominent DR response panel (any state) */}
                 {hasOpenQuery && openQuery && (
