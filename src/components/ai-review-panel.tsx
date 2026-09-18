@@ -24,12 +24,11 @@ const STATUS_STYLE: Record<string, { label: string; className: string }> = {
 
 // Publisher integrity acceptability buckets for the Stage 3
 // hallucination_score (0-10, higher = more trustworthy).
-function hallucinationMeta(score: number): { label: string; className: string } {
-  if (score >= 10) return { label: "Acceptable", className: "border-emerald-200 bg-emerald-50 text-emerald-900" };
-  if (score >= 7)
-    return { label: "Conditionally Acceptable", className: "border-amber-200 bg-amber-50 text-amber-900" };
-  if (score >= 4) return { label: "Borderline", className: "border-orange-200 bg-orange-50 text-orange-900" };
-  return { label: "Not Acceptable", className: "border-red-200 bg-red-50 text-red-900" };
+function hallucinationLabel(score: number): string {
+  if (score >= 10) return "Acceptable";
+  if (score >= 7) return "Conditionally Acceptable";
+  if (score >= 4) return "Borderline";
+  return "Not Acceptable";
 }
 
 export function AiReviewPanel({ ticket }: { ticket: string }) {
@@ -126,23 +125,19 @@ export function AiReviewPanel({ ticket }: { ticket: string }) {
               {review.final_score != null ? Number(review.final_score).toFixed(1) : "—"} / 10
             </span>
           </div>
-          {review.hallucination_score != null &&
-            (() => {
-              const meta = hallucinationMeta(Number(review.hallucination_score));
-              return (
-                <div
-                  className={`inline-flex items-center gap-3 rounded-xl border px-4 py-2.5 ${meta.className}`}
-                >
-                  <span className="font-sans text-xs font-semibold uppercase tracking-wider">
-                    Hallucination Score
-                  </span>
-                  <span className="font-sans text-lg font-bold">
-                    {Number(review.hallucination_score).toFixed(1)} / 10
-                  </span>
-                  <span className="font-sans text-xs font-medium">{meta.label}</span>
-                </div>
-              );
-            })()}
+          {review.hallucination_score != null && (
+            <div className="inline-flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5">
+              <span className="font-sans text-xs font-semibold uppercase tracking-wider text-emerald-800">
+                Hallucination Score
+              </span>
+              <span className="font-sans text-lg font-bold text-emerald-900">
+                {Number(review.hallucination_score).toFixed(1)} / 10
+              </span>
+              <span className="font-sans text-xs font-medium text-emerald-800">
+                {hallucinationLabel(Number(review.hallucination_score))}
+              </span>
+            </div>
+          )}
           {review.report_url && (
             <a
               href={review.report_url}
