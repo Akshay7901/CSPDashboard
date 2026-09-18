@@ -134,7 +134,7 @@ export function AiReviewPanel({ ticket }: { ticket: string }) {
                   className={`inline-flex items-center gap-3 rounded-xl border px-4 py-2.5 ${meta.className}`}
                 >
                   <span className="font-sans text-xs font-semibold uppercase tracking-wider">
-                    Integrity
+                    Hallucination Score
                   </span>
                   <span className="font-sans text-lg font-bold">
                     {Number(review.hallucination_score).toFixed(1)} / 10
