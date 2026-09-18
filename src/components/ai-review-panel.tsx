@@ -22,6 +22,16 @@ const STATUS_STYLE: Record<string, { label: string; className: string }> = {
   failed: { label: "Failed", className: "bg-red-50 text-red-700 border-red-200" },
 };
 
+// Publisher integrity acceptability buckets for the Stage 3
+// hallucination_score (0-10, higher = more trustworthy).
+function hallucinationMeta(score: number): { label: string; className: string } {
+  if (score >= 10) return { label: "Acceptable", className: "border-emerald-200 bg-emerald-50 text-emerald-900" };
+  if (score >= 7)
+    return { label: "Conditionally Acceptable", className: "border-amber-200 bg-amber-50 text-amber-900" };
+  if (score >= 4) return { label: "Borderline", className: "border-orange-200 bg-orange-50 text-orange-900" };
+  return { label: "Not Acceptable", className: "border-red-200 bg-red-50 text-red-900" };
+}
+
 export function AiReviewPanel({ ticket }: { ticket: string }) {
   const [review, setReview] = useState<AiReview>({ status: "not_run" });
   const [loading, setLoading] = useState(true);
@@ -63,7 +73,13 @@ export function AiReviewPanel({ ticket }: { ticket: string }) {
       await runAiReview(ticket);
       // Clear previous score/report while the new review runs so the UI
       // doesn't show stale results from an earlier run.
-      setReview({ status: "pending", final_score: null, report_url: null, error_message: null });
+      setReview({
+        status: "pending",
+        final_score: null,
+        hallucination_score: null,
+        report_url: null,
+        error_message: null,
+      });
       toast.success("AI review started");
       void load();
     } catch (err) {
@@ -110,6 +126,23 @@ export function AiReviewPanel({ ticket }: { ticket: string }) {
               {review.final_score != null ? Number(review.final_score).toFixed(1) : "—"} / 10
             </span>
           </div>
+          {review.hallucination_score != null &&
+            (() => {
+              const meta = hallucinationMeta(Number(review.hallucination_score));
+              return (
+                <div
+                  className={`inline-flex items-center gap-3 rounded-xl border px-4 py-2.5 ${meta.className}`}
+                >
+                  <span className="font-sans text-xs font-semibold uppercase tracking-wider">
+                    Integrity
+                  </span>
+                  <span className="font-sans text-lg font-bold">
+                    {Number(review.hallucination_score).toFixed(1)} / 10
+                  </span>
+                  <span className="font-sans text-xs font-medium">{meta.label}</span>
+                </div>
+              );
+            })()}
           {review.report_url && (
             <a
               href={review.report_url}

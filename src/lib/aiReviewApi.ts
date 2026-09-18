@@ -7,6 +7,10 @@ export type AiReviewStatus = "not_run" | "pending" | "running" | "completed" | "
 export type AiReview = {
   status: AiReviewStatus | string;
   final_score?: number | null;
+  // Publisher integrity acceptability score from Stage 3 (reference/citation
+  // authenticity check). Null for reviews where Stage 3 didn't run (a
+  // handful of early reviews) and while status is pending/running.
+  hallucination_score?: number | null;
   triggered_by?: string | null;
   completed_at?: string | null;
   report_url?: string | null;
