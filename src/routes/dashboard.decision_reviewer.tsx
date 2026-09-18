@@ -598,11 +598,26 @@ function DecisionReviewerDashboard() {
         }
         return;
       }
+      // Rebuilding the list (initial load, the 5-minute silent refresh, or
+      // the terminal-status patch below) remaps every row from scratch,
+      // which defaults aiScore back to null — carry forward any score a
+      // row already has in state so a refresh doesn't blank the column
+      // while scores are re-fetched in the background.
+      const withPreservedScores = (rows: ProposalRow[]) =>
+        setApiProposals((prev) => {
+          const prevScores = new Map(prev.map((p) => [p.id, p.aiScore]));
+          return rows.map((r) =>
+            r.aiScore == null && prevScores.get(r.id) != null
+              ? { ...r, aiScore: prevScores.get(r.id) }
+              : r,
+          );
+        });
+
       // Render immediately with whatever the default (authoritative) list
       // already gave us — don't make the user wait for the terminal-status
       // backfill or AI scores just to see a table on screen.
       const initialRows = Array.from(merged.values()).map(mapApiProposal);
-      setApiProposals(initialRows);
+      withPreservedScores(initialRows);
       setStatusSummary((defaultBody.status_summary as Record<string, number>) || {});
       if (!silent) setProposalsLoading(false);
 
@@ -646,7 +661,7 @@ function DecisionReviewerDashboard() {
       const rows = Array.from(merged.values()).map(mapApiProposal);
       // Patch in any terminal-status proposals (declined/signed/etc) the
       // default list omitted, once the backfill resolves.
-      if (addedTerminal) setApiProposals(rows);
+      if (addedTerminal) withPreservedScores(rows);
       await aiScorePromise;
       if (checkIsAdmin() && addedTerminal) {
         // Only the rows the backfill newly added need scores — everything
