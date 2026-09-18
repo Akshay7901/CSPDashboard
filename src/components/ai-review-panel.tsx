@@ -15,6 +15,7 @@ import { getAiReview, runAiReview, type AiReview } from "@/lib/aiReviewApi";
 import { formatDate } from "@/lib/proposals";
 
 const STATUS_STYLE: Record<string, { label: string; className: string }> = {
+  loading: { label: "Loading…", className: "bg-stone-100 text-stone-500 border-stone-200" },
   not_run: { label: "Not Run", className: "bg-stone-100 text-stone-700 border-stone-200" },
   pending: { label: "Pending", className: "bg-amber-50 text-amber-800 border-amber-200" },
   running: { label: "Running", className: "bg-sky-50 text-sky-800 border-sky-200" },
@@ -98,7 +99,10 @@ export function AiReviewPanel({
     }
   };
 
-  const meta = STATUS_STYLE[status] ?? STATUS_STYLE.not_run;
+  // Don't report "Not Run" (the pre-fetch default) while the first load is
+  // still in flight — that flashed a wrong status for however long the
+  // request took, then flipped to the real one once it resolved.
+  const meta = loading ? STATUS_STYLE.loading : (STATUS_STYLE[status] ?? STATUS_STYLE.not_run);
 
   return (
     <section className="rounded-2xl border border-stone-200 bg-white px-6 py-5">
@@ -109,7 +113,7 @@ export function AiReviewPanel({
           <span
             className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-sans text-xs font-medium ${meta.className}`}
           >
-            {status === "running" ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
+            {loading || status === "running" ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
             {meta.label}
           </span>
         </div>
