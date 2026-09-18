@@ -642,15 +642,14 @@ function DecisionReviewerDashboard() {
       // Start AI scores immediately, in parallel with the terminal-status
       // backfill below — they don't depend on it, and previously sat queued
       // behind that whole (often slow, multi-page) fetch before a single
-      // request even went out.
-      const aiScorePromise = checkIsAdmin()
-        ? fetchAiScores(
-            initialRows.map((r) => r.id),
-            updateAiScore,
-          ).catch(() => {
-            // Non-fatal: AI scores are a dashboard convenience only.
-          })
-        : Promise.resolve();
+      // request even went out. GET /ai-review is available to every viewer
+      // of this page (admin and decision_reviewer alike).
+      const aiScorePromise = fetchAiScores(
+        initialRows.map((r) => r.id),
+        updateAiScore,
+      ).catch(() => {
+        // Non-fatal: AI scores are a dashboard convenience only.
+      });
 
       const extraLists = await mapWithConcurrency(ALL_API_STATUSES, 5, async (status) => {
         try {
@@ -676,7 +675,7 @@ function DecisionReviewerDashboard() {
       // default list omitted, once the backfill resolves.
       if (addedTerminal) withPreservedScores(rows);
       await aiScorePromise;
-      if (checkIsAdmin() && addedTerminal) {
+      if (addedTerminal) {
         // Only the rows the backfill newly added need scores — everything
         // else was already covered by the parallel fetch started above.
         const initialIds = new Set(initialRows.map((r) => r.id));
@@ -1208,16 +1207,14 @@ function DecisionReviewerDashboard() {
         {/* Table */}
         <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
           <div
-            className={`hidden items-center gap-6 border-b border-stone-200 bg-stone-50/60 px-6 py-3 font-sans text-xs font-semibold uppercase tracking-wider text-[#7A6A5A] md:grid ${
-              isAdmin ? "grid-cols-[1.7fr_1.1fr_0.8fr_0.8fr_0.9fr_1.6fr_100px]" : "grid-cols-[2.2fr_1.3fr_1fr_1fr_1.1fr_100px]"
-            }`}
+            className="hidden items-center gap-6 border-b border-stone-200 bg-stone-50/60 px-6 py-3 font-sans text-xs font-semibold uppercase tracking-wider text-[#7A6A5A] md:grid grid-cols-[1.7fr_1.1fr_0.8fr_0.8fr_0.9fr_1.6fr_100px]"
           >
             <HeaderCell label="Title" />
             <HeaderCell label="Author" />
             <HeaderCell label="Country" />
             <HeaderCell label="Submitted" active sort={sort === "newest" ? "desc" : "asc"} />
             <HeaderCell label="Status" />
-            {isAdmin && <HeaderCell label="AI Score" />}
+            <HeaderCell label="AI Score" />
             <div />
           </div>
 
@@ -1227,11 +1224,7 @@ function DecisionReviewerDashboard() {
               return (
                 <li
                   key={p.id}
-                  className={`relative grid grid-cols-1 items-center gap-6 border-b border-stone-100 px-6 py-5 last:border-b-0 ${
-                    isAdmin
-                      ? "md:grid-cols-[1.7fr_1.1fr_0.8fr_0.8fr_0.9fr_1.6fr_100px]"
-                      : "md:grid-cols-[2.2fr_1.3fr_1fr_1fr_1.1fr_100px]"
-                  }`}
+                  className="relative grid grid-cols-1 items-center gap-6 border-b border-stone-100 px-6 py-5 last:border-b-0 md:grid-cols-[1.7fr_1.1fr_0.8fr_0.8fr_0.9fr_1.6fr_100px]"
                 >
                   <span
                     className={`absolute left-0 top-0 h-full w-1.5 ${meta.rowBar}`}
@@ -1303,22 +1296,20 @@ function DecisionReviewerDashboard() {
                       )}
                     </span>
                   </div>
-                  {isAdmin && (
-                    <div className="flex flex-col items-start gap-1 font-sans text-sm text-[#7A6A5A]">
-                      {p.aiScore != null ? (
-                        <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-emerald-50 px-2.5 py-1 font-sans text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200">
-                          {p.aiScore.toFixed(1)} / 10
-                        </span>
-                      ) : (
-                        <span className="font-sans text-xs text-stone-400">—</span>
-                      )}
-                      {p.hallucinationScore != null && (
-                        <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-emerald-50 px-2.5 py-1 font-sans text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200">
-                          Hallucination {p.hallucinationScore.toFixed(1)} / 10
-                        </span>
-                      )}
-                    </div>
-                  )}
+                  <div className="flex flex-col items-start gap-1 font-sans text-sm text-[#7A6A5A]">
+                    {p.aiScore != null ? (
+                      <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-emerald-50 px-2.5 py-1 font-sans text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200">
+                        {p.aiScore.toFixed(1)} / 10
+                      </span>
+                    ) : (
+                      <span className="font-sans text-xs text-stone-400">—</span>
+                    )}
+                    {p.hallucinationScore != null && (
+                      <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-emerald-50 px-2.5 py-1 font-sans text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200">
+                        Hallucination {p.hallucinationScore.toFixed(1)} / 10
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-4 justify-self-end">
                     <Link
                       to="/dashboard/proposal/$ticket"
