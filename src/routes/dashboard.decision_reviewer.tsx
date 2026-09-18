@@ -36,7 +36,7 @@ import {
 } from "@/lib/proofreaderApi";
 import { ChangePasswordButton } from "@/components/change-password-dialog";
 import { getDefaultReviewerEmail, setDefaultReviewerEmail } from "@/lib/defaultReviewer";
-import { fetchAiScores } from "@/lib/aiReviewApi";
+import { fetchAiScores, type AiScoreResult } from "@/lib/aiReviewApi";
 
 type PeerReviewer = {
   id: number;
@@ -107,6 +107,7 @@ type ProposalRow = {
   currentReviewerEmail?: string;
   currentReviewerStatus?: string;
   aiScore?: number | null;
+  hallucinationScore?: number | null;
   isResubmission?: boolean;
 };
 
@@ -221,6 +222,7 @@ const mapApiProposal = (p: ApiProposal): ProposalRow => {
     currentReviewerEmail: activeAssign?.reviewer_email,
     currentReviewerStatus: activeAssign?.peer_reviewer_status || activeAssign?.display_status,
     aiScore: null,
+    hallucinationScore: null,
     isResubmission: p.is_resubmission === true,
   };
 };
@@ -600,17 +602,24 @@ function DecisionReviewerDashboard() {
       }
       // Rebuilding the list (initial load, the 5-minute silent refresh, or
       // the terminal-status patch below) remaps every row from scratch,
-      // which defaults aiScore back to null — carry forward any score a
-      // row already has in state so a refresh doesn't blank the column
-      // while scores are re-fetched in the background.
+      // which defaults aiScore/hallucinationScore back to null — carry
+      // forward any score a row already has in state so a refresh doesn't
+      // blank the column while scores are re-fetched in the background.
       const withPreservedScores = (rows: ProposalRow[]) =>
         setApiProposals((prev) => {
-          const prevScores = new Map(prev.map((p) => [p.id, p.aiScore]));
-          return rows.map((r) =>
-            r.aiScore == null && prevScores.get(r.id) != null
-              ? { ...r, aiScore: prevScores.get(r.id) }
-              : r,
-          );
+          const prevScores = new Map(prev.map((p) => [p.id, p]));
+          return rows.map((r) => {
+            const prevRow = prevScores.get(r.id);
+            if (!prevRow) return r;
+            return {
+              ...r,
+              aiScore: r.aiScore == null && prevRow.aiScore != null ? prevRow.aiScore : r.aiScore,
+              hallucinationScore:
+                r.hallucinationScore == null && prevRow.hallucinationScore != null
+                  ? prevRow.hallucinationScore
+                  : r.hallucinationScore,
+            };
+          });
         });
 
       // Render immediately with whatever the default (authoritative) list
@@ -621,9 +630,13 @@ function DecisionReviewerDashboard() {
       setStatusSummary((defaultBody.status_summary as Record<string, number>) || {});
       if (!silent) setProposalsLoading(false);
 
-      const updateAiScore = (ticket: string, score: number | null) => {
+      const updateAiScore = (ticket: string, result: AiScoreResult) => {
         setApiProposals((prev) =>
-          prev.map((row) => (row.id === ticket ? { ...row, aiScore: score } : row)),
+          prev.map((row) =>
+            row.id === ticket
+              ? { ...row, aiScore: result.score, hallucinationScore: result.hallucinationScore }
+              : row,
+          ),
         );
       };
       // Start AI scores immediately, in parallel with the terminal-status
@@ -737,7 +750,16 @@ function DecisionReviewerDashboard() {
         for (const updated of updates) {
           if (!updated) continue;
           const existing = byId.get(updated.id);
-          byId.set(updated.id, existing ? { ...updated, aiScore: existing.aiScore } : updated);
+          byId.set(
+            updated.id,
+            existing
+              ? {
+                  ...updated,
+                  aiScore: existing.aiScore,
+                  hallucinationScore: existing.hallucinationScore,
+                }
+              : updated,
+          );
         }
         return Array.from(byId.values());
       });
@@ -1187,7 +1209,7 @@ function DecisionReviewerDashboard() {
         <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
           <div
             className={`hidden items-center gap-6 border-b border-stone-200 bg-stone-50/60 px-6 py-3 font-sans text-xs font-semibold uppercase tracking-wider text-[#7A6A5A] md:grid ${
-              isAdmin ? "grid-cols-[2fr_1.2fr_0.9fr_0.9fr_1fr_1fr_100px]" : "grid-cols-[2.2fr_1.3fr_1fr_1fr_1.1fr_100px]"
+              isAdmin ? "grid-cols-[1.7fr_1.1fr_0.8fr_0.8fr_0.9fr_1.6fr_100px]" : "grid-cols-[2.2fr_1.3fr_1fr_1fr_1.1fr_100px]"
             }`}
           >
             <HeaderCell label="Title" />
@@ -1207,7 +1229,7 @@ function DecisionReviewerDashboard() {
                   key={p.id}
                   className={`relative grid grid-cols-1 items-center gap-6 border-b border-stone-100 px-6 py-5 last:border-b-0 ${
                     isAdmin
-                      ? "md:grid-cols-[2fr_1.2fr_0.9fr_0.9fr_1fr_1fr_100px]"
+                      ? "md:grid-cols-[1.7fr_1.1fr_0.8fr_0.8fr_0.9fr_1.6fr_100px]"
                       : "md:grid-cols-[2.2fr_1.3fr_1fr_1fr_1.1fr_100px]"
                   }`}
                 >
@@ -1282,13 +1304,18 @@ function DecisionReviewerDashboard() {
                     </span>
                   </div>
                   {isAdmin && (
-                    <div className="font-sans text-sm text-[#7A6A5A]">
+                    <div className="flex flex-col items-start gap-1 font-sans text-sm text-[#7A6A5A]">
                       {p.aiScore != null ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 font-sans text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200">
+                        <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-emerald-50 px-2.5 py-1 font-sans text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200">
                           {p.aiScore.toFixed(1)} / 10
                         </span>
                       ) : (
                         <span className="font-sans text-xs text-stone-400">—</span>
+                      )}
+                      {p.hallucinationScore != null && (
+                        <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-emerald-50 px-2.5 py-1 font-sans text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200">
+                          Hallucination {p.hallucinationScore.toFixed(1)} / 10
+                        </span>
                       )}
                     </div>
                   )}
