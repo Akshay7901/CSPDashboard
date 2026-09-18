@@ -1207,7 +1207,7 @@ function DecisionReviewerDashboard() {
         {/* Table */}
         <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
           <div
-            className="hidden items-center gap-6 border-b border-stone-200 bg-stone-50/60 px-6 py-3 font-sans text-xs font-semibold uppercase tracking-wider text-[#7A6A5A] md:grid grid-cols-[1.7fr_1.1fr_0.8fr_0.8fr_0.9fr_1.6fr_100px]"
+            className="hidden items-center gap-6 border-b border-stone-200 bg-stone-50/60 px-6 py-3 font-sans text-xs font-semibold uppercase tracking-wider text-[#7A6A5A] md:grid grid-cols-[1.5fr_1fr_0.7fr_0.7fr_0.8fr_0.9fr_1.1fr_100px]"
           >
             <HeaderCell label="Title" />
             <HeaderCell label="Author" />
@@ -1215,6 +1215,7 @@ function DecisionReviewerDashboard() {
             <HeaderCell label="Submitted" active sort={sort === "newest" ? "desc" : "asc"} />
             <HeaderCell label="Status" />
             <HeaderCell label="AI Score" />
+            <HeaderCell label="Hallucination Score" />
             <div />
           </div>
 
@@ -1224,7 +1225,7 @@ function DecisionReviewerDashboard() {
               return (
                 <li
                   key={p.id}
-                  className="relative grid grid-cols-1 items-center gap-6 border-b border-stone-100 px-6 py-5 last:border-b-0 md:grid-cols-[1.7fr_1.1fr_0.8fr_0.8fr_0.9fr_1.6fr_100px]"
+                  className="relative grid grid-cols-1 items-center gap-6 border-b border-stone-100 px-6 py-5 last:border-b-0 md:grid-cols-[1.5fr_1fr_0.7fr_0.7fr_0.8fr_0.9fr_1.1fr_100px]"
                 >
                   <span
                     className={`absolute left-0 top-0 h-full w-1.5 ${meta.rowBar}`}
@@ -1296,7 +1297,7 @@ function DecisionReviewerDashboard() {
                       )}
                     </span>
                   </div>
-                  <div className="flex flex-col items-start gap-1 font-sans text-sm text-[#7A6A5A]">
+                  <div className="font-sans text-sm text-[#7A6A5A]">
                     {p.aiScore != null ? (
                       <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-emerald-50 px-2.5 py-1 font-sans text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200">
                         {p.aiScore.toFixed(1)} / 10
@@ -1304,10 +1305,14 @@ function DecisionReviewerDashboard() {
                     ) : (
                       <span className="font-sans text-xs text-stone-400">—</span>
                     )}
-                    {p.hallucinationScore != null && (
+                  </div>
+                  <div className="font-sans text-sm text-[#7A6A5A]">
+                    {p.hallucinationScore != null ? (
                       <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-emerald-50 px-2.5 py-1 font-sans text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200">
-                        Hallucination {p.hallucinationScore.toFixed(1)} / 10
+                        {p.hallucinationScore.toFixed(1)} / 10
                       </span>
+                    ) : (
+                      <span className="font-sans text-xs text-stone-400">—</span>
                     )}
                   </div>
                   <div className="flex items-center gap-4 justify-self-end">
