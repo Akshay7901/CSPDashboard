@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, CheckCircle2, Loader2, Lock, LogOut, Save, Send } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Loader2, Lock, LogOut, Save, Send, Menu } from "lucide-react";
 import { toast } from "sonner";
 import cspLogo from "@/assets/csp-logo.png";
 import { getPortalSession, portalLogout } from "@/lib/auth";
@@ -130,6 +130,7 @@ function ProofreaderProposalPage() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [values, setValues] = useState<Record<FieldKey, string>>({ ...EMPTY });
   const [notes, setNotes] = useState("");
   const [metadataStatus, setMetadataStatus] = useState<string>("draft");
@@ -317,7 +318,8 @@ function ProofreaderProposalPage() {
             <span className="mx-2 h-5 w-px bg-stone-300" />
             <span className="font-sans text-base text-stone-700">Proofreader Portal</span>
           </div>
-          <div className="flex items-center gap-3">
+          {/* Desktop: full account row */}
+          <div className="hidden items-center gap-3 sm:flex">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-violet-100 font-sans text-xs font-semibold text-violet-700">
               {initialsFromName(displayName)}
             </div>
@@ -331,6 +333,46 @@ function ProofreaderProposalPage() {
               <LogOut className="h-4 w-4" />
               Logout
             </button>
+          </div>
+
+          {/* Mobile: collapse account actions behind a menu button */}
+          <div className="relative sm:hidden">
+            <button
+              type="button"
+              onClick={() => setUserMenuOpen((v) => !v)}
+              aria-label="Account menu"
+              aria-expanded={userMenuOpen}
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 text-stone-800 hover:bg-stone-50"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            {userMenuOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setUserMenuOpen(false)}
+                  aria-hidden="true"
+                />
+                <div className="absolute right-0 top-full z-50 mt-2 w-60 rounded-xl border border-stone-200 bg-white p-3 shadow-lg">
+                  <div className="flex items-center gap-2 px-1 pb-2">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-violet-100 font-sans text-xs font-semibold text-violet-700">
+                      {initialsFromName(displayName)}
+                    </div>
+                    <span className="font-sans text-sm font-medium text-stone-800">{displayName}</span>
+                  </div>
+                  <div className="border-t border-stone-100 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => void onLogout()}
+                      className="mt-1 flex w-full items-center gap-1.5 rounded-lg px-2 py-2 font-sans text-sm text-stone-600 hover:bg-stone-50 hover:text-stone-900"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </header>

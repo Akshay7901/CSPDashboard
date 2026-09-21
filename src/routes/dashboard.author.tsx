@@ -22,7 +22,7 @@ import { getContract } from "@/lib/contractsApi";
 import { mapWithConcurrency } from "@/lib/utils";
 import { ContractQueries } from "@/components/contract-queries";
 import { MetadataQueries } from "@/components/metadata-queries";
-import { MessageSquare, ChevronDown } from "lucide-react";
+import { MessageSquare, ChevronDown, Menu } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard/author")({
   head: () => ({ meta: [{ title: "Author Portal — My Proposals" }] }),
@@ -513,6 +513,7 @@ function AuthorDashboard() {
   const [activePill, setActivePill] = useState<PillKey | null>(null);
   const [authorEmail, setAuthorEmail] = useState<string>("");
   const [authorName, setAuthorName] = useState<string>("");
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [myProposals, setMyProposals] = useState<LocalProposalWithInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -822,7 +823,8 @@ function AuthorDashboard() {
               <span className="font-sans text-sm font-medium text-portal-author">Author Portal</span>
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          {/* Desktop: full account row */}
+          <div className="hidden items-center gap-4 sm:flex">
             <div className="flex items-center gap-2">
               <span className="grid h-9 w-9 place-items-center rounded-full bg-orange-100 text-sm font-semibold text-orange-700">
                 {initials}
@@ -841,6 +843,50 @@ function AuthorDashboard() {
             <button onClick={onLogout} className="font-sans text-sm text-text-muted transition-colors hover:text-text">
               Logout
             </button>
+          </div>
+
+          {/* Mobile: collapse account actions behind a menu button */}
+          <div className="relative sm:hidden">
+            <button
+              type="button"
+              onClick={() => setUserMenuOpen((v) => !v)}
+              aria-label="Account menu"
+              aria-expanded={userMenuOpen}
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 text-text hover:bg-stone-50"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            {userMenuOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setUserMenuOpen(false)}
+                  aria-hidden="true"
+                />
+                <div className="absolute right-0 top-full z-50 mt-2 w-60 rounded-xl border border-stone-200 bg-white p-3 shadow-lg">
+                  <div className="flex items-center gap-2 px-1 pb-2">
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-orange-100 text-sm font-semibold text-orange-700">
+                      {initials}
+                    </span>
+                    <span className="font-sans text-sm text-text">{displayName}</span>
+                  </div>
+                  <div className="border-t border-stone-100 pt-2" onClick={() => setUserMenuOpen(false)}>
+                    <ChangePasswordButton
+                      triggerClassName="flex w-full items-center gap-1.5 rounded-lg px-2 py-2 font-sans text-sm text-text-muted hover:bg-stone-50 hover:text-text"
+                    />
+                    <ChangeEmailButton
+                      triggerClassName="mt-1 flex w-full items-center gap-1.5 rounded-lg px-2 py-2 font-sans text-sm text-text-muted hover:bg-stone-50 hover:text-text"
+                    />
+                    <button
+                      onClick={onLogout}
+                      className="mt-1 flex w-full items-center gap-1.5 rounded-lg px-2 py-2 font-sans text-sm text-text-muted hover:bg-stone-50 hover:text-text"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
         <div className="h-[3px] bg-orange-500/80" />

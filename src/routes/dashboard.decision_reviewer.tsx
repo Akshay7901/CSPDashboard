@@ -13,6 +13,7 @@ import {
   History,
   UserCog,
   Lock,
+  Menu,
 } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
 import { portalLogout, getPortalSession, getPortalToken, isAdmin as checkIsAdmin } from "@/lib/auth";
@@ -335,6 +336,7 @@ function DecisionReviewerDashboard() {
     setDefaultReviewerEmailState(getDefaultReviewerEmail());
   }, []);
   const [userName, setUserName] = useState<string>("");
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<TabKey>("all");
   const [search, setSearch] = useState("");
   const [field, setField] = useState<
@@ -1194,7 +1196,8 @@ function DecisionReviewerDashboard() {
             <span className="mx-2 h-5 w-px bg-stone-300" />
             <span className="font-sans text-sm font-medium text-[#00422F]">Editor Portal</span>
           </div>
-          <div className="flex items-center gap-3">
+          {/* Desktop: full account row */}
+          <div className="hidden items-center gap-3 sm:flex">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#00422F] font-sans text-xs font-bold text-white">
               {initialsFromName(displayName)}
             </div>
@@ -1212,6 +1215,49 @@ function DecisionReviewerDashboard() {
               <LogOut className="h-4 w-4" />
               Logout
             </button>
+          </div>
+
+          {/* Mobile: collapse account actions behind a menu button */}
+          <div className="relative sm:hidden">
+            <button
+              type="button"
+              onClick={() => setUserMenuOpen((v) => !v)}
+              aria-label="Account menu"
+              aria-expanded={userMenuOpen}
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 text-[#2C1A0E] hover:bg-stone-50"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            {userMenuOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setUserMenuOpen(false)}
+                  aria-hidden="true"
+                />
+                <div className="absolute right-0 top-full z-50 mt-2 w-60 rounded-xl border border-stone-200 bg-white p-3 shadow-lg">
+                  <div className="flex items-center gap-2 px-1 pb-2">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#00422F] font-sans text-xs font-bold text-white">
+                      {initialsFromName(displayName)}
+                    </div>
+                    <span className="font-sans text-sm text-[#2C1A0E]">{displayName}</span>
+                  </div>
+                  <div className="border-t border-stone-100 pt-2" onClick={() => setUserMenuOpen(false)}>
+                    <ChangePasswordButton
+                      triggerClassName="flex w-full items-center gap-1.5 rounded-lg px-2 py-2 font-sans text-sm text-[#7A6A5A] hover:bg-stone-50 hover:text-[#2C1A0E]"
+                    />
+                    <button
+                      type="button"
+                      onClick={onLogout}
+                      className="mt-1 flex w-full items-center gap-1.5 rounded-lg px-2 py-2 font-sans text-sm text-[#7A6A5A] hover:bg-stone-50 hover:text-[#2C1A0E]"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </header>

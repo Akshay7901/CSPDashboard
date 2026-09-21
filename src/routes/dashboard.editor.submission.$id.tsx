@@ -15,6 +15,7 @@ import {
   Edit3,
   ChevronDown,
   Plus,
+  Menu,
 } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
 import { portalLogout, getPortalSession } from "@/lib/auth";
@@ -60,6 +61,7 @@ function SubmissionDetail() {
   const { proposal } = Route.useLoaderData() as { proposal: Proposal };
   const navigate = useNavigate();
   const [userEmail, setUserEmail] = useState("");
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notes, setNotes] = useState("");
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
@@ -324,7 +326,8 @@ function SubmissionDetail() {
             <span className="mx-2 h-5 w-px bg-stone-300" />
             <span className="font-sans text-base text-stone-700">Editor Portal</span>
           </div>
-          <div className="flex items-center gap-3">
+          {/* Desktop: full account row */}
+          <div className="hidden items-center gap-3 sm:flex">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0E3D2F] font-sans text-xs font-semibold text-white">
               {initialsFromName(displayName)}
             </div>
@@ -338,6 +341,46 @@ function SubmissionDetail() {
               <LogOut className="h-4 w-4" />
               Logout
             </button>
+          </div>
+
+          {/* Mobile: collapse account actions behind a menu button */}
+          <div className="relative sm:hidden">
+            <button
+              type="button"
+              onClick={() => setUserMenuOpen((v) => !v)}
+              aria-label="Account menu"
+              aria-expanded={userMenuOpen}
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 text-stone-800 hover:bg-stone-50"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            {userMenuOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setUserMenuOpen(false)}
+                  aria-hidden="true"
+                />
+                <div className="absolute right-0 top-full z-50 mt-2 w-60 rounded-xl border border-stone-200 bg-white p-3 shadow-lg">
+                  <div className="flex items-center gap-2 px-1 pb-2">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0E3D2F] font-sans text-xs font-semibold text-white">
+                      {initialsFromName(displayName)}
+                    </div>
+                    <span className="font-sans text-sm font-medium text-stone-800">{displayName}</span>
+                  </div>
+                  <div className="border-t border-stone-100 pt-2">
+                    <button
+                      type="button"
+                      onClick={onLogout}
+                      className="mt-1 flex w-full items-center gap-1.5 rounded-lg px-2 py-2 font-sans text-sm text-stone-600 hover:bg-stone-50 hover:text-stone-900"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </header>
