@@ -1328,10 +1328,8 @@ function DecisionReviewerDashboard() {
           </div>
         </div>
 
-        <p className="mb-3 font-sans text-sm text-stone-600">{filtered.length} proposals</p>
-
         {/* Table */}
-        <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
+        <div className="mt-4 overflow-hidden rounded-2xl border border-stone-200 bg-white">
           <div
             className="hidden items-center gap-6 border-b border-stone-200 bg-stone-50/60 px-6 py-3 font-sans text-xs font-semibold uppercase tracking-wider text-[#7A6A5A] md:grid grid-cols-[1.5fr_1fr_0.7fr_0.7fr_0.8fr_0.9fr_1.1fr_100px]"
           >
