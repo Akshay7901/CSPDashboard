@@ -141,8 +141,14 @@ const API_STATUSES_BY_KEY: Record<StatusKey, string[]> = {
   approved: [],
   declined: ["declined"],
 };
-const ALL_API_STATUSES = Array.from(
-  new Set(Object.values(API_STATUSES_BY_KEY).flat()),
+// Only statuses the default (unfiltered) list omits need a dedicated
+// backfill fetch — that's just the terminal ones (declined / signed).
+// Every other status here (new, in_review, awaiting_more_info, etc.) is
+// already returned by the default list, so re-fetching all of them on
+// every load was pure waste: ~8 extra fully-paginated requests, including
+// re-pulling everything under "new" (hundreds of rows) a second time.
+const TERMINAL_API_STATUSES = Array.from(
+  new Set([...API_STATUSES_BY_KEY.signed, ...API_STATUSES_BY_KEY.declined]),
 );
 
 // Normalize a free-form display_status string (e.g. "Review Returned",
@@ -651,7 +657,7 @@ function DecisionReviewerDashboard() {
         // Non-fatal: AI scores are a dashboard convenience only.
       });
 
-      const extraLists = await mapWithConcurrency(ALL_API_STATUSES, 5, async (status) => {
+      const extraLists = await mapWithConcurrency(TERMINAL_API_STATUSES, 5, async (status) => {
         try {
           const { proposals } = await fetchAllPages(
             `?sort_order=desc&status=${encodeURIComponent(status)}`,
