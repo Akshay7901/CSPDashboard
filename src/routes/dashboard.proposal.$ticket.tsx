@@ -2385,7 +2385,7 @@ function ProposalDetailPage() {
           })()
         : null}
 
-      <main className="mx-auto w-full max-w-6xl px-6 py-8">
+      <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
         <Link
           to="/dashboard/decision_reviewer"
           className="inline-flex items-center gap-1.5 font-sans text-sm font-medium text-[#0E3D2F] hover:underline"

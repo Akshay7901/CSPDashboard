@@ -335,7 +335,7 @@ function ProofreaderProposalPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-6 py-8">
+      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
         <Link
           to="/dashboard/proofreader"
           className="inline-flex items-center gap-1.5 font-sans text-sm text-[#7A6A5A] hover:text-stone-900"

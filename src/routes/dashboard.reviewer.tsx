@@ -426,7 +426,7 @@ function ReviewerDashboard() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-6 py-10">
+      <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
         {/* Heading */}
         <div className="mb-8">
           <h1 className="font-serif text-3xl font-bold tracking-tight text-[#2C1A0E]">

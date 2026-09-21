@@ -240,7 +240,7 @@ function EditorDashboard() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-8 py-10">
+      <main className="mx-auto max-w-7xl px-4 py-10 sm:px-8">
         <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="font-serif text-4xl font-bold tracking-tight text-stone-900">

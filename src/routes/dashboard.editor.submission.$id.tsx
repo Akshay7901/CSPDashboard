@@ -342,7 +342,7 @@ function SubmissionDetail() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-8 py-8">
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-8">
         <Link
           to="/dashboard/editor"
           className="inline-flex items-center gap-1.5 font-sans text-sm font-medium text-[#0E3D2F] hover:underline"

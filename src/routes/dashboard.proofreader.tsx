@@ -189,7 +189,7 @@ function ProofreaderDashboard() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-6 py-10">
+      <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="font-serif text-3xl font-bold tracking-tight text-[#2C1A0E]">
