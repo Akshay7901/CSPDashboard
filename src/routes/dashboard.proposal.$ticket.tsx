@@ -49,6 +49,7 @@ import { portalLogout, getPortalSession, getPortalToken, isAdmin } from "@/lib/a
 import { deleteCoverImage as apiDeleteCoverImage } from "@/lib/metadataApi";
 import { formatDate, initialsFromName, displayNameFromEmail, getStatusMeta } from "@/lib/proposals";
 import { proposalApiFetch, API_BASE_URL } from "@/lib/proposalApi";
+import { getCached, setCached } from "@/lib/pageCache";
 import { getDefaultReviewerEmail } from "@/lib/defaultReviewer";
 import {
   listInternalNotes,
@@ -572,8 +573,13 @@ function ProposalDetailPage() {
   const navigate = useNavigate();
   const [userEmail, setUserEmail] = useState("");
   const [userName, setUserName] = useState("");
-  const [data, setData] = useState<ProposalDetail | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Seed from cache so revisiting a proposal you've already opened this
+  // session renders immediately instead of blanking out — a background
+  // fetch still runs and replaces this with the fresh copy.
+  const [data, setData] = useState<ProposalDetail | null>(() =>
+    getCached<ProposalDetail>(`proposal:${ticket}`) ?? null,
+  );
+  const [loading, setLoading] = useState(() => !getCached<ProposalDetail>(`proposal:${ticket}`));
   const [error, setError] = useState<string | null>(null);
   const [locking, setLocking] = useState(false);
   const [lockConfirmOpen, setLockConfirmOpen] = useState(false);
@@ -1291,6 +1297,14 @@ function ProposalDetailPage() {
 
   useEffect(() => {
     let cancelled = false;
+    // If the router reuses this component across a ticket change (rather
+    // than remounting), the lazy useState seed above won't run again — sync
+    // to whatever's cached for the *new* ticket here instead, so switching
+    // straight from one previously-viewed proposal to another still shows
+    // cached data immediately rather than the previous ticket's data.
+    const cachedForTicket = getCached<ProposalDetail>(`proposal:${ticket}`);
+    setData(cachedForTicket ?? null);
+    setLoading(!cachedForTicket);
     const run = async () => {
       setLoading(true);
       setError(null);
@@ -1308,7 +1322,9 @@ function ProposalDetailPage() {
           setError((body.error as string) || `Failed to load proposal (${res.status}).`);
           return;
         }
-        setData(body as unknown as ProposalDetail);
+        const detail = body as unknown as ProposalDetail;
+        setData(detail);
+        setCached(`proposal:${ticket}`, detail);
       } catch {
         if (!cancelled) setError("Network error. Please try again.");
       } finally {
@@ -2378,16 +2394,16 @@ function ProposalDetailPage() {
           Back to dashboard
         </Link>
 
-        {loading && (
+        {loading && !data && (
           <p className="mt-10 text-center font-sans text-sm text-stone-500">
             Loading proposal details…
           </p>
         )}
-        {error && !loading && (
+        {error && !loading && !data && (
           <p className="mt-10 text-center font-sans text-sm text-red-600">{error}</p>
         )}
 
-        {data && !loading && (
+        {data && (
           <>
             {isProofreaderPhase && (
               <div className="mt-6 rounded-2xl border border-purple-200 bg-purple-50 px-6 py-5">

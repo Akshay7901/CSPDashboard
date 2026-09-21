@@ -37,6 +37,7 @@ import {
 import { ChangePasswordButton } from "@/components/change-password-dialog";
 import { getDefaultReviewerEmail, setDefaultReviewerEmail } from "@/lib/defaultReviewer";
 import { fetchAiScores, type AiScoreResult } from "@/lib/aiReviewApi";
+import { getCached, setCached } from "@/lib/pageCache";
 
 type PeerReviewer = {
   id: number;
@@ -150,6 +151,9 @@ const API_STATUSES_BY_KEY: Record<StatusKey, string[]> = {
 const TERMINAL_API_STATUSES = Array.from(
   new Set([...API_STATUSES_BY_KEY.signed, ...API_STATUSES_BY_KEY.declined]),
 );
+
+const PROPOSAL_LIST_CACHE_KEY = "decision-reviewer-proposal-list";
+const STATUS_SUMMARY_CACHE_KEY = "decision-reviewer-status-summary";
 
 // Normalize a free-form display_status string (e.g. "Review Returned",
 // "Contract Issued") to our local StatusKey so the badge style + filter
@@ -339,10 +343,17 @@ function DecisionReviewerDashboard() {
   const [sort, setSort] = useState<"newest" | "oldest">("newest");
   const [statusOverrides, setStatusOverrides] = useState<Record<string, StatusKey>>({});
   const [assignedProposalIds, setAssignedProposalIds] = useState<Set<string>>(new Set());
-  const [apiProposals, setApiProposals] = useState<ProposalRow[]>([]);
+  // Seed from cache so returning to this page (e.g. Back from a proposal)
+  // shows the previous list instantly instead of an empty table while the
+  // full fetch (list + backfill + AI scores) runs again in the background.
+  const [apiProposals, setApiProposals] = useState<ProposalRow[]>(
+    () => getCached<ProposalRow[]>(PROPOSAL_LIST_CACHE_KEY) ?? [],
+  );
   const [proposalsLoading, setProposalsLoading] = useState(false);
   const [proposalsError, setProposalsError] = useState<string | null>(null);
-  const [statusSummary, setStatusSummary] = useState<Record<string, number>>({});
+  const [statusSummary, setStatusSummary] = useState<Record<string, number>>(
+    () => getCached<Record<string, number>>(STATUS_SUMMARY_CACHE_KEY) ?? {},
+  );
   const [reviewersOpen, setReviewersOpen] = useState(false);
   const [reviewers, setReviewers] = useState<PeerReviewer[]>([]);
   const [reviewersLoading, setReviewersLoading] = useState(false);
@@ -702,6 +713,18 @@ function DecisionReviewerDashboard() {
     fetchProposals();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Keep the cache in sync with whatever's on screen (including AI scores
+  // streaming in) so the next visit to this page seeds from the latest
+  // state, not just whatever was cached at initial load.
+  useEffect(() => {
+    if (apiProposals.length) setCached(PROPOSAL_LIST_CACHE_KEY, apiProposals);
+  }, [apiProposals]);
+  useEffect(() => {
+    if (Object.keys(statusSummary).length) {
+      setCached(STATUS_SUMMARY_CACHE_KEY, statusSummary);
+    }
+  }, [statusSummary]);
 
   useEffect(() => {
     const id = window.setInterval(() => {
