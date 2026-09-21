@@ -2288,7 +2288,7 @@ function ProposalDetailPage() {
           </div>
 
           {/* Mobile: collapse account actions behind a menu button */}
-          <div className="relative sm:hidden">
+          <div className="relative ml-auto sm:hidden">
             <button
               type="button"
               onClick={() => setUserMenuOpen((v) => !v)}
