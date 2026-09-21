@@ -570,6 +570,16 @@ function DecisionReviewerDashboard() {
     fetchReviewers();
   }, []);
 
+  // Guards the AI-score fan-out (one request per proposal, ~500+ of them)
+  // against overlapping with itself. fetchProposals has no cancellation, so
+  // if a full sweep takes longer than the 5-minute silent-refresh interval
+  // (easily possible at that request count), the next refresh used to start
+  // a second full sweep on top of the still-running first one — doubling
+  // request volume and hitting the same ticket's /ai-review from two
+  // generations at once, which is exactly what showed up as repeated calls
+  // for a single ticket in the network log.
+  const aiScoresInFlightRef = useRef(false);
+
   const fetchProposals = async (silent = false) => {
     if (!silent) setProposalsLoading(true);
     if (!silent) setProposalsError(null);
@@ -661,12 +671,18 @@ function DecisionReviewerDashboard() {
       // behind that whole (often slow, multi-page) fetch before a single
       // request even went out. GET /ai-review is available to every viewer
       // of this page (admin and decision_reviewer alike).
-      const aiScorePromise = fetchAiScores(
-        initialRows.map((r) => r.id),
-        updateAiScore,
-      ).catch(() => {
-        // Non-fatal: AI scores are a dashboard convenience only.
-      });
+      const aiScorePromise = aiScoresInFlightRef.current
+        ? Promise.resolve()
+        : (async () => {
+            aiScoresInFlightRef.current = true;
+            try {
+              await fetchAiScores(initialRows.map((r) => r.id), updateAiScore);
+            } catch {
+              // Non-fatal: AI scores are a dashboard convenience only.
+            } finally {
+              aiScoresInFlightRef.current = false;
+            }
+          })();
 
       const extraLists = await mapWithConcurrency(TERMINAL_API_STATUSES, 5, async (status) => {
         try {
@@ -697,10 +713,15 @@ function DecisionReviewerDashboard() {
         // else was already covered by the parallel fetch started above.
         const initialIds = new Set(initialRows.map((r) => r.id));
         const newIds = rows.map((r) => r.id).filter((id) => !initialIds.has(id));
-        if (newIds.length) {
-          fetchAiScores(newIds, updateAiScore).catch(() => {
-            // Non-fatal: AI scores are a dashboard convenience only.
-          });
+        if (newIds.length && !aiScoresInFlightRef.current) {
+          aiScoresInFlightRef.current = true;
+          fetchAiScores(newIds, updateAiScore)
+            .catch(() => {
+              // Non-fatal: AI scores are a dashboard convenience only.
+            })
+            .finally(() => {
+              aiScoresInFlightRef.current = false;
+            });
         }
       }
     } catch {
