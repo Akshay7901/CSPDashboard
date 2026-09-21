@@ -580,6 +580,15 @@ function DecisionReviewerDashboard() {
   // for a single ticket in the network log.
   const aiScoresInFlightRef = useRef(false);
 
+  // Scores arrive one ticket at a time (so the column fills in
+  // progressively instead of all-or-nothing), but applying each one as its
+  // own setApiProposals call means a full re-render of the ~500+ row table
+  // per score — hundreds of renders across a single load. Batch arrivals
+  // that land within a short window into one state update instead; still
+  // feels progressive (updates every ~200ms) without the render storm.
+  const pendingScoreUpdatesRef = useRef<Map<string, AiScoreResult>>(new Map());
+  const scoreFlushTimerRef = useRef<number | null>(null);
+
   const fetchProposals = async (silent = false) => {
     if (!silent) setProposalsLoading(true);
     if (!silent) setProposalsError(null);
@@ -614,10 +623,54 @@ function DecisionReviewerDashboard() {
         return { proposals: all, firstBody };
       };
 
+      // The default (unfiltered) list is the critical path for first paint —
+      // everything else (AI scores, metadata badges, terminal backfill)
+      // waits behind it. Page 0's response carries status_summary.total, so
+      // once we know it, fetch the remaining pages in parallel instead of
+      // one round trip at a time; a ~545-row list is ~6 sequential requests
+      // otherwise. Falls back to the plain sequential fetchAllPages if the
+      // response doesn't include a usable total.
+      const fetchDefaultList = async (
+        base: string,
+      ): Promise<{ proposals: ApiProposal[]; firstBody: Record<string, unknown> }> => {
+        const first = await proposalApiFetch(`${base}&limit=${PAGE}&offset=0`, { headers });
+        if (!first.ok) throw new Error(String(first.status));
+        const firstBody = (await first.json().catch(() => ({}))) as Record<string, unknown>;
+        const firstList = (firstBody.proposals as ApiProposal[]) || [];
+        if (firstList.length < PAGE) return { proposals: firstList, firstBody };
+
+        const summary = firstBody.status_summary as Record<string, number> | undefined;
+        const total = summary ? Number(summary.total) : NaN;
+        if (!Number.isFinite(total) || total <= PAGE) {
+          // No usable total — fall back to the safe sequential path,
+          // reusing page 0 instead of refetching it.
+          const rest = await fetchAllPages(`${base}`);
+          const all = [...firstList, ...rest.proposals.slice(PAGE)];
+          return { proposals: all, firstBody };
+        }
+
+        const totalPages = Math.min(Math.ceil(total / PAGE), MAX_PAGES);
+        const remainingPages = Array.from({ length: Math.max(totalPages - 1, 0) }, (_, i) => i + 1);
+        const rest = await mapWithConcurrency(remainingPages, 6, async (page) => {
+          try {
+            const offset = page * PAGE;
+            const r = await proposalApiFetch(`${base}&limit=${PAGE}&offset=${offset}`, { headers });
+            if (!r.ok) return [] as ApiProposal[];
+            const b = (await r.json().catch(() => ({}))) as Record<string, unknown>;
+            return (b.proposals as ApiProposal[]) || [];
+          } catch {
+            return [] as ApiProposal[];
+          }
+        });
+        const all = [...firstList];
+        for (const list of rest) all.push(...list);
+        return { proposals: all, firstBody };
+      };
+
       let defaultBody: Record<string, unknown> = {};
       const merged = new Map<string, ApiProposal>();
       try {
-        const { proposals, firstBody } = await fetchAllPages("?sort_order=desc");
+        const { proposals, firstBody } = await fetchDefaultList("?sort_order=desc");
         defaultBody = firstBody;
         for (const p of proposals) merged.set(p.ticket_number, p);
       } catch {
@@ -658,13 +711,23 @@ function DecisionReviewerDashboard() {
       if (!silent) setProposalsLoading(false);
 
       const updateAiScore = (ticket: string, result: AiScoreResult) => {
-        setApiProposals((prev) =>
-          prev.map((row) =>
-            row.id === ticket
-              ? { ...row, aiScore: result.score, hallucinationScore: result.hallucinationScore }
-              : row,
-          ),
-        );
+        pendingScoreUpdatesRef.current.set(ticket, result);
+        if (scoreFlushTimerRef.current != null) return;
+        scoreFlushTimerRef.current = window.setTimeout(() => {
+          scoreFlushTimerRef.current = null;
+          const updates = pendingScoreUpdatesRef.current;
+          if (updates.size === 0) return;
+          const batch = new Map(updates);
+          updates.clear();
+          setApiProposals((prev) =>
+            prev.map((row) => {
+              const result = batch.get(row.id);
+              return result
+                ? { ...row, aiScore: result.score, hallucinationScore: result.hallucinationScore }
+                : row;
+            }),
+          );
+        }, 200);
       };
       // Start AI scores immediately, in parallel with the terminal-status
       // backfill below — they don't depend on it, and previously sat queued
