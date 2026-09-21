@@ -1183,7 +1183,7 @@ function DecisionReviewerDashboard() {
     <div className="min-h-screen bg-[#FAF6EE] font-sans text-stone-800">
       {/* Top bar */}
       <header className="border-b border-stone-200 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-8 py-4">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-4 sm:px-8">
           <div className="flex items-center gap-3">
             <Link to="/login" className="flex items-center gap-3">
               <img src={cspLogo} alt="CSP" width={32} height={32} />
@@ -1381,8 +1381,16 @@ function DecisionReviewerDashboard() {
                       {p.authorAffiliation}
                     </p>
                   </div>
-                  <div className="font-sans text-sm text-[#7A6A5A]">{p.country}</div>
                   <div className="font-sans text-sm text-[#7A6A5A]">
+                    <span className="mr-2 font-sans text-[10px] font-semibold uppercase tracking-wider text-[#7A6A5A] md:hidden">
+                      Country:
+                    </span>
+                    {p.country}
+                  </div>
+                  <div className="font-sans text-sm text-[#7A6A5A]">
+                    <span className="mr-2 font-sans text-[10px] font-semibold uppercase tracking-wider text-[#7A6A5A] md:hidden">
+                      Submitted:
+                    </span>
                     {formatDate(p.submittedAt)}
                   </div>
                   <div>
@@ -1422,6 +1430,9 @@ function DecisionReviewerDashboard() {
                     </span>
                   </div>
                   <div className="font-sans text-sm text-[#7A6A5A]">
+                    <span className="mr-2 font-sans text-[10px] font-semibold uppercase tracking-wider text-[#7A6A5A] md:hidden">
+                      AI Score:
+                    </span>
                     {p.aiScore != null ? (
                       <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-emerald-50 px-2.5 py-1 font-sans text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200">
                         {p.aiScore.toFixed(1)} / 10
@@ -1431,6 +1442,9 @@ function DecisionReviewerDashboard() {
                     )}
                   </div>
                   <div className="font-sans text-sm text-[#7A6A5A]">
+                    <span className="mr-2 font-sans text-[10px] font-semibold uppercase tracking-wider text-[#7A6A5A] md:hidden">
+                      Hallucination Score:
+                    </span>
                     {p.hallucinationScore != null ? (
                       <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-emerald-50 px-2.5 py-1 font-sans text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200">
                         {p.hallucinationScore.toFixed(1)} / 10

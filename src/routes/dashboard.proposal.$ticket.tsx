@@ -2257,7 +2257,7 @@ function ProposalDetailPage() {
   return (
     <div className="min-h-screen bg-[#F9F7F2] font-sans text-stone-800">
       <header className="border-b border-stone-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-4 sm:px-6">
           <div className="flex items-center gap-3">
             <Link to="/dashboard/decision_reviewer" className="flex items-center gap-3">
               <img src={cspLogo} alt="CSP" width={32} height={32} />
@@ -2434,10 +2434,10 @@ function ProposalDetailPage() {
                 </div>
               ))}
             {/* Title hero card */}
-            <section className="mt-6 rounded-2xl border border-stone-200 bg-white px-8 py-7">
-              <div className="flex items-start justify-between gap-6">
-                <div>
-                  <h1 className="font-serif text-3xl font-bold leading-tight text-stone-900">
+            <section className="mt-6 rounded-2xl border border-stone-200 bg-white px-4 py-6 sm:px-8 sm:py-7">
+              <div className="flex flex-col items-start gap-4 sm:flex-row sm:justify-between sm:gap-6">
+                <div className="min-w-0">
+                  <h1 className="font-serif text-2xl font-bold leading-tight text-stone-900 sm:text-3xl">
                     {cd.main_title || title}
                   </h1>
                   {cd.sub_title && (
@@ -3370,7 +3370,7 @@ function ProposalDetailPage() {
                               Institutional affiliation and contact
                             </p>
                           </div>
-                          <div className="flex gap-10 font-sans text-sm">
+                          <div className="flex flex-wrap gap-x-6 gap-y-2 font-sans text-sm sm:gap-x-10">
                             {cd.book_type && <Stat label="Type" value={cd.book_type} />}
                             {revisedText(revisionUpdates.word_count, cd.word_count) && (
                               <Stat

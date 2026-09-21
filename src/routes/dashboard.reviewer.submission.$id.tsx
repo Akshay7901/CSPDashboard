@@ -409,7 +409,7 @@ function ReviewerSubmission() {
     <div className="flex min-h-screen flex-col bg-[#FAF6EE] font-sans text-stone-800">
       {/* Header */}
       <header className="sticky top-0 z-20 border-b border-stone-200 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-8 py-4">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-4 sm:px-8">
           <div className="flex items-center gap-3">
             <Link to="/dashboard/reviewer" className="flex items-center gap-3">
               <img src={cspLogo} alt="CSP" width={32} height={32} />
