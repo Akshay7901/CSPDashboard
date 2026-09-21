@@ -940,11 +940,24 @@ function DecisionReviewerDashboard() {
   // Detect proposals with an unresolved author metadata query OR metadata
   // that has been sent to the author and is awaiting approval, so we can
   // badge their status pill on the DR dashboard list.
+  //
+  // This depends on the *set* of relevant ticket ids, not on apiProposals
+  // itself. apiProposals gets a new array reference on every individual AI
+  // score/hallucination score arriving (each of ~500+ proposals updates it
+  // separately as scores stream in) — depending on the raw array here meant
+  // this whole 2-requests-per-proposal batch fetch restarted on every single
+  // one of those score updates, which is what blew request counts up into
+  // the thousands.
+  const relevantMetaTickets = useMemo(
+    () =>
+      apiProposals
+        .filter((p) => ["signed", "contract", "author_approved"].includes(p.status as string))
+        .map((p) => p.id),
+    [apiProposals],
+  );
+  const relevantMetaKey = relevantMetaTickets.join(",");
   useEffect(() => {
-    // Only relevant after the contract is signed / metadata is in play.
-    const relevant = apiProposals.filter((p) =>
-      ["signed", "contract", "author_approved"].includes(p.status as string),
-    );
+    const relevant = relevantMetaTickets;
     if (relevant.length === 0) {
       setOpenMetaQueryTickets((prev) => (prev.size === 0 ? prev : new Set()));
       setPendingMetaApprovalTickets((prev) => (prev.size === 0 ? prev : new Set()));
@@ -964,11 +977,11 @@ function DecisionReviewerDashboard() {
         if (cancelled) return;
         const batch = relevant.slice(i, i + BATCH_SIZE);
         const results = await Promise.all(
-          batch.map(async (p) => {
+          batch.map(async (id) => {
             try {
               const [queriesBody, metaRes] = await Promise.all([
-                getMetadataQueries(p.id),
-                getMetadata(p.id),
+                getMetadataQueries(id),
+                getMetadata(id),
               ]);
               const queries = queriesBody.queries || [];
               const respondedIds = new Set(
@@ -985,9 +998,9 @@ function DecisionReviewerDashboard() {
               const meta = metaRes.data;
               const isPendingApproval =
                 meta?.metadata_status === "sent_to_author" && !meta.approved_at;
-              return { id: p.id, hasOpen, isPendingApproval };
+              return { id, hasOpen, isPendingApproval };
             } catch {
-              return { id: p.id, hasOpen: false, isPendingApproval: false };
+              return { id, hasOpen: false, isPendingApproval: false };
             }
           }),
         );
@@ -1003,7 +1016,7 @@ function DecisionReviewerDashboard() {
     return () => {
       cancelled = true;
     };
-  }, [apiProposals]);
+  }, [relevantMetaKey]);
 
   const counts = useMemo(() => {
     // Counts come from the API's authoritative status_summary (keyed by
