@@ -812,15 +812,18 @@ function AuthorDashboard() {
     <main className="min-h-screen bg-[#FAF6EE] font-sans text-stone-900">
       {/* Header */}
       <header className="border-b border-stone-200 bg-white">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-y-2 px-4 py-4 sm:px-8">
+        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-8">
+        <div className="flex items-center justify-between gap-3 sm:flex-wrap sm:gap-y-2">
           <div className="flex items-center gap-3">
             <img src={cspLogo} alt="CSP" className="h-10 w-10" />
             <div className="flex items-center gap-3">
               <span className="font-serif text-base font-bold text-text">
                 Cambridge Scholars Publishing
               </span>
-              <span className="text-stone-300">|</span>
-              <span className="font-sans text-sm font-medium text-portal-author">Author Portal</span>
+              <span className="hidden text-stone-300 sm:inline">|</span>
+              <span className="hidden font-sans text-sm font-medium text-portal-author sm:inline">
+                Author Portal
+              </span>
             </div>
           </div>
           {/* Desktop: full account row */}
@@ -846,7 +849,7 @@ function AuthorDashboard() {
           </div>
 
           {/* Mobile: collapse account actions behind a menu button */}
-          <div className="relative ml-auto sm:hidden">
+          <div className="relative sm:hidden">
             <button
               type="button"
               onClick={() => setUserMenuOpen((v) => !v)}
@@ -888,6 +891,11 @@ function AuthorDashboard() {
               </>
             )}
           </div>
+        </div>
+        {/* Mobile-only second line: portal name */}
+        <div className="mt-1 sm:hidden">
+          <span className="font-sans text-sm font-medium text-portal-author">Author Portal</span>
+        </div>
         </div>
         <div className="h-[3px] bg-orange-500/80" />
       </header>

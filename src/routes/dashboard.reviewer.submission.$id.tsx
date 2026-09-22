@@ -410,16 +410,19 @@ function ReviewerSubmission() {
     <div className="flex min-h-screen flex-col bg-[#FAF6EE] font-sans text-stone-800">
       {/* Header */}
       <header className="sticky top-0 z-20 border-b border-stone-200 bg-white">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-4 sm:px-8">
+        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-8">
+        <div className="flex items-center justify-between gap-3 sm:flex-wrap sm:gap-x-4 sm:gap-y-2">
           <div className="flex items-center gap-3">
             <Link to="/dashboard/reviewer" className="flex items-center gap-3">
               <img src={cspLogo} alt="CSP" width={32} height={32} />
-              <span className="font-serif text-xl font-bold text-stone-900">
+              <span className="font-serif text-base font-bold text-stone-900 sm:text-xl">
                 Cambridge Scholars Publishing
               </span>
             </Link>
-            <span className="mx-2 h-5 w-px bg-stone-300" />
-            <span className="font-sans text-sm font-medium text-sky-600">Reviewer Portal</span>
+            <span className="mx-2 hidden h-5 w-px bg-stone-300 sm:inline-block" />
+            <span className="hidden font-sans text-sm font-medium text-sky-600 sm:inline">
+              Reviewer Portal
+            </span>
           </div>
           {/* Desktop: full account row */}
           <div className="hidden items-center gap-3 sm:flex">
@@ -441,7 +444,7 @@ function ReviewerSubmission() {
           </div>
 
           {/* Mobile: collapse account actions behind a menu button */}
-          <div className="relative ml-auto sm:hidden">
+          <div className="relative sm:hidden">
             <button
               type="button"
               onClick={() => setUserMenuOpen((v) => !v)}
@@ -481,6 +484,11 @@ function ReviewerSubmission() {
               </>
             )}
           </div>
+        </div>
+        {/* Mobile-only second line: portal name */}
+        <div className="mt-1 sm:hidden">
+          <span className="font-sans text-sm font-medium text-sky-600">Reviewer Portal</span>
+        </div>
         </div>
       </header>
 
