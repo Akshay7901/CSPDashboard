@@ -39,6 +39,7 @@ import { ChangePasswordButton } from "@/components/change-password-dialog";
 import { getDefaultReviewerEmail, setDefaultReviewerEmail } from "@/lib/defaultReviewer";
 import { fetchAiScores, type AiScoreResult } from "@/lib/aiReviewApi";
 import { getCached, setCached } from "@/lib/pageCache";
+import { SubjectFilter } from "@/components/subject-filter";
 
 type PeerReviewer = {
   id: number;
@@ -591,9 +592,26 @@ function DecisionReviewerDashboard() {
   const pendingScoreUpdatesRef = useRef<Map<string, AiScoreResult>>(new Map());
   const scoreFlushTimerRef = useRef<number | null>(null);
 
+  const [subjects, setSubjects] = useState<string[]>([]);
+  const [subjectsLoading, setSubjectsLoading] = useState(false);
+  const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
+  // Ref mirror so fetchProposals (also called from the 5-minute interval)
+  // always reads the current filter rather than a stale closure value.
+  const selectedSubjectsRef = useRef<string[]>([]);
+  const fetchGenRef = useRef(0);
+
   const fetchProposals = async (silent = false) => {
     if (!silent) setProposalsLoading(true);
     if (!silent) setProposalsError(null);
+    // A newer fetch (e.g. the subject filter changing mid-flight) supersedes
+    // this one; results from a superseded run must not overwrite it.
+    const gen = ++fetchGenRef.current;
+    const stale = () => gen !== fetchGenRef.current;
+    // Subject values go back to the API exactly as received (case-sensitive
+    // match); multiple values repeat the param, same as status.
+    const subjectQuery = selectedSubjectsRef.current
+      .map((s) => `&subject=${encodeURIComponent(s)}`)
+      .join("");
     try {
       // Fetch the default list (which carries the authoritative status_summary)
       // plus an explicit request per known status, then merge by ticket so
@@ -672,16 +690,21 @@ function DecisionReviewerDashboard() {
       let defaultBody: Record<string, unknown> = {};
       const merged = new Map<string, ApiProposal>();
       try {
-        const { proposals, firstBody } = await fetchDefaultList("?sort_order=desc");
+        // With a subject filter active, status_summary.total may describe
+        // the unfiltered set, so page sequentially rather than trusting it.
+        const { proposals, firstBody } = subjectQuery
+          ? await fetchAllPages(`?sort_order=desc${subjectQuery}`)
+          : await fetchDefaultList("?sort_order=desc");
         defaultBody = firstBody;
         for (const p of proposals) merged.set(p.ticket_number, p);
       } catch {
-        if (!silent) {
+        if (!silent && !stale()) {
           setProposalsError("Failed to load proposals.");
           setProposalsLoading(false);
         }
         return;
       }
+      if (stale()) return;
       // Rebuilding the list (initial load, the 5-minute silent refresh, or
       // the terminal-status patch below) remaps every row from scratch,
       // which defaults aiScore/hallucinationScore back to null — carry
@@ -692,7 +715,12 @@ function DecisionReviewerDashboard() {
           const prevScores = new Map(prev.map((p) => [p.id, p]));
           return rows.map((r) => {
             const prevRow = prevScores.get(r.id);
-            if (!prevRow) return r;
+            if (!prevRow) {
+              const known = scoreCacheRef.current.get(r.id);
+              return known
+                ? { ...r, aiScore: known.score, hallucinationScore: known.hallucinationScore }
+                : r;
+            }
             return {
               ...r,
               aiScore: r.aiScore == null && prevRow.aiScore != null ? prevRow.aiScore : r.aiScore,
@@ -710,9 +738,10 @@ function DecisionReviewerDashboard() {
       const initialRows = Array.from(merged.values()).map(mapApiProposal);
       withPreservedScores(initialRows);
       setStatusSummary((defaultBody.status_summary as Record<string, number>) || {});
-      if (!silent) setProposalsLoading(false);
+      setProposalsLoading(false);
 
       const updateAiScore = (ticket: string, result: AiScoreResult) => {
+        scoreCacheRef.current.set(ticket, result);
         pendingScoreUpdatesRef.current.set(ticket, result);
         if (scoreFlushTimerRef.current != null) return;
         scoreFlushTimerRef.current = window.setTimeout(() => {
@@ -736,12 +765,17 @@ function DecisionReviewerDashboard() {
       // behind that whole (often slow, multi-page) fetch before a single
       // request even went out. GET /ai-review is available to every viewer
       // of this page (admin and decision_reviewer alike).
+      // The periodic silent refresh re-sweeps everything to pick up changed
+      // scores; a user-triggered load (first load, filter change) only needs
+      // tickets whose score hasn't been fetched yet.
+      const idsToScore = (ids: string[]) =>
+        silent ? ids : ids.filter((id) => !scoreCacheRef.current.has(id));
       const aiScorePromise = aiScoresInFlightRef.current
         ? Promise.resolve()
         : (async () => {
             aiScoresInFlightRef.current = true;
             try {
-              await fetchAiScores(initialRows.map((r) => r.id), updateAiScore);
+              await fetchAiScores(idsToScore(initialRows.map((r) => r.id)), updateAiScore);
             } catch {
               // Non-fatal: AI scores are a dashboard convenience only.
             } finally {
@@ -752,13 +786,14 @@ function DecisionReviewerDashboard() {
       const extraLists = await mapWithConcurrency(TERMINAL_API_STATUSES, 5, async (status) => {
         try {
           const { proposals } = await fetchAllPages(
-            `?sort_order=desc&status=${encodeURIComponent(status)}`,
+            `?sort_order=desc&status=${encodeURIComponent(status)}${subjectQuery}`,
           );
           return proposals;
         } catch {
           return [] as ApiProposal[];
         }
       });
+      if (stale()) return;
       let addedTerminal = false;
       for (const list of extraLists) {
         for (const p of list) {
@@ -777,7 +812,7 @@ function DecisionReviewerDashboard() {
         // Only the rows the backfill newly added need scores — everything
         // else was already covered by the parallel fetch started above.
         const initialIds = new Set(initialRows.map((r) => r.id));
-        const newIds = rows.map((r) => r.id).filter((id) => !initialIds.has(id));
+        const newIds = idsToScore(rows.map((r) => r.id).filter((id) => !initialIds.has(id)));
         if (newIds.length && !aiScoresInFlightRef.current) {
           aiScoresInFlightRef.current = true;
           fetchAiScores(newIds, updateAiScore)
@@ -790,9 +825,45 @@ function DecisionReviewerDashboard() {
         }
       }
     } catch {
-      if (!silent) setProposalsError("Network error. Please try again.");
-      if (!silent) setProposalsLoading(false);
+      if (!silent && !stale()) setProposalsError("Network error. Please try again.");
+      if (!silent && !stale()) setProposalsLoading(false);
     }
+  };
+
+  const scoreCacheRef = useRef<Map<string, AiScoreResult>>(new Map());
+
+  // Subject options: fetched once on load. Values are free-text and go
+  // back to the API verbatim.
+  useEffect(() => {
+    let cancelled = false;
+    setSubjectsLoading(true);
+    (async () => {
+      try {
+        const r = await proposalApiFetch("/subjects", { headers: authHeaders() });
+        if (!r.ok) return;
+        const body = (await r.json().catch(() => ({}))) as { subjects?: unknown };
+        if (!cancelled && Array.isArray(body.subjects)) {
+          setSubjects(body.subjects.filter((s): s is string => typeof s === "string" && !!s));
+        }
+      } catch {
+        // Non-fatal: the filter just has no options.
+      } finally {
+        if (!cancelled) setSubjectsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const onSubjectsChange = (next: string[]) => {
+    setSelectedSubjects(next);
+    selectedSubjectsRef.current = next;
+    // Drop rows from the previous filter immediately (cleared filter can
+    // re-seed from the cached unfiltered list) and refetch with the params.
+    setApiProposals(next.length ? [] : (getCached<ProposalRow[]>(PROPOSAL_LIST_CACHE_KEY) ?? []));
+    aiScoresInFlightRef.current = false;
+    void fetchProposals(false);
   };
 
   useEffect(() => {
@@ -804,13 +875,17 @@ function DecisionReviewerDashboard() {
   // streaming in) so the next visit to this page seeds from the latest
   // state, not just whatever was cached at initial load.
   useEffect(() => {
-    if (apiProposals.length) setCached(PROPOSAL_LIST_CACHE_KEY, apiProposals);
-  }, [apiProposals]);
+    // Only the unfiltered list is cached — a subject-filtered subset must
+    // not seed the next visit's unfiltered view.
+    if (apiProposals.length && selectedSubjects.length === 0) {
+      setCached(PROPOSAL_LIST_CACHE_KEY, apiProposals);
+    }
+  }, [apiProposals, selectedSubjects]);
   useEffect(() => {
-    if (Object.keys(statusSummary).length) {
+    if (Object.keys(statusSummary).length && selectedSubjects.length === 0) {
       setCached(STATUS_SUMMARY_CACHE_KEY, statusSummary);
     }
-  }, [statusSummary]);
+  }, [statusSummary, selectedSubjects]);
 
   useEffect(() => {
     const id = window.setInterval(() => {
@@ -1332,6 +1407,12 @@ function DecisionReviewerDashboard() {
 
         {/* Search row */}
         <div className="mb-4 flex flex-wrap items-center gap-3">
+          <SubjectFilter
+            subjects={subjects}
+            selected={selectedSubjects}
+            onChange={onSubjectsChange}
+            loading={subjectsLoading}
+          />
           <div className="relative">
             <select
               value={field}
