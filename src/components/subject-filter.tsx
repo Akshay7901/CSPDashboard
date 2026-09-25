@@ -54,14 +54,17 @@ export function SubjectFilter({ subjects, selected, onChange, loading }: Props) 
             <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
           </button>
         </PopoverTrigger>
-        <PopoverContent align="start" className="w-[min(22rem,calc(100vw-2rem))] border-stone-200 bg-white p-0">
-          <Command className="bg-white">
+        <PopoverContent
+          align="start"
+          className="w-[min(22rem,calc(100vw-2rem))] border-stone-200 bg-white p-0 text-stone-800"
+        >
+          <Command className="bg-white text-stone-800">
             <CommandInput placeholder="Search subjects..." />
             <CommandList className="max-h-72">
-              <CommandEmpty>
+              <CommandEmpty className="py-6 text-center font-sans text-sm text-stone-500">
                 {loading ? "Loading subjects…" : "No matching subjects."}
               </CommandEmpty>
-              <CommandGroup>
+              <CommandGroup className="text-stone-800">
                 {subjects.map((subject, i) => {
                   const isSelected = selected.includes(subject);
                   return (
@@ -70,7 +73,7 @@ export function SubjectFilter({ subjects, selected, onChange, loading }: Props) 
                       value={`${subject}__${i}`}
                       keywords={[subject]}
                       onSelect={() => toggle(subject)}
-                      className="cursor-pointer items-start gap-2 font-sans text-sm"
+                      className="cursor-pointer items-start gap-2 font-sans text-sm text-stone-800 data-[selected=true]:bg-stone-100 data-[selected=true]:text-stone-900"
                     >
                       <Check
                         className={`mt-0.5 h-4 w-4 shrink-0 ${
