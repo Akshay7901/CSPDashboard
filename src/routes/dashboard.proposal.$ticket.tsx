@@ -3585,21 +3585,20 @@ function ProposalDetailPage() {
                                   ? cvUrl.filename
                                   : undefined) || (cvHref ? filenameFromUrl(cvHref) : undefined);
                               return (
-                                <li
-                                  key={i}
-                                  className="grid grid-cols-1 gap-4 px-7 py-5 sm:grid-cols-5"
-                                >
-                                  <DataField label="Role" value={(c.role as string) || "—"} />
-                                  <DataField label="Name" value={name} />
-                                  <DataField
-                                    label="Email"
-                                    value={(c.email as string) || undefined}
-                                  />
-                                  <DataField
-                                    label="Affiliation"
-                                    value={(c.institution || c.affiliation) as string | undefined}
-                                  />
-                                  <div className="min-w-0">
+                                <li key={i} className="px-7 py-5">
+                                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+                                    <DataField label="Role" value={(c.role as string) || "—"} />
+                                    <DataField label="Name" value={name} />
+                                    <DataField
+                                      label="Email"
+                                      value={(c.email as string) || undefined}
+                                    />
+                                    <DataField
+                                      label="Affiliation"
+                                      value={(c.institution || c.affiliation) as string | undefined}
+                                    />
+                                  </div>
+                                  <div className="mt-4 min-w-0">
                                     <SectionLabel>CV</SectionLabel>
                                     {cvHref ? (
                                       <div className="mt-1.5 flex items-center gap-2">
