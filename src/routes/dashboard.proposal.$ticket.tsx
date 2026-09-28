@@ -257,6 +257,15 @@ function filenameFromUrl(url?: string) {
   return stripUploadPrefix(name);
 }
 
+// last_name is optional and may be "" for both the lead author and
+// co-authors — filter(Boolean) drops it so there's no trailing space.
+function coAuthorName(c: Record<string, unknown>): string {
+  return [c.first_name || c.firstName, c.last_name || c.lastName]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+}
+
 function toProposalDocument(value: unknown, fallbackLabel?: string): ProposalDocument | null {
   if (typeof value === "string" && /^https?:\/\//i.test(value.trim())) {
     const url = value.trim();
@@ -329,6 +338,25 @@ function extractProposalDocuments(currentData: Record<string, unknown>) {
         }
       });
     }
+  }
+
+  // Co-author / co-editor CVs. Proposals submitted before this field
+  // existed return cv_url as {} — toProposalDocument would otherwise treat
+  // the fallback label as a "found" filename and fabricate a linkless
+  // document, so only add one when there's an actual url.
+  const coAuthors = currentData.co_authors;
+  if (Array.isArray(coAuthors)) {
+    coAuthors.forEach((entry, i) => {
+      if (!isRecord(entry)) return;
+      const cvUrl = entry.cv_url;
+      if (!isRecord(cvUrl) || typeof cvUrl.url !== "string" || !cvUrl.url.trim()) return;
+      const name =
+        coAuthorName(entry) || (typeof entry.name === "string" && entry.name) || `Contributor ${i + 1}`;
+      const role = typeof entry.role === "string" && entry.role.trim() ? entry.role.trim() : undefined;
+      const label = `CV — ${name}${role ? ` (${role})` : ""}`;
+      const doc = toProposalDocument(cvUrl, label);
+      if (doc) documents.push({ ...doc, label });
+    });
   }
 
   // A response to a "Supporting Documents" revision request (e.g. a
@@ -3546,16 +3574,20 @@ function ProposalDetailPage() {
                           <ul className="divide-y divide-stone-200">
                             {(rawCd.co_authors as Array<Record<string, unknown>>).map((c, i) => {
                               const name =
-                                [c.firstName || c.first_name, c.lastName || c.last_name]
-                                  .filter(Boolean)
-                                  .join(" ")
-                                  .trim() ||
-                                (c.name as string) ||
-                                `Contributor ${i + 1}`;
+                                coAuthorName(c) || (c.name as string) || `Contributor ${i + 1}`;
+                              const cvUrl = c.cv_url;
+                              const cvHref =
+                                isRecord(cvUrl) && typeof cvUrl.url === "string" && cvUrl.url.trim()
+                                  ? cvUrl.url.trim()
+                                  : undefined;
+                              const cvFilename =
+                                (isRecord(cvUrl) && typeof cvUrl.filename === "string"
+                                  ? cvUrl.filename
+                                  : undefined) || (cvHref ? filenameFromUrl(cvHref) : undefined);
                               return (
                                 <li
                                   key={i}
-                                  className="grid grid-cols-1 gap-4 px-7 py-5 sm:grid-cols-4"
+                                  className="grid grid-cols-1 gap-4 px-7 py-5 sm:grid-cols-5"
                                 >
                                   <DataField label="Role" value={(c.role as string) || "—"} />
                                   <DataField label="Name" value={name} />
@@ -3567,6 +3599,36 @@ function ProposalDetailPage() {
                                     label="Affiliation"
                                     value={(c.institution || c.affiliation) as string | undefined}
                                   />
+                                  <div className="min-w-0">
+                                    <SectionLabel>CV</SectionLabel>
+                                    {cvHref ? (
+                                      <div className="mt-1.5 flex items-center gap-2">
+                                        <a
+                                          href={cvHref}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="truncate font-sans text-sm font-semibold text-stone-900 hover:underline"
+                                          title={cvFilename}
+                                        >
+                                          {cvFilename || "View CV"}
+                                        </a>
+                                        <a
+                                          href={cvHref}
+                                          download={cvFilename}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="shrink-0 rounded-md p-1 text-stone-500 hover:bg-stone-100 hover:text-stone-800"
+                                          title="Download CV"
+                                        >
+                                          <Download className="h-3.5 w-3.5" />
+                                        </a>
+                                      </div>
+                                    ) : (
+                                      <p className="mt-1.5 font-sans text-sm text-stone-400">
+                                        No CV uploaded
+                                      </p>
+                                    )}
+                                  </div>
                                 </li>
                               );
                             })}
