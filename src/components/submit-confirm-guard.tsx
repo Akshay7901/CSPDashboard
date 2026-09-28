@@ -76,8 +76,7 @@ export function SubmitConfirmGuard() {
     setOpen(false);
     if (btn) {
       bypass.add(btn);
-      // Re-dispatch the click so the original handler (and the existing
-      // ButtonClickToaster) run normally.
+      // Re-dispatch the click so the original handler runs normally.
       btn.click();
     }
   };

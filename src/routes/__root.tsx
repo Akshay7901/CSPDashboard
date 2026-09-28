@@ -10,7 +10,6 @@ import {
 
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
-import { ButtonClickToaster } from "@/components/button-click-toaster";
 import { SubmitConfirmGuard } from "@/components/submit-confirm-guard";
 
 function NotFoundComponent() {
@@ -127,7 +126,6 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
-      <ButtonClickToaster />
       <SubmitConfirmGuard />
       <Toaster position="bottom-right" />
     </QueryClientProvider>
