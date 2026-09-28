@@ -3602,6 +3602,19 @@ function ProposalDetailPage() {
                                     <SectionLabel>CV</SectionLabel>
                                     {cvHref ? (
                                       <div className="mt-1.5 flex items-center gap-2">
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            setPreviewDoc({
+                                              url: cvHref,
+                                              filename: cvFilename || "CV",
+                                            })
+                                          }
+                                          className="shrink-0 rounded-md p-1 text-stone-500 hover:bg-stone-100 hover:text-stone-800"
+                                          title="Preview CV"
+                                        >
+                                          <Eye className="h-4 w-4" />
+                                        </button>
                                         <a
                                           href={cvHref}
                                           target="_blank"
@@ -3610,16 +3623,6 @@ function ProposalDetailPage() {
                                           title={cvFilename}
                                         >
                                           {cvFilename || "View CV"}
-                                        </a>
-                                        <a
-                                          href={cvHref}
-                                          download={cvFilename}
-                                          target="_blank"
-                                          rel="noreferrer"
-                                          className="shrink-0 rounded-md p-1 text-stone-500 hover:bg-stone-100 hover:text-stone-800"
-                                          title="Download CV"
-                                        >
-                                          <Download className="h-3.5 w-3.5" />
                                         </a>
                                       </div>
                                     ) : (
