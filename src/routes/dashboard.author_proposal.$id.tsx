@@ -1358,6 +1358,9 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                         (ca.name as string) ||
                         [ca.first_name, ca.last_name].filter(Boolean).join(" ") ||
                         `Co-author ${i + 1}`;
+                      // Proposals submitted before co-author CVs existed return
+                      // cv_url as {} — normalizeFileValue yields null for those.
+                      const cv = normalizeFileValue(ca.cv_url, "CV");
                       return (
                         <div
                           key={i}
@@ -1403,6 +1406,35 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                               >
                                 {String(ca.biography)}
                               </p>
+                            </div>
+                          ) : null}
+                          {cv ? (
+                            <div className="mt-4 min-w-0">
+                              <p
+                                className="font-sans text-xs font-medium"
+                                style={{ color: "#7A6A5A" }}
+                              >
+                                CV
+                              </p>
+                              <div className="mt-0.5 flex items-center gap-2">
+                                <FileText className="h-4 w-4 shrink-0 text-amber-700" />
+                                <span
+                                  className="truncate font-sans text-sm font-medium"
+                                  style={{ color: "#2C1A0E" }}
+                                  title={cv.filename}
+                                >
+                                  {cv.filename}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => setPreviewFile(cv)}
+                                  title="Preview CV"
+                                  aria-label={`Preview CV for ${name}`}
+                                  className="shrink-0 rounded-md p-1.5 text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </button>
+                              </div>
                             </div>
                           ) : null}
                         </div>
