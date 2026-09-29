@@ -92,18 +92,23 @@ export function SetTempPasswordButton({
     }
   };
 
+  const openModal = () => {
+    reset();
+    setOpen(true);
+  };
+
   return (
     <>
       <button
         type="button"
-        onClick={() => {
-          reset();
-          setOpen(true);
-        }}
-        className="inline-flex items-center gap-1 rounded-md border border-stone-200 bg-white px-2 py-1 font-sans text-xs font-semibold text-stone-600 hover:bg-stone-50 hover:text-stone-900"
+        onClick={openModal}
+        className="flex w-full items-start gap-3 rounded-xl border border-stone-200 px-4 py-3 text-left transition-colors hover:border-stone-300 hover:bg-stone-50"
       >
-        <KeyRound className="h-3.5 w-3.5" />
-        Set temporary password
+        <KeyRound className="mt-0.5 h-4 w-4 text-stone-500" />
+        <div>
+          <p className="font-sans text-sm font-semibold text-stone-900">Set temporary password</p>
+          <p className="font-sans text-xs text-stone-500">For authors not receiving login codes</p>
+        </div>
       </button>
 
       <Dialog

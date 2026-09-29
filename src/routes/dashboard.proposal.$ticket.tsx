@@ -3518,32 +3518,9 @@ function ProposalDetailPage() {
                             </p>
                           </div>
                         )}
-                        {tempPasswordSetFor && (
-                          <div className="mx-7 mt-5">
-                            <TempPasswordBanner
-                              email={tempPasswordSetFor}
-                              onDismiss={() => setTempPasswordSetFor(null)}
-                            />
-                          </div>
-                        )}
                         <div className="grid grid-cols-1 gap-6 px-7 py-6 md:grid-cols-3">
                           <DataField label="Name" value={cd.corresponding_author_name} />
-                          {cd.email && isAdmin() ? (
-                            <div className="min-w-0">
-                              <SectionLabel>Email</SectionLabel>
-                              <p className="mt-1.5 break-words font-sans text-sm font-semibold text-stone-900">
-                                {cd.email}
-                              </p>
-                              <div className="mt-2">
-                                <SetTempPasswordButton
-                                  email={cd.email}
-                                  onSuccess={setTempPasswordSetFor}
-                                />
-                              </div>
-                            </div>
-                          ) : (
-                            <DataField label="Email" value={cd.email} />
-                          )}
+                          <DataField label="Email" value={cd.email} />
                           <DataField label="Institution" value={cd.institution} />
                           <DataField label="Country" value={cd.country} />
                           <DataField
@@ -4477,6 +4454,20 @@ function ProposalDetailPage() {
                           <p className="rounded-lg bg-red-50 px-3 py-2 font-sans text-xs text-red-700 ring-1 ring-red-200">
                             {declineError}
                           </p>
+                        )}
+                      </>
+                    )}
+                    {cd.email && isAdmin() && (
+                      <>
+                        <SetTempPasswordButton
+                          email={cd.email}
+                          onSuccess={setTempPasswordSetFor}
+                        />
+                        {tempPasswordSetFor && (
+                          <TempPasswordBanner
+                            email={tempPasswordSetFor}
+                            onDismiss={() => setTempPasswordSetFor(null)}
+                          />
                         )}
                       </>
                     )}
