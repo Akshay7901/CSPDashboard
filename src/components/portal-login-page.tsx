@@ -546,6 +546,27 @@ function PortalLoginForm({ portal, onBack }: { portal: PortalConfig; onBack: () 
             </button>
             {error && <p role="alert" className="text-center font-sans text-xs text-red-300">{error}</p>}
             {info && !error && <p className="text-center font-sans text-xs text-foreground/60">{info}</p>}
+            {/* Some institutional mail servers silently quarantine our codes;
+                an admin can then set a temporary password for the account. */}
+            <div className="border-t border-foreground/10 pt-4 text-center">
+              <p className="font-sans text-xs text-foreground/50">Didn&apos;t receive the code?</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setOtp("");
+                  setPassword("");
+                  setError(null);
+                  setInfo(
+                    "Enter the temporary password shared by Cambridge Scholars. You can change it after logging in.",
+                  );
+                  setStep("password");
+                }}
+                disabled={loading}
+                className="mt-1 font-sans text-sm text-foreground/70 underline-offset-2 transition-colors hover:text-foreground hover:underline disabled:opacity-50"
+              >
+                Log in with a temporary password instead
+              </button>
+            </div>
           </form>
         )}
 
