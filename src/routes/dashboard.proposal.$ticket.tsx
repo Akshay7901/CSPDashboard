@@ -75,6 +75,7 @@ import { ContractQueries } from "@/components/contract-queries";
 import { ContributorsPanel } from "@/components/contributors-panel";
 import { CoAuthorsPanel } from "@/components/co-authors-panel";
 import { BookTypeEditor } from "@/components/book-type-editor";
+import { SetTempPasswordButton, TempPasswordBanner } from "@/components/set-temp-password";
 import { DrInfoRequests } from "@/components/dr-info-requests";
 import {
   fetchRequestInfoUpdates,
@@ -730,6 +731,7 @@ function ProposalDetailPage() {
   const [savingNote, setSavingNote] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
   const [editingNoteText, setEditingNoteText] = useState("");
+  const [tempPasswordSetFor, setTempPasswordSetFor] = useState<string | null>(null);
   const [reviewersOpen, setReviewersOpen] = useState(false);
   const [reviewers, setReviewers] = useState<PeerReviewer[]>([]);
   const [reviewersLoading, setReviewersLoading] = useState(false);
@@ -3516,9 +3518,32 @@ function ProposalDetailPage() {
                             </p>
                           </div>
                         )}
+                        {tempPasswordSetFor && (
+                          <div className="mx-7 mt-5">
+                            <TempPasswordBanner
+                              email={tempPasswordSetFor}
+                              onDismiss={() => setTempPasswordSetFor(null)}
+                            />
+                          </div>
+                        )}
                         <div className="grid grid-cols-1 gap-6 px-7 py-6 md:grid-cols-3">
                           <DataField label="Name" value={cd.corresponding_author_name} />
-                          <DataField label="Email" value={cd.email} />
+                          {cd.email && isAdmin() ? (
+                            <div className="min-w-0">
+                              <SectionLabel>Email</SectionLabel>
+                              <p className="mt-1.5 break-words font-sans text-sm font-semibold text-stone-900">
+                                {cd.email}
+                              </p>
+                              <div className="mt-2">
+                                <SetTempPasswordButton
+                                  email={cd.email}
+                                  onSuccess={setTempPasswordSetFor}
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <DataField label="Email" value={cd.email} />
+                          )}
                           <DataField label="Institution" value={cd.institution} />
                           <DataField label="Country" value={cd.country} />
                           <DataField
