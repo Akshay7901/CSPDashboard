@@ -74,6 +74,7 @@ import { CoSignerLinks } from "@/components/co-signer-links";
 import { ContractQueries } from "@/components/contract-queries";
 import { ContributorsPanel } from "@/components/contributors-panel";
 import { CoAuthorsPanel } from "@/components/co-authors-panel";
+import { BookTypeEditor } from "@/components/book-type-editor";
 import { DrInfoRequests } from "@/components/dr-info-requests";
 import {
   fetchRequestInfoUpdates,
@@ -1503,6 +1504,21 @@ function ProposalDetailPage() {
   const onLogout = async () => {
     await portalLogout();
     navigate({ to: "/login" });
+  };
+
+  const canEditBookType = (() => {
+    const r = (getPortalSession()?.role || "").toLowerCase();
+    return r === "admin" || r === "decision_reviewer";
+  })();
+
+  // Reflect a book-type change locally (and in the page cache) without a refetch.
+  const onBookTypeChanged = (newType: string) => {
+    setData((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, current_data: { ...prev.current_data, book_type: newType } };
+      setCached(`proposal:${ticket}`, next);
+      return next;
+    });
   };
 
   const rawCd = normalizeProposalData((data?.current_data ?? {}) as Record<string, unknown>);
@@ -3448,7 +3464,20 @@ function ProposalDetailPage() {
                             </p>
                           </div>
                           <div className="flex flex-wrap gap-x-6 gap-y-2 font-sans text-sm sm:gap-x-10">
-                            {cd.book_type && <Stat label="Type" value={cd.book_type} />}
+                            {(cd.book_type || canEditBookType) && (
+                              <div className="min-w-0">
+                                <p className="font-sans text-xs uppercase tracking-wide text-stone-500 break-words">
+                                  Type
+                                </p>
+                                <BookTypeEditor
+                                  ticket={ticket}
+                                  value={cd.book_type}
+                                  canEdit={canEditBookType}
+                                  onChanged={onBookTypeChanged}
+                                  className="mt-1 font-sans text-sm font-semibold text-stone-900"
+                                />
+                              </div>
+                            )}
                             {revisedText(revisionUpdates.word_count, cd.word_count) && (
                               <Stat
                                 label="Words"
@@ -4556,7 +4585,20 @@ function ProposalDetailPage() {
                   </div>
                   <dl className="divide-y divide-stone-100 px-6 pb-5 font-sans text-sm">
                     <InfoRow label="Ref" value={data.ticket_number} />
-                    {cd.book_type && <InfoRow label="Type" value={cd.book_type} />}
+                    {(cd.book_type || canEditBookType) && (
+                      <div className="flex items-center justify-between gap-4 py-2.5">
+                        <dt className="font-sans text-sm text-stone-500">Type</dt>
+                        <dd>
+                          <BookTypeEditor
+                            ticket={ticket}
+                            value={cd.book_type}
+                            canEdit={canEditBookType}
+                            onChanged={onBookTypeChanged}
+                            className="font-sans text-sm font-semibold text-stone-900"
+                          />
+                        </dd>
+                      </div>
+                    )}
                     <InfoRow label="Submitted" value={formatDate(data.submitted_at)} />
                     {data.updated_at && (
                       <InfoRow label="Updated" value={formatDate(data.updated_at)} />
