@@ -444,8 +444,32 @@ type InfoRequest = {
     note?: string;
     items?: InfoRequestItem[];
     files?: InfoRequestFile[];
+    co_authors?: unknown[];
   } | null;
 };
+
+// A co-author the author is adding in response to an "Additional Authors /
+// Contributors" revision request.
+type NewCoAuthorRow = {
+  first_name: string;
+  last_name: string;
+  email: string;
+  cv: { url: string; filename: string } | null;
+};
+
+const ADDITIONAL_AUTHORS_KEY = "additional_authors";
+
+const emptyCoAuthorRow = (): NewCoAuthorRow => ({
+  first_name: "",
+  last_name: "",
+  email: "",
+  cv: null,
+});
+
+const isRowStarted = (r: NewCoAuthorRow) =>
+  !!(r.first_name.trim() || r.last_name.trim() || r.email.trim() || r.cv);
+const isRowComplete = (r: NewCoAuthorRow) =>
+  !!(r.first_name.trim() && r.last_name.trim() && /^\S+@\S+\.\S+$/.test(r.email.trim()));
 
 type CurrentData = Record<string, unknown> & {
   main_title?: string;
@@ -621,10 +645,12 @@ function AuthorProposalDetails() {
               const files: InfoRequestFile[] = Array.isArray(obj.files)
                 ? (obj.files as InfoRequestFile[])
                 : [];
+              const draftCoAuthors = (fields as Record<string, unknown> | undefined)?.co_authors;
               return {
                 note: typeof obj.note === "string" ? (obj.note as string) : undefined,
                 items: draftItems,
                 files,
+                co_authors: Array.isArray(draftCoAuthors) ? draftCoAuthors : undefined,
               };
             };
             const mapped: InfoRequest[] = raw.map((r) => {
@@ -1003,7 +1029,11 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
 
   return (
     <>
-      <InfoRequestPanel ticket={proposal.ticket} infoRequests={proposal.infoRequests} />
+      <InfoRequestPanel
+        ticket={proposal.ticket}
+        infoRequests={proposal.infoRequests}
+        existingCoAuthors={Array.isArray(cd.co_authors) ? (cd.co_authors as unknown[]) : undefined}
+      />
       {/* Hero card: title + status pill + stepper */}
       <section
         id="section-hero"
@@ -3534,12 +3564,16 @@ function pickOpenInfoRequest(reqs?: InfoRequest[]): InfoRequest | null {
   return open || null;
 }
 
+const NO_CO_AUTHORS: unknown[] = [];
+
 function InfoRequestPanel({
   ticket,
   infoRequests,
+  existingCoAuthors = NO_CO_AUTHORS,
 }: {
   ticket: string;
   infoRequests?: InfoRequest[];
+  existingCoAuthors?: unknown[];
 }) {
   const req = useMemo(() => pickOpenInfoRequest(infoRequests), [infoRequests]);
   const initialDraft = req?.draft || req?.response || null;
@@ -3569,12 +3603,57 @@ function InfoRequestPanel({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  // A saved draft carries the full co_authors list we sent (existing + new);
+  // restore only the new ones as editable rows.
+  const initialCoAuthorRows = useMemo((): NewCoAuthorRow[] => {
+    const existingEmails = new Set(
+      existingCoAuthors
+        .map((c) =>
+          c && typeof c === "object" ? String((c as Record<string, unknown>).email || "") : "",
+        )
+        .map((e) => e.trim().toLowerCase())
+        .filter(Boolean),
+    );
+    const rows = (initialDraft?.co_authors || [])
+      .filter((c): c is Record<string, unknown> => !!c && typeof c === "object")
+      .filter((c) => !existingEmails.has(String(c.email || "").trim().toLowerCase()))
+      .map((c) => {
+        const cv = c.cv_url as Record<string, unknown> | undefined;
+        const cvUrl = cv && typeof cv.url === "string" && cv.url ? cv.url : "";
+        return {
+          first_name: String(c.first_name || ""),
+          last_name: String(c.last_name || ""),
+          email: String(c.email || ""),
+          cv: cvUrl
+            ? { url: cvUrl, filename: String(cv?.filename || "") || filenameFromUrl(cvUrl) }
+            : null,
+        };
+      });
+    return rows.length > 0 ? rows : [emptyCoAuthorRow()];
+  }, [initialDraft, existingCoAuthors]);
+  const [coAuthorRows, setCoAuthorRows] = useState<NewCoAuthorRow[]>(initialCoAuthorRows);
+  const [uploadingCvRow, setUploadingCvRow] = useState<number | null>(null);
+
   useEffect(() => {
     setItems(initialItems);
     setNote(initialDraft?.note || "");
   }, [initialItems, initialDraft]);
 
+  useEffect(() => {
+    setCoAuthorRows(initialCoAuthorRows);
+  }, [initialCoAuthorRows]);
+
   if (!req) return null;
+
+  const hasCoAuthorItem = items.some((it) => it.key === ADDITIONAL_AUTHORS_KEY);
+  const completeCoAuthorRows = hasCoAuthorItem ? coAuthorRows.filter(isRowComplete) : [];
+  const incompleteCoAuthorRow = hasCoAuthorItem
+    ? coAuthorRows.find((r) => isRowStarted(r) && !isRowComplete(r))
+    : undefined;
+
+  const updateCoAuthorRow = (idx: number, patch: Partial<NewCoAuthorRow>) => {
+    setCoAuthorRows((prev) => prev.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
+  };
 
   const updateItem = (idx: number, text: string) => {
     setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, response_text: text } : it)));
@@ -3588,8 +3667,8 @@ function InfoRequestPanel({
     return h;
   };
 
-  const buildUpdatedFields = (): Record<string, string> => {
-    const fields: Record<string, string> = {};
+  const buildUpdatedFields = (): Record<string, unknown> => {
+    const fields: Record<string, unknown> = {};
     for (const it of items) {
       if (!it.key) continue;
       const upload = uploads[it.key];
@@ -3599,13 +3678,29 @@ function InfoRequestPanel({
       if (upload?.url) fields[it.key] = upload.url;
       else if (text) fields[it.key] = text;
     }
+    // New co-authors are appended to the proposal's existing co_authors list,
+    // in the same shape the editor and author pages already read.
+    if (completeCoAuthorRows.length > 0) {
+      fields.co_authors = [
+        ...existingCoAuthors,
+        ...completeCoAuthorRows.map((r) => ({
+          first_name: r.first_name.trim(),
+          last_name: r.last_name.trim(),
+          email: r.email.trim(),
+          role: "author",
+          cv_url: r.cv ? { url: r.cv.url, filename: r.cv.filename } : {},
+        })),
+      ];
+    }
     return fields;
   };
 
-  const uploadFile = async (fieldKey: string, file: File) => {
-    setError(null);
-    setSuccess(null);
-    setUploadingKey(fieldKey);
+  // Uploads a file against this request; returns the stored file or null
+  // (with the error already shown).
+  const postUpload = async (
+    fieldKey: string,
+    file: File,
+  ): Promise<{ url: string; filename: string } | null> => {
     try {
       const fd = new FormData();
       fd.append("file", file);
@@ -3621,20 +3716,51 @@ function InfoRequestPanel({
         setError(
           (body.error as string) || (body.message as string) || `Upload failed (${res.status}).`,
         );
-        return;
+        return null;
       }
       const url = (body.s3_url as string) || "";
-      const filename = (body.filename as string) || file.name;
-      if (url) {
-        setUploads((prev) => ({ ...prev, [fieldKey]: { url, filename } }));
-        setSuccess(`Uploaded "${filename}".`);
-      }
+      if (!url) return null;
+      return { url, filename: stripUploadPrefix((body.filename as string) || file.name) };
     } catch {
       setError("Network error during upload. Please try again.");
+      return null;
+    }
+  };
+
+  const uploadFile = async (fieldKey: string, file: File) => {
+    setError(null);
+    setSuccess(null);
+    setUploadingKey(fieldKey);
+    try {
+      const uploaded = await postUpload(fieldKey, file);
+      if (uploaded) {
+        setUploads((prev) => ({ ...prev, [fieldKey]: uploaded }));
+        setSuccess(`Uploaded "${uploaded.filename}".`);
+      }
     } finally {
       setUploadingKey(null);
     }
   };
+
+  const uploadCoAuthorCv = async (idx: number, file: File) => {
+    setError(null);
+    setSuccess(null);
+    setUploadingCvRow(idx);
+    try {
+      const uploaded = await postUpload(ADDITIONAL_AUTHORS_KEY, file);
+      if (uploaded) {
+        updateCoAuthorRow(idx, { cv: uploaded });
+        setSuccess(`Uploaded "${uploaded.filename}".`);
+      }
+    } finally {
+      setUploadingCvRow(null);
+    }
+  };
+
+  const coAuthorRowError = () =>
+    incompleteCoAuthorRow
+      ? "Please complete each co-author's first name, last name and a valid email, or remove the row."
+      : null;
 
   const removeUpload = (fieldKey: string) => {
     setUploads((prev) => {
@@ -3645,6 +3771,11 @@ function InfoRequestPanel({
   };
 
   const doSave = async () => {
+    const rowError = coAuthorRowError();
+    if (rowError) {
+      setError(rowError);
+      return;
+    }
     setBusy("save");
     setError(null);
     setSuccess(null);
@@ -3679,6 +3810,11 @@ function InfoRequestPanel({
   };
 
   const doSubmit = async () => {
+    const rowError = coAuthorRowError();
+    if (rowError) {
+      setError(rowError);
+      return;
+    }
     const updated_fields = buildUpdatedFields();
     if (!note.trim() && Object.keys(updated_fields).length === 0) {
       setError(
@@ -3721,9 +3857,11 @@ function InfoRequestPanel({
   const deadline = req.resubmission_deadline || req.deadline;
 
   const totalItems = items.length;
-  const completedItems = items.filter(
-    (it) => (it.key && uploads[it.key]) || (it.response_text || "").trim().length > 0,
-  ).length;
+  const isItemDone = (it: InfoRequestItem) =>
+    (it.key && !!uploads[it.key]) ||
+    (it.response_text || "").trim().length > 0 ||
+    (it.key === ADDITIONAL_AUTHORS_KEY && completeCoAuthorRows.length > 0);
+  const completedItems = items.filter(isItemDone).length;
   const completionPct = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
   return (
@@ -3795,8 +3933,8 @@ function InfoRequestPanel({
         {items.length > 0 && (
           <div className="space-y-8">
             {items.map((it, idx) => {
-              const isDone =
-                (it.key && !!uploads[it.key]) || (it.response_text || "").trim().length > 0;
+              const isDone = isItemDone(it);
+              const isCoAuthorItem = it.key === ADDITIONAL_AUTHORS_KEY;
               const isSupportingDocs =
                 it.key === "supporting_materials" ||
                 /supporting|material|document|file|attachment/i.test(it.label || "");
@@ -3829,14 +3967,128 @@ function InfoRequestPanel({
                         </div>
                       </div>
                     )}
+                    {isCoAuthorItem && (
+                      <div className="space-y-3">
+                        <label className="block font-sans text-xs font-bold uppercase tracking-tight text-stone-500">
+                          Add co-authors
+                        </label>
+                        {coAuthorRows.map((row, rIdx) => (
+                          <div
+                            key={rIdx}
+                            className="space-y-3 rounded-md border border-stone-200 bg-white p-4"
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="font-sans text-xs font-semibold text-stone-600">
+                                Co-author {rIdx + 1}
+                              </p>
+                              {coAuthorRows.length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setCoAuthorRows((prev) => prev.filter((_, i) => i !== rIdx))
+                                  }
+                                  className="inline-flex items-center gap-1 font-sans text-xs font-medium text-stone-500 hover:text-rose-600"
+                                  aria-label={`Remove co-author ${rIdx + 1}`}
+                                >
+                                  <X className="h-3.5 w-3.5" />
+                                  Remove
+                                </button>
+                              )}
+                            </div>
+                            <div className="grid gap-3 sm:grid-cols-2">
+                              <input
+                                value={row.first_name}
+                                onChange={(e) =>
+                                  updateCoAuthorRow(rIdx, { first_name: e.target.value })
+                                }
+                                placeholder="First name *"
+                                className="w-full rounded-md border border-stone-200 bg-white px-3 py-2 font-sans text-sm text-stone-700 placeholder-stone-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-stone-900"
+                              />
+                              <input
+                                value={row.last_name}
+                                onChange={(e) =>
+                                  updateCoAuthorRow(rIdx, { last_name: e.target.value })
+                                }
+                                placeholder="Last name *"
+                                className="w-full rounded-md border border-stone-200 bg-white px-3 py-2 font-sans text-sm text-stone-700 placeholder-stone-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-stone-900"
+                              />
+                              <input
+                                type="email"
+                                value={row.email}
+                                onChange={(e) => updateCoAuthorRow(rIdx, { email: e.target.value })}
+                                placeholder="Email *"
+                                className="w-full rounded-md border border-stone-200 bg-white px-3 py-2 font-sans text-sm text-stone-700 placeholder-stone-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-stone-900 sm:col-span-2"
+                              />
+                            </div>
+                            <div className="flex flex-wrap items-center gap-3">
+                              <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-stone-200 bg-white px-4 py-2 font-sans text-sm font-medium text-stone-600 transition-colors hover:border-stone-300 hover:bg-stone-50">
+                                <Upload className="h-4 w-4 text-stone-400" />
+                                {uploadingCvRow === rIdx
+                                  ? "Uploading…"
+                                  : row.cv
+                                    ? "Replace CV"
+                                    : "Upload CV"}
+                                <input
+                                  type="file"
+                                  accept=".pdf,.doc,.docx"
+                                  className="hidden"
+                                  disabled={uploadingCvRow !== null}
+                                  onChange={(e) => {
+                                    const f = e.target.files?.[0];
+                                    if (f) void uploadCoAuthorCv(rIdx, f);
+                                    e.target.value = "";
+                                  }}
+                                />
+                              </label>
+                              {row.cv ? (
+                                <span className="inline-flex items-center gap-2 rounded-md bg-emerald-50 px-2.5 py-1.5 font-sans text-xs text-emerald-700">
+                                  <Paperclip className="h-3.5 w-3.5" />
+                                  <a
+                                    href={row.cv.url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="underline-offset-2 hover:underline"
+                                  >
+                                    {row.cv.filename}
+                                  </a>
+                                  <button
+                                    type="button"
+                                    onClick={() => updateCoAuthorRow(rIdx, { cv: null })}
+                                    className="text-emerald-700/70 hover:text-rose-600"
+                                    aria-label="Remove CV"
+                                  >
+                                    <X className="h-3.5 w-3.5" />
+                                  </button>
+                                </span>
+                              ) : (
+                                <span className="font-sans text-xs text-stone-400">
+                                  PDF or Word, max 10MB
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => setCoAuthorRows((prev) => [...prev, emptyCoAuthorRow()])}
+                          className="inline-flex items-center gap-1.5 rounded-md border border-dashed border-stone-300 bg-white px-4 py-2 font-sans text-sm font-medium text-stone-600 hover:border-stone-400 hover:bg-stone-50"
+                        >
+                          + Add another co-author
+                        </button>
+                      </div>
+                    )}
                     <div className="space-y-2">
                       <label className="block font-sans text-xs font-bold uppercase tracking-tight text-stone-500">
-                        Your updated text
+                        {isCoAuthorItem ? "Comments (optional)" : "Your updated text"}
                       </label>
                       <textarea
                         value={it.response_text || ""}
                         onChange={(e) => updateItem(idx, e.target.value)}
-                        placeholder="Enter the requested information here…"
+                        placeholder={
+                          isCoAuthorItem
+                            ? "Anything else the editor should know about these co-authors…"
+                            : "Enter the requested information here…"
+                        }
                         rows={4}
                         className="min-h-[120px] w-full rounded-md border border-stone-200 bg-white p-4 font-sans text-sm text-stone-700 placeholder-stone-400 shadow-sm transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-stone-900"
                       />
