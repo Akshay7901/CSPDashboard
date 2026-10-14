@@ -1324,14 +1324,14 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                 )}
                 {revisedText(revisionUpdates.mailing_address, cd.address) && (
                   <div className="mt-6 border-t border-stone-200 pt-5">
-                    <p className="font-sans text-xs uppercase tracking-wide text-stone-500">
+                    <p className="font-sans text-xs font-semibold uppercase tracking-wide text-stone-500">
                       Mailing Address
                       {revisionUpdates.mailing_address?.text && (
                         <UpdatedBadge date={revisionUpdates.mailing_address.respondedAt} />
                       )}
                     </p>
                     <p
-                      className="mt-1.5 font-sans text-sm font-semibold text-stone-900"
+                      className="mt-1.5 font-sans text-sm font-normal text-stone-900"
                     >
                       {revisedText(revisionUpdates.mailing_address, cd.address)}
                     </p>
@@ -1339,7 +1339,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                 )}
                 {revisedText(revisionUpdates.biography, cd.biography) && (
                   <div className="mt-5 border-t border-stone-200 pt-5">
-                    <p className="font-sans text-xs uppercase tracking-wide text-stone-500">
+                    <p className="font-sans text-xs font-semibold uppercase tracking-wide text-stone-500">
                       Biography
                       {revisionUpdates.biography?.text && (
                         <UpdatedBadge date={revisionUpdates.biography.respondedAt} />
@@ -1411,12 +1411,12 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                           {ca.address ? (
                             <div className="mt-4">
                               <p
-                                className="font-sans text-xs uppercase tracking-wide text-stone-500"
+                                className="font-sans text-xs font-semibold uppercase tracking-wide text-stone-500"
                               >
                                 Mailing Address
                               </p>
                               <p
-                                className="mt-1.5 font-sans text-sm font-semibold text-stone-900"
+                                className="mt-1.5 font-sans text-sm font-normal text-stone-900"
                               >
                                 {String(ca.address)}
                               </p>
@@ -1425,7 +1425,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                           {cv ? (
                             <div className="mt-4 min-w-0">
                               <p
-                                className="font-sans text-xs uppercase tracking-wide text-stone-500"
+                                className="font-sans text-xs font-semibold uppercase tracking-wide text-stone-500"
                               >
                                 CV
                               </p>
@@ -1453,7 +1453,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                           {ca.academic_qualification || ca.qualifications ? (
                             <div className="mt-4">
                               <p
-                                className="font-sans text-xs uppercase tracking-wide text-stone-500"
+                                className="font-sans text-xs font-semibold uppercase tracking-wide text-stone-500"
                               >
                                 Academic Qualification
                               </p>
@@ -1467,7 +1467,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                           {ca.biography ? (
                             <div className="mt-4">
                               <p
-                                className="font-sans text-xs uppercase tracking-wide text-stone-500"
+                                className="font-sans text-xs font-semibold uppercase tracking-wide text-stone-500"
                               >
                                 Biography
                               </p>
@@ -1863,11 +1863,11 @@ function StatCard({
 }) {
   return (
     <div className="rounded-2xl border border-stone-200 bg-stone-50/60 px-4 py-4 text-center">
-      <p className="font-sans text-xs uppercase tracking-wide text-stone-500">
+      <p className="font-sans text-xs font-semibold uppercase tracking-wide text-stone-500">
         {label}
         {updated?.text && <UpdatedBadge date={updated.respondedAt} />}
       </p>
-      <p className="mt-1 font-sans text-sm font-bold" style={{ color: "#2C1A0E" }}>
+      <p className="mt-1 font-sans text-sm font-normal text-stone-900">
         {value}
       </p>
     </div>
@@ -2019,7 +2019,7 @@ function DynamicProposalFields({ data }: { data: Record<string, unknown> }) {
       <div className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
         {entries.map(([k, v]) => (
           <div key={k}>
-            <p className="font-sans text-xs uppercase tracking-wide text-stone-500">
+            <p className="font-sans text-xs font-semibold uppercase tracking-wide text-stone-500">
               {humanizeKey(k)}
             </p>
             <div
@@ -2063,11 +2063,11 @@ function MiniStat({
 }) {
   return (
     <div className="min-w-0">
-      <p className="break-words font-sans text-xs uppercase tracking-wide text-stone-500">
+      <p className="break-words font-sans text-xs font-semibold uppercase tracking-wide text-stone-500">
         {label}
         {updated?.text && <UpdatedBadge date={updated.respondedAt} />}
       </p>
-      <p className="mt-1 font-sans text-base font-semibold text-stone-900">{value}</p>
+      <p className="mt-1 font-sans text-base font-normal text-stone-900">{value}</p>
     </div>
   );
 }
@@ -3289,7 +3289,7 @@ function SubCard({
 }) {
   return (
     <div className="-mx-7 border-t border-stone-200 px-7 pt-5 first:border-t-0 first:pt-0">
-      <p className="font-sans text-xs uppercase tracking-wide text-stone-500">
+      <p className="font-sans text-xs font-semibold uppercase tracking-wide text-stone-500">
         {label}
         {updated?.text && <UpdatedBadge date={updated.respondedAt} />}
       </p>
@@ -3303,8 +3303,8 @@ function SubCard({
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">
-      <p className="font-sans text-xs uppercase tracking-wide text-stone-500">{label}</p>
-      <p className="mt-1.5 break-words font-sans text-sm font-semibold text-stone-900">{value}</p>
+      <p className="font-sans text-xs font-semibold uppercase tracking-wide text-stone-500">{label}</p>
+      <p className="mt-1.5 break-words font-sans text-sm font-normal text-stone-900">{value}</p>
     </div>
   );
 }

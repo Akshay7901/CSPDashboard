@@ -3472,7 +3472,7 @@ function ProposalDetailPage() {
                           <div className="flex flex-wrap gap-x-6 gap-y-2 font-sans text-sm sm:gap-x-10">
                             {(cd.book_type || canEditBookType) && (
                               <div className="min-w-0">
-                                <p className="font-sans text-xs uppercase tracking-wide text-stone-500 break-words">
+                                <p className="font-sans text-xs font-semibold uppercase tracking-wide text-stone-500 break-words">
                                   Type
                                 </p>
                                 <BookTypeEditor
@@ -3480,7 +3480,7 @@ function ProposalDetailPage() {
                                   value={cd.book_type}
                                   canEdit={canEditBookType}
                                   onChanged={onBookTypeChanged}
-                                  className="mt-1 font-sans text-sm font-semibold text-stone-900"
+                                  className="mt-1 font-sans text-sm font-normal text-stone-900"
                                 />
                               </div>
                             )}
@@ -3656,7 +3656,7 @@ function ProposalDetailPage() {
                                           href={cvHref}
                                           target="_blank"
                                           rel="noreferrer"
-                                          className="truncate font-sans text-sm font-semibold text-stone-900 hover:underline"
+                                          className="truncate font-sans text-sm font-normal text-stone-900 hover:underline"
                                           title={cvFilename}
                                         >
                                           {cvFilename || "View CV"}
@@ -4639,14 +4639,14 @@ function ProposalDetailPage() {
                     )}
                     {(cd.book_type || canEditBookType) && (
                       <div className="flex items-center justify-between gap-4 py-2.5">
-                        <dt className="font-sans text-sm text-stone-500">Type</dt>
+                        <dt className="font-sans text-sm font-semibold text-stone-500">Type</dt>
                         <dd>
                           <BookTypeEditor
                             ticket={ticket}
                             value={cd.book_type}
                             canEdit={canEditBookType}
                             onChanged={onBookTypeChanged}
-                            className="font-sans text-sm font-semibold text-stone-900"
+                            className="font-sans text-sm font-normal text-stone-900"
                           />
                         </dd>
                       </div>
@@ -5704,7 +5704,11 @@ function CardHeader({
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
-  return <p className="font-sans text-xs uppercase tracking-wide text-stone-500">{children}</p>;
+  return (
+    <p className="font-sans text-xs font-semibold uppercase tracking-wide text-stone-500">
+      {children}
+    </p>
+  );
 }
 
 // Prefer a responded revision-request value over the proposal's original
@@ -5743,8 +5747,8 @@ function DataField({
         {updated?.text && <UpdatedBadge date={updated.respondedAt} />}
       </SectionLabel>
       <p
-        className={`mt-1.5 font-sans text-sm font-semibold text-stone-900 break-words ${
-          multiline ? "whitespace-pre-line font-normal text-stone-800 leading-relaxed" : ""
+        className={`mt-1.5 font-sans text-sm font-normal text-stone-900 break-words ${
+          multiline ? "whitespace-pre-line text-stone-800 leading-relaxed" : ""
         }`}
       >
         {value}
@@ -5766,12 +5770,12 @@ function Stat({
 }) {
   return (
     <div className="min-w-0">
-      <p className="font-sans text-xs uppercase tracking-wide text-stone-500 break-words">
+      <p className="font-sans text-xs font-semibold uppercase tracking-wide text-stone-500 break-words">
         {label}
         {updated?.text && <UpdatedBadge date={updated.respondedAt} />}
       </p>
       <p
-        className={`mt-1 font-sans font-semibold text-stone-900 ${large ? "text-base" : "text-sm"}`}
+        className={`mt-1 font-sans font-normal text-stone-900 ${large ? "text-base" : "text-sm"}`}
       >
         {value}
       </p>
@@ -5782,8 +5786,8 @@ function Stat({
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-4 py-2.5">
-      <dt className="font-sans text-sm text-stone-500">{label}</dt>
-      <dd className="font-sans text-sm font-semibold text-stone-900">{value}</dd>
+      <dt className="font-sans text-sm font-semibold text-stone-500">{label}</dt>
+      <dd className="font-sans text-sm font-normal text-stone-900">{value}</dd>
     </div>
   );
 }
