@@ -942,7 +942,8 @@ const ADDITIONAL_DETAILS_SKIP = new Set<string>([
   "main_title", "title", "sub_title", "subtitle", "proposed_title", "proposed_subtitle",
   "book_type", "corresponding_author_name", "author_first_name", "author_last_name",
   "author_title", "email", "secondary_email", "email_2", "phone", "phone_number",
-  "qualifications", "academic_qualifications", "professional_qualifications",
+  "qualifications", "academic_qualification", "academic_qualifications",
+  "professional_qualifications", "estimated_pages", "previously_published",
   "institution", "job_title", "address", "address_line_1", "address_line_2",
   "address_line1", "address_line2", "city", "state", "region", "province", "county",
   "postal_code", "zip", "zip_code", "country",
@@ -1088,6 +1089,14 @@ function ProposalDetails({
       [pick("author_first_name"), pick("author_last_name")].filter(Boolean).join(" ") ||
       undefined,
     email: pick("email"),
+    phone: pick("phone", "phone_number"),
+    job_title: pick("job_title", "author_title"),
+    qualifications: pick(
+      "qualifications",
+      "academic_qualification",
+      "academic_qualifications",
+      "professional_qualifications",
+    ),
     institution: pick("institution"),
     country: pick("country"),
     address: pick("address"),
@@ -1136,6 +1145,8 @@ function ProposalDetails({
     table_of_contents: pick("table_of_contents"),
     subject: pick("subject"),
     website_reference_number: pick("website_reference_number"),
+    estimated_pages: pick("estimated_pages"),
+    source: pick("source"),
   };
 
   const formatNumber = (v: string | undefined): string | undefined => {
@@ -1372,6 +1383,8 @@ function ProposalDetails({
         <div className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
           <Field label="Name" value={cd.corresponding_author_name || "—"} />
           <Field label="Email" value={cd.email || "—"} />
+          {cd.phone && <Field label="Phone" value={cd.phone} />}
+          {cd.job_title && <Field label="Job Title" value={cd.job_title} />}
           <Field label="Institution" value={cd.institution || "—"} />
           <Field label="Country" value={cd.country || "—"} />
         </div>
@@ -1420,8 +1433,8 @@ function ProposalDetails({
           updated={revisionUpdates.biography}
         />
         <Para
-          label="Author Credentials"
-          value={revisedText(revisionUpdates.author_credentials, rawCd.qualifications as string | undefined)}
+          label="Academic Qualification"
+          value={revisedText(revisionUpdates.author_credentials, cd.qualifications)}
           updated={revisionUpdates.author_credentials}
         />
       </Section>
@@ -1438,15 +1451,41 @@ function ProposalDetails({
                   .trim() ||
                 (c.name as string) ||
                 `Contributor ${i + 1}`;
+              const cv = c.cv_url as Record<string, unknown> | undefined;
+              const cvHref = cv && typeof cv.url === "string" && cv.url.trim() ? cv.url.trim() : "";
+              const qualification =
+                ((c.academic_qualification || c.qualifications) as string | undefined) || undefined;
               return (
-                <li key={i} className="grid grid-cols-1 gap-4 py-4 first:pt-0 sm:grid-cols-2">
-                  <Field label="Role" value={(c.role as string) || "—"} />
-                  <Field label="Name" value={name} />
-                  <Field label="Email" value={(c.email as string) || "—"} />
-                  <Field
-                    label="Affiliation"
-                    value={(c.institution as string) || (c.affiliation as string) || "—"}
+                <li key={i} className="py-4 first:pt-0">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <Field label="Role" value={(c.role as string) || "—"} />
+                    <Field label="Name" value={name} />
+                    <Field label="Email" value={(c.email as string) || "—"} />
+                    <Field
+                      label="Affiliation"
+                      value={(c.institution as string) || (c.affiliation as string) || "—"}
+                    />
+                  </div>
+                  <Para label="Academic Qualification" value={qualification} />
+                  <Para
+                    label="Biography"
+                    value={(c.biography as string | undefined) || undefined}
                   />
+                  {cvHref && (
+                    <div className="mt-4">
+                      <div className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-500">
+                        CV
+                      </div>
+                      <a
+                        href={cvHref}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-1.5 inline-block font-sans text-sm font-medium text-stone-900 underline-offset-2 hover:underline"
+                      >
+                        {(typeof cv?.filename === "string" && cv.filename) || "View CV"}
+                      </a>
+                    </div>
+                  )}
                 </li>
               );
             })}
@@ -1504,6 +1543,9 @@ function ProposalDetails({
             updated={revisionUpdates.expected_completion}
           />
           <Field label="Subject" value={cd.subject || "—"} />
+          {cd.estimated_pages && (
+            <Field label="Est. Pages" value={formatNumber(cd.estimated_pages) || cd.estimated_pages} />
+          )}
         </div>
         {(revisedText(revisionUpdates.audience, cd.intended_audience) ||
           cd.manuscript_stage ||
@@ -1788,6 +1830,12 @@ function ProposalDetails({
           <Field label="Type" value={cd.book_type || "—"} />
           <Field label="Submitted" value={formatDate(proposal.submittedAt)} />
           <Field label="Updated" value={formatDate(proposal.updatedAt)} />
+          {cd.source && (
+            <Field
+              label="Source"
+              value={cd.source.charAt(0).toUpperCase() + cd.source.slice(1)}
+            />
+          )}
         </div>
         {proposal.assignments && proposal.assignments.length > 0 && (
           <div className="mt-5 space-y-3">

@@ -964,6 +964,10 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
     }
     return v ? "Yes" : "No";
   };
+  const authorQualification =
+    ((cd.qualifications || cd.academic_qualification || cd.academic_qualifications) as
+      | string
+      | undefined) || undefined;
   const authorFullName =
     cd.corresponding_author_name ||
     [cd.author_title, cd.author_first_name, cd.author_last_name].filter(Boolean).join(" ") ||
@@ -1300,18 +1304,10 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                   {cd.secondary_email && (
                     <Field label="Secondary Email" value={cd.secondary_email} />
                   )}
-                  {revisedText(
-                    revisionUpdates.author_credentials,
-                    cd.qualifications as string | undefined,
-                  ) && (
+                  {revisedText(revisionUpdates.author_credentials, authorQualification) && (
                     <Field
-                      label="Author Credentials"
-                      value={
-                        revisedText(
-                          revisionUpdates.author_credentials,
-                          cd.qualifications as string | undefined,
-                        )!
-                      }
+                      label="Academic Qualification"
+                      value={revisedText(revisionUpdates.author_credentials, authorQualification)!}
                     />
                   )}
                 </div>
@@ -1419,6 +1415,22 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                                 style={{ color: "#2C1A0E" }}
                               >
                                 {String(ca.address)}
+                              </p>
+                            </div>
+                          ) : null}
+                          {ca.academic_qualification || ca.qualifications ? (
+                            <div className="mt-4">
+                              <p
+                                className="font-sans text-xs font-medium"
+                                style={{ color: "#7A6A5A" }}
+                              >
+                                Academic Qualification
+                              </p>
+                              <p
+                                className="mt-0.5 whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed"
+                                style={{ color: "#2C1A0E" }}
+                              >
+                                {String(ca.academic_qualification || ca.qualifications)}
                               </p>
                             </div>
                           ) : null}
@@ -1686,10 +1698,9 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                     value={completionUpdate?.text || completionDate || "—"}
                     updated={completionUpdate}
                   />
-                  <MiniStat
-                    label="Previously published"
-                    value={fmtBool(cd.under_review_elsewhere ?? cd.is_previously_published)}
-                  />
+                  {cd.estimated_pages != null && (
+                    <MiniStat label="Est. Pages" value={String(cd.estimated_pages)} />
+                  )}
                   {cd.permissions_required !== undefined && (
                     <MiniStat
                       label="Permissions Required"
@@ -1888,6 +1899,21 @@ function StatCard({
 // Keys already surfaced by the curated cards above — exclude from the
 // generic "Additional Proposal Information" renderer so we don't duplicate.
 const CONSUMED_CD_KEYS = new Set<string>([
+  "qualifications",
+  "academic_qualification",
+  "academic_qualifications",
+  "professional_qualifications",
+  "author_first_name",
+  "author_last_name",
+  "author_title",
+  "estimated_word_count",
+  "estimated_completion_date",
+  "short_description",
+  "detailed_description",
+  "target_audience",
+  "recommended_reviewers",
+  "estimated_pages",
+  "previously_published",
   "email",
   "secondary_email",
   "address",
