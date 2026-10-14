@@ -1619,7 +1619,6 @@ function ProposalDetailPage() {
     table_of_contents: pick("table_of_contents"),
     subject: pick("subject"),
     estimated_pages: pick("estimated_pages"),
-    is_previously_published: pick("is_previously_published", "previously_published"),
     website_reference_number: pick("website_reference_number"),
     source: pick("source"),
   };
@@ -3763,23 +3762,6 @@ function ProposalDetailPage() {
                           {cd.estimated_pages && (
                             <Stat label="Est. Pages" value={formatNumber(cd.estimated_pages)} large />
                           )}
-                          {cd.has_tables && (
-                            <Stat label="Includes Tables" value={yesNo(cd.has_tables)!} large />
-                          )}
-                          {cd.has_illustrations && (
-                            <Stat
-                              label="Includes Illustrations"
-                              value={yesNo(cd.has_illustrations)!}
-                              large
-                            />
-                          )}
-                          {cd.is_previously_published && (
-                            <Stat
-                              label="Previously Published"
-                              value={yesNo(cd.is_previously_published)!}
-                              large
-                            />
-                          )}
                         </div>
                         {(cd.intended_audience ||
                           cd.manuscript_stage ||
@@ -5804,15 +5786,6 @@ function InfoRow({ label, value }: { label: string; value: string }) {
       <dd className="font-sans text-sm font-semibold text-stone-900">{value}</dd>
     </div>
   );
-}
-
-// Booleans arrive stringified ("true" / "false"); show them as Yes / No.
-function yesNo(s?: string): string | undefined {
-  if (s === undefined) return undefined;
-  const v = s.trim().toLowerCase();
-  if (["true", "yes", "y", "1"].includes(v)) return "Yes";
-  if (["false", "no", "n", "0"].includes(v)) return "No";
-  return s;
 }
 
 function formatNumber(s?: string): string {
