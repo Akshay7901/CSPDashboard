@@ -1569,6 +1569,7 @@ function ProposalDetailPage() {
     job_title: pick("job_title", "author_title"),
     qualifications: pick(
       "qualifications",
+      "academic_qualification",
       "academic_qualifications",
       "professional_qualifications",
     ),
@@ -1617,6 +1618,10 @@ function ProposalDetailPage() {
     permissions_required: pick("permissions_required"),
     table_of_contents: pick("table_of_contents"),
     subject: pick("subject"),
+    estimated_pages: pick("estimated_pages"),
+    is_previously_published: pick("is_previously_published", "previously_published"),
+    website_reference_number: pick("website_reference_number"),
+    source: pick("source"),
   };
   // Prefer the title/subtitle from the most recent contract (the DR may
   // have edited them at /contract/send time); fall back to the proposal's
@@ -3521,6 +3526,8 @@ function ProposalDetailPage() {
                         <div className="grid grid-cols-1 gap-6 px-7 py-6 md:grid-cols-3">
                           <DataField label="Name" value={cd.corresponding_author_name} />
                           <DataField label="Email" value={cd.email} />
+                          <DataField label="Phone" value={cd.phone} />
+                          <DataField label="Job Title" value={cd.job_title} />
                           <DataField label="Institution" value={cd.institution} />
                           <DataField label="Country" value={cd.country} />
                           <DataField
@@ -3662,6 +3669,24 @@ function ProposalDetailPage() {
                                       </p>
                                     )}
                                   </div>
+                                  {!!(c.academic_qualification || c.qualifications || c.biography) && (
+                                    <div className="mt-4 flex flex-col gap-4">
+                                      <DataField
+                                        label="Academic Qualification"
+                                        value={
+                                          ((c.academic_qualification || c.qualifications) as
+                                            | string
+                                            | undefined) || undefined
+                                        }
+                                        multiline
+                                      />
+                                      <DataField
+                                        label="Biography"
+                                        value={(c.biography as string | undefined) || undefined}
+                                        multiline
+                                      />
+                                    </div>
+                                  )}
                                 </li>
                               );
                             })}
@@ -3735,6 +3760,26 @@ function ProposalDetailPage() {
                             large
                           />
                           <Stat label="Subject" value={cd.subject || "—"} large />
+                          {cd.estimated_pages && (
+                            <Stat label="Est. Pages" value={formatNumber(cd.estimated_pages)} large />
+                          )}
+                          {cd.has_tables && (
+                            <Stat label="Includes Tables" value={yesNo(cd.has_tables)!} large />
+                          )}
+                          {cd.has_illustrations && (
+                            <Stat
+                              label="Includes Illustrations"
+                              value={yesNo(cd.has_illustrations)!}
+                              large
+                            />
+                          )}
+                          {cd.is_previously_published && (
+                            <Stat
+                              label="Previously Published"
+                              value={yesNo(cd.is_previously_published)!}
+                              large
+                            />
+                          )}
                         </div>
                         {(cd.intended_audience ||
                           cd.manuscript_stage ||
@@ -4601,6 +4646,15 @@ function ProposalDetailPage() {
                   </div>
                   <dl className="divide-y divide-stone-100 px-6 pb-5 font-sans text-sm">
                     <InfoRow label="Ref" value={data.ticket_number} />
+                    {cd.website_reference_number && (
+                      <InfoRow label="Website Ref" value={cd.website_reference_number} />
+                    )}
+                    {cd.source && (
+                      <InfoRow
+                        label="Source"
+                        value={cd.source.charAt(0).toUpperCase() + cd.source.slice(1)}
+                      />
+                    )}
                     {(cd.book_type || canEditBookType) && (
                       <div className="flex items-center justify-between gap-4 py-2.5">
                         <dt className="font-sans text-sm text-stone-500">Type</dt>
@@ -5750,6 +5804,15 @@ function InfoRow({ label, value }: { label: string; value: string }) {
       <dd className="font-sans text-sm font-semibold text-stone-900">{value}</dd>
     </div>
   );
+}
+
+// Booleans arrive stringified ("true" / "false"); show them as Yes / No.
+function yesNo(s?: string): string | undefined {
+  if (s === undefined) return undefined;
+  const v = s.trim().toLowerCase();
+  if (["true", "yes", "y", "1"].includes(v)) return "Yes";
+  if (["false", "no", "n", "0"].includes(v)) return "No";
+  return s;
 }
 
 function formatNumber(s?: string): string {

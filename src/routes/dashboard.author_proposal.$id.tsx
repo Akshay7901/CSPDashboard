@@ -3614,7 +3614,7 @@ function InfoRequestPanel({
         .map((e) => e.trim().toLowerCase())
         .filter(Boolean),
     );
-    const rows = (initialDraft?.co_authors || [])
+    const rows = (req?.draft?.co_authors || [])
       .filter((c): c is Record<string, unknown> => !!c && typeof c === "object")
       .filter((c) => !existingEmails.has(String(c.email || "").trim().toLowerCase()))
       .map((c) => {
@@ -3630,7 +3630,7 @@ function InfoRequestPanel({
         };
       });
     return rows.length > 0 ? rows : [emptyCoAuthorRow()];
-  }, [initialDraft, existingCoAuthors]);
+  }, [req, existingCoAuthors]);
   const [coAuthorRows, setCoAuthorRows] = useState<NewCoAuthorRow[]>(initialCoAuthorRows);
   const [uploadingCvRow, setUploadingCvRow] = useState<number | null>(null);
 

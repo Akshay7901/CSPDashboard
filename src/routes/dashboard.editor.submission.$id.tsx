@@ -40,7 +40,9 @@ export const Route = createFileRoute("/dashboard/editor/submission/$id")({
   },
   errorComponent: ({ error }) => (
     <div className="min-h-screen bg-[#FAF6EE] p-10 font-sans text-stone-700">
-      <p>Could not load submission: {error.message}</p>
+      <p>
+        Could not load submission: {error instanceof Error ? error.message : String(error)}
+      </p>
       <Link to="/dashboard/editor" className="mt-4 inline-block text-stone-900 underline">
         Back to dashboard
       </Link>
