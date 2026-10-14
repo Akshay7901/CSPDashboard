@@ -39,6 +39,7 @@ import { ContractQueries } from "@/components/contract-queries";
 import { AuthorMetadataPanel } from "@/components/author-metadata-panel";
 import { ContributorsPanel } from "@/components/contributors-panel";
 import { DrInfoRequests } from "@/components/dr-info-requests";
+import { FieldRows, STACKED_ROWS } from "@/components/field-rows";
 import {
   fetchRequestInfoUpdates,
   REVISION_AREAS,
@@ -1295,8 +1296,9 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
             {/* Main content stack (under stats, beside Documents) */}
             <div className="space-y-5">
               {/* Primary author card */}
-              <Card title="Primary Author / Editor" id="section-author">
-                <div className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
+              <Card title="Primary Author / Editor" id="section-author" flush>
+                <div className="divide-y divide-stone-200">
+                <FieldRows cols={2}>
                   <Field label="Name" value={authorFullName} />
                   <Field label="Email" value={cd.email || "—"} />
                   {cd.secondary_email && (
@@ -1312,20 +1314,22 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                       value={revisedText(revisionUpdates.author_credentials, authorQualification)!}
                     />
                   )}
-                </div>
+                </FieldRows>
                 {revisionUpdates.primary_author?.text && (
-                  <div className="mt-6 rounded-lg border border-emerald-200 bg-emerald-50/60 px-4 py-3">
-                    <p className="font-sans text-xs font-semibold text-emerald-800">
-                      Author's revision response
-                      <UpdatedBadge date={revisionUpdates.primary_author.respondedAt} />
-                    </p>
-                    <p className="mt-1 whitespace-pre-wrap font-sans text-sm text-emerald-900">
-                      {revisionUpdates.primary_author.text}
-                    </p>
+                  <div className="px-7 py-5">
+                    <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 px-4 py-3">
+                      <p className="font-sans text-xs font-semibold text-emerald-800">
+                        Author's revision response
+                        <UpdatedBadge date={revisionUpdates.primary_author.respondedAt} />
+                      </p>
+                      <p className="mt-1 whitespace-pre-wrap font-sans text-sm text-emerald-900">
+                        {revisionUpdates.primary_author.text}
+                      </p>
+                    </div>
                   </div>
                 )}
                 {revisedText(revisionUpdates.mailing_address, cd.address) && (
-                  <div className="mt-6 border-t border-stone-200 pt-5">
+                  <div className="px-7 py-5">
                     <p className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
                       Mailing Address
                       {revisionUpdates.mailing_address?.text && (
@@ -1340,7 +1344,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                   </div>
                 )}
                 {revisedText(revisionUpdates.biography, cd.biography) && (
-                  <div className="mt-5 border-t border-stone-200 pt-5">
+                  <div className="px-7 py-5">
                     <p className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
                       Biography
                       {revisionUpdates.biography?.text && (
@@ -1354,6 +1358,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                     </p>
                   </div>
                 )}
+                </div>
               </Card>
 
               {/* Co-authors / Editors — titled to match the editor's view */}
@@ -1370,9 +1375,10 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                       : undefined
                   }
                   id="section-co-authors"
+                  flush
                 >
                   {revisionUpdates.additional_authors?.text && (
-                    <div className="mb-5 rounded-lg border border-emerald-200 bg-emerald-50/60 px-4 py-3">
+                    <div className="mx-7 my-5 rounded-lg border border-emerald-200 bg-emerald-50/60 px-4 py-3">
                       <p className="font-sans text-xs font-semibold text-emerald-800">
                         Author's revision response
                         <UpdatedBadge date={revisionUpdates.additional_authors.respondedAt} />
@@ -1382,7 +1388,11 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                       </p>
                     </div>
                   )}
-                  <div className="space-y-6">
+                  <div
+                    className={`divide-y divide-stone-200 ${
+                      revisionUpdates.additional_authors?.text ? "border-t border-stone-200" : ""
+                    }`}
+                  >
                     {coAuthorsList.map((ca, i) => {
                       const name =
                         (ca.name as string) ||
@@ -1392,11 +1402,8 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                       // cv_url as {} — normalizeFileValue yields null for those.
                       const cv = normalizeFileValue(ca.cv_url, "CV");
                       return (
-                        <div
-                          key={i}
-                          className="border-t border-stone-200 pt-5 first:border-t-0 first:pt-0"
-                        >
-                          <div className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
+                        <div key={i} className="divide-y divide-stone-200">
+                          <FieldRows cols={2}>
                             {ca.role ? <Field label="Role" value={String(ca.role)} /> : null}
                             <Field label="Name" value={String(name)} />
                             {ca.email ? <Field label="Email" value={String(ca.email)} /> : null}
@@ -1409,9 +1416,9 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                             {ca.country ? (
                               <Field label="Country" value={String(ca.country)} />
                             ) : null}
-                          </div>
+                          </FieldRows>
                           {ca.address ? (
-                            <div className="mt-4">
+                            <div className="px-7 py-5">
                               <p
                                 className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black"
                               >
@@ -1425,7 +1432,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                             </div>
                           ) : null}
                           {ca.academic_qualification || ca.qualifications ? (
-                            <div className="mt-4">
+                            <div className="px-7 py-5">
                               <p
                                 className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black"
                               >
@@ -1439,7 +1446,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                             </div>
                           ) : null}
                           {ca.biography ? (
-                            <div className="mt-4">
+                            <div className="px-7 py-5">
                               <p
                                 className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black"
                               >
@@ -1453,7 +1460,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                             </div>
                           ) : null}
                           {cv ? (
-                            <div className="mt-4 min-w-0">
+                            <div className="min-w-0 px-7 py-5">
                               <p
                                 className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black"
                               >
@@ -1487,9 +1494,11 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
               )}
 
               {/* Manuscript Details — same fields and position as the editor's view */}
-              <Card title="Manuscript Details" id="section-manuscript">
+              <Card title="Manuscript Details" id="section-manuscript" flush>
+                <div className="divide-y divide-stone-200">
                 {revisionUpdates.manuscript_details?.text && (
-                  <div className="mb-5 rounded-lg border border-emerald-200 bg-emerald-50/60 px-4 py-3">
+                  <div className="px-7 py-5">
+                  <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 px-4 py-3">
                     <p className="font-sans text-xs font-semibold text-emerald-800">
                       Author's revision response
                       <UpdatedBadge date={revisionUpdates.manuscript_details.respondedAt} />
@@ -1498,8 +1507,9 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                       {revisionUpdates.manuscript_details.text}
                     </p>
                   </div>
+                  </div>
                 )}
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                <FieldRows cols={3}>
                   <MiniStat
                     label="Word Count"
                     value={wordCountDisplay || "—"}
@@ -1521,10 +1531,10 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                   {cd.estimated_pages != null && (
                     <MiniStat label="Est. Pages" value={String(cd.estimated_pages)} />
                   )}
-                </div>
+                </FieldRows>
                 {/* Free-text answers read better full width than squeezed
                     into the stat columns above. */}
-                <div className="-mx-7 mt-6 grid grid-cols-1 gap-5 border-t border-stone-200 px-7 pt-5 sm:grid-cols-2">
+                <FieldRows cols={2}>
                   <Field label="Languages" value={cd.language || "—"} />
                   <Field
                     label="Subject"
@@ -1534,9 +1544,9 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                         .join(" · ") || "—"
                     }
                   />
-                </div>
+                </FieldRows>
                 {audienceText && (
-                  <div className="-mx-7 mt-5 border-t border-stone-200 px-7 pt-5">
+                  <div className="px-7 py-5">
                     <SubCard label="Intended Audience" updated={revisionUpdates.audience}>
                       <p
                         className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed"
@@ -1547,12 +1557,13 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                     </SubCard>
                   </div>
                 )}
+                </div>
               </Card>
 
               {/* Summary & Description */}
               {(overviewText || keyFeaturesText || keywordTags.length > 0) && (
-                <Card title="Summary & Description" id="section-summary">
-                  <div className="space-y-4">
+                <Card title="Summary & Description" id="section-summary" flush>
+                  <div className={STACKED_ROWS}>
                     {overviewText && (
                       <SubCard label="Overview" updated={revisionUpdates.overview}>
                         <p
@@ -1614,19 +1625,21 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                 revisionUpdates.market_analysis?.text ||
                 revisionUpdates.competition?.text ||
                 revisionUpdates.marketing_promotion?.text) && (
-                <Card title="Marketing & Promotion" id="section-market">
+                <Card title="Marketing & Promotion" id="section-market" flush>
                   {revisionUpdates.marketing_promotion?.text && (
-                    <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50/60 px-4 py-3">
-                      <p className="font-sans text-xs font-semibold text-emerald-800">
-                        Author's revision response
-                        <UpdatedBadge date={revisionUpdates.marketing_promotion.respondedAt} />
-                      </p>
-                      <p className="mt-1 whitespace-pre-wrap font-sans text-sm text-emerald-900">
-                        {revisionUpdates.marketing_promotion.text}
-                      </p>
+                    <div className="border-b border-stone-200 px-7 py-5">
+                      <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 px-4 py-3">
+                        <p className="font-sans text-xs font-semibold text-emerald-800">
+                          Author's revision response
+                          <UpdatedBadge date={revisionUpdates.marketing_promotion.respondedAt} />
+                        </p>
+                        <p className="mt-1 whitespace-pre-wrap font-sans text-sm text-emerald-900">
+                          {revisionUpdates.marketing_promotion.text}
+                        </p>
+                      </div>
                     </div>
                   )}
-                  <div className="space-y-4">
+                  <div className={STACKED_ROWS}>
                     {revisedText(revisionUpdates.market_analysis, cd.primary_market) && (
                       <SubCard label="Primary Market" updated={revisionUpdates.market_analysis}>
                         <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
@@ -1695,8 +1708,9 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                   title="Additional Comments & Permissions"
                   subtitle="Copyright, permissions, special considerations"
                   id="section-notes"
+                  flush
                 >
-                  <div className="space-y-4">
+                  <div className={STACKED_ROWS}>
                     {cd.additional_info && (
                       <SubCard label="Additional Notes from Author">
                         <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
@@ -1755,8 +1769,8 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                 );
                 if (leftover.length === 0) return null;
                 return (
-                  <Card title="Other Revision Responses">
-                    <div className="space-y-4">
+                  <Card title="Other Revision Responses" flush>
+                    <div className={STACKED_ROWS}>
                       {leftover.map(([key, u]) => {
                         const label = REVISION_AREAS.find((a) => a.key === key)?.label || key;
                         return (
@@ -2016,22 +2030,20 @@ function DynamicProposalFields({ data }: { data: Record<string, unknown> }) {
       title="Additional Proposal Information"
       subtitle="All other details submitted with this proposal"
       id="section-extra-fields"
+      flush
     >
-      <div className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
+      <FieldRows cols={2}>
         {entries.map(([k, v]) => (
           <div key={k}>
             <p className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
               {humanizeKey(k)}
             </p>
-            <div
-              className="mt-0.5 font-sans text-sm font-medium leading-relaxed"
-              style={{ color: "#2C1A0E" }}
-            >
+            <div className="mt-1.5 font-sans text-sm font-normal leading-relaxed text-stone-900">
               {renderDynamicValue(v)}
             </div>
           </div>
         ))}
-      </div>
+      </FieldRows>
     </Card>
   );
 }
@@ -2079,12 +2091,15 @@ function Card({
   children,
   id,
   updated,
+  flush,
 }: {
   title: string;
   subtitle?: string;
   children: React.ReactNode;
   id?: string;
   updated?: RequestInfoUpdate;
+  /** No body padding — the content draws its own full-width rows. */
+  flush?: boolean;
 }) {
   return (
     // Card with a header strip — same look as the editor's proposal page.
@@ -2099,7 +2114,7 @@ function Card({
         </h2>
         {subtitle && <p className="mt-0.5 font-sans text-xs text-[#7A6A5A]">{subtitle}</p>}
       </div>
-      <div className="px-7 py-6">{children}</div>
+      <div className={flush ? "" : "px-7 py-6"}>{children}</div>
     </section>
   );
 }
@@ -3289,7 +3304,8 @@ function SubCard({
   updated?: RequestInfoUpdate;
 }) {
   return (
-    <div className="-mx-7 border-t border-stone-200 px-7 pt-5 first:border-t-0 first:pt-0">
+    // Separators come from the parent (STACKED_ROWS) so they run edge to edge.
+    <div className="min-w-0">
       <p className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
         {label}
         {updated?.text && <UpdatedBadge date={updated.respondedAt} />}

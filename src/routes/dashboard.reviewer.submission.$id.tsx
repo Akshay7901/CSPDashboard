@@ -18,6 +18,7 @@ import {
   REVISION_AREAS,
   type RequestInfoUpdate,
 } from "@/lib/requestInfoUpdates";
+import { FieldRows, STACKED_ROWS } from "@/components/field-rows";
 
 export const Route = createFileRoute("/dashboard/reviewer/submission/$id")({
   head: () => ({ meta: [{ title: "Review Submission — Reviewer Portal" }] }),
@@ -939,13 +940,22 @@ function formatMonthYear(iso?: string): string {
 }
 
 // Card with a header strip — same look as the editor's proposal page.
-function Section({ title, children }: { title: React.ReactNode; children: React.ReactNode }) {
+function Section({
+  title,
+  children,
+  flush,
+}: {
+  title: React.ReactNode;
+  children: React.ReactNode;
+  /** No body padding — the content draws its own full-width rows. */
+  flush?: boolean;
+}) {
   return (
     <section className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
       <div className="border-b border-stone-200 bg-neutral-50/30 px-5 py-3.5">
         <h3 className="font-serif text-base font-bold text-[#2C1A0E]">{title}</h3>
       </div>
-      <div className="px-7 py-6">{children}</div>
+      <div className={flush ? "" : "px-7 py-6"}>{children}</div>
     </section>
   );
 }
@@ -1040,8 +1050,8 @@ function AdditionalProposalDetails({ rawCd }: { rawCd: Record<string, unknown> }
   if (entries.length === 0) return null;
 
   return (
-    <Section title="Additional Proposal Information">
-      <div className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
+    <Section title="Additional Proposal Information" flush>
+      <FieldRows cols={2}>
         {entries.map(([key, value]) => (
           <div key={key}>
             <div className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
@@ -1052,7 +1062,7 @@ function AdditionalProposalDetails({ rawCd }: { rawCd: Record<string, unknown> }
             </p>
           </div>
         ))}
-      </div>
+      </FieldRows>
     </Section>
   );
 }
@@ -1407,19 +1417,22 @@ function ProposalDetails({
       </div>
 
       {/* Primary Author / Editor */}
-      <Section title="Primary Author / Editor">
+      <Section title="Primary Author / Editor" flush>
+        <div className="divide-y divide-stone-200">
         {revisionUpdates.primary_author?.text && (
-          <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2">
-            <p className="font-sans text-xs font-semibold text-emerald-800">
-              Updated via revision response
-              <UpdatedBadge date={revisionUpdates.primary_author.respondedAt} />
-            </p>
-            <p className="mt-1 whitespace-pre-line font-sans text-sm text-emerald-900">
-              {revisionUpdates.primary_author.text}
-            </p>
+          <div className="px-7 py-5">
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2">
+              <p className="font-sans text-xs font-semibold text-emerald-800">
+                Updated via revision response
+                <UpdatedBadge date={revisionUpdates.primary_author.respondedAt} />
+              </p>
+              <p className="mt-1 whitespace-pre-line font-sans text-sm text-emerald-900">
+                {revisionUpdates.primary_author.text}
+              </p>
+            </div>
           </div>
         )}
-        <div className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
+        <FieldRows cols={2}>
           <Field label="Name" value={cd.corresponding_author_name || "—"} />
           <Field label="Email" value={cd.email || "—"} />
           {cd.phone && <Field label="Phone" value={cd.phone} />}
@@ -1433,7 +1446,7 @@ function ProposalDetails({
               updated={revisionUpdates.author_credentials}
             />
           )}
-        </div>
+        </FieldRows>
         {(cd.address ||
           cd.address_line_1 ||
           cd.city ||
@@ -1442,8 +1455,7 @@ function ProposalDetails({
           cd.country ||
           revisionUpdates.mailing_address?.text) && (
           <>
-            <hr className="my-4 border-stone-100" />
-            <div>
+            <div className="px-7 py-5">
               <div className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
                 Mailing Address
                 {revisionUpdates.mailing_address?.text && (
@@ -1473,17 +1485,22 @@ function ProposalDetails({
             </div>
           </>
         )}
-        <Para
-          label="Biography"
-          value={revisedText(revisionUpdates.biography, cd.biography)}
-          updated={revisionUpdates.biography}
-        />
+        {revisedText(revisionUpdates.biography, cd.biography) && (
+          <div className="px-7 py-5">
+            <Para
+              label="Biography"
+              value={revisedText(revisionUpdates.biography, cd.biography)}
+              updated={revisionUpdates.biography}
+            />
+          </div>
+        )}
+        </div>
       </Section>
 
       {/* Co-authors / Editors / Contributors / Translators */}
       {Array.isArray(rawCd.co_authors) && (rawCd.co_authors as unknown[]).length > 0 ? (
-        <Section title="Co-authors / Editors / Contributors / Translators">
-          <ul className="divide-y divide-stone-100">
+        <Section title="Co-authors / Editors / Contributors / Translators" flush>
+          <ul className="divide-y divide-stone-200">
             {(rawCd.co_authors as Array<Record<string, unknown>>).map((c, i) => {
               const name =
                 [c.firstName || c.first_name, c.lastName || c.last_name]
@@ -1497,8 +1514,8 @@ function ProposalDetails({
               const qualification =
                 ((c.academic_qualification || c.qualifications) as string | undefined) || undefined;
               return (
-                <li key={i} className="py-4 first:pt-0">
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <li key={i} className="divide-y divide-stone-200">
+                  <FieldRows cols={2}>
                     <Field label="Role" value={(c.role as string) || "—"} />
                     <Field label="Name" value={name} />
                     <Field label="Email" value={(c.email as string) || "—"} />
@@ -1506,14 +1523,22 @@ function ProposalDetails({
                       label="Affiliation"
                       value={(c.institution as string) || (c.affiliation as string) || "—"}
                     />
-                  </div>
-                  <Para label="Academic Qualification" value={qualification} />
-                  <Para
-                    label="Biography"
-                    value={(c.biography as string | undefined) || undefined}
-                  />
+                  </FieldRows>
+                  {qualification && (
+                    <div className="px-7 py-5">
+                      <Para label="Academic Qualification" value={qualification} />
+                    </div>
+                  )}
+                  {!!c.biography && (
+                    <div className="px-7 py-5">
+                      <Para
+                        label="Biography"
+                        value={(c.biography as string | undefined) || undefined}
+                      />
+                    </div>
+                  )}
                   {cvHref && (
-                    <div className="mt-4">
+                    <div className="px-7 py-5">
                       <div className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
                         CV
                       </div>
@@ -1575,15 +1600,19 @@ function ProposalDetails({
             )}
           </>
         }
+        flush
       >
+        <div className="divide-y divide-stone-200">
         {revisionUpdates.manuscript_details?.text && (
-          <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2">
-            <p className="whitespace-pre-line font-sans text-sm text-emerald-900">
-              {revisionUpdates.manuscript_details.text}
-            </p>
+          <div className="px-7 py-5">
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2">
+              <p className="whitespace-pre-line font-sans text-sm text-emerald-900">
+                {revisionUpdates.manuscript_details.text}
+              </p>
+            </div>
           </div>
         )}
-        <div className="grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-3">
+        <FieldRows cols={3}>
           <Field
             label="Word Count"
             value={formatNumber(revisedText(revisionUpdates.word_count, cd.word_count)) || "—"}
@@ -1603,11 +1632,11 @@ function ProposalDetails({
           {cd.estimated_pages && (
             <Field label="Est. Pages" value={formatNumber(cd.estimated_pages) || cd.estimated_pages} />
           )}
-        </div>
+        </FieldRows>
         {(revisedText(revisionUpdates.audience, cd.intended_audience) ||
           cd.manuscript_stage ||
           cd.under_review_elsewhere) && (
-          <div className="mt-4 flex flex-col gap-4 border-t border-stone-100 pt-4">
+          <div className={STACKED_ROWS}>
             <Para
               label="Intended Audience"
               value={revisedText(revisionUpdates.audience, cd.intended_audience)}
@@ -1621,13 +1650,15 @@ function ProposalDetails({
             )}
           </div>
         )}
+        </div>
       </Section>
 
       {/* Summary & Description */}
       {(revisedText(revisionUpdates.overview, cd.short_description) ||
         revisedText(revisionUpdates.key_features, cd.detailed_description) ||
         keywords.length > 0) && (
-        <Section title="Summary & Description">
+        <Section title="Summary & Description" flush>
+          <div className={STACKED_ROWS}>
           {revisedText(revisionUpdates.overview, cd.short_description) && (
             <div>
               <div className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
@@ -1663,6 +1694,7 @@ function ProposalDetails({
           {cd.key_features && cd.key_features !== cd.detailed_description && (
             <Para label="Key Features / Selling Points" value={cd.key_features} />
           )}
+          </div>
         </Section>
       )}
 
@@ -1699,16 +1731,19 @@ function ProposalDetails({
         revisionUpdates.market_analysis?.text ||
         revisionUpdates.competition?.text ||
         revisionUpdates.marketing_promotion?.text) && (
-        <Section title="Marketing & Promotion">
+        <Section title="Marketing & Promotion" flush>
+          <div className={STACKED_ROWS}>
           {revisionUpdates.marketing_promotion?.text && (
-            <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2">
-              <p className="font-sans text-xs font-semibold text-emerald-800">
-                Updated via revision response
-                <UpdatedBadge date={revisionUpdates.marketing_promotion.respondedAt} />
-              </p>
-              <p className="mt-1 whitespace-pre-line font-sans text-sm text-emerald-900">
-                {revisionUpdates.marketing_promotion.text}
-              </p>
+            <div>
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2">
+                <p className="font-sans text-xs font-semibold text-emerald-800">
+                  Updated via revision response
+                  <UpdatedBadge date={revisionUpdates.marketing_promotion.respondedAt} />
+                </p>
+                <p className="mt-1 whitespace-pre-line font-sans text-sm text-emerald-900">
+                  {revisionUpdates.marketing_promotion.text}
+                </p>
+              </div>
             </div>
           )}
           <Para
@@ -1735,6 +1770,7 @@ function ProposalDetails({
             cd.marketing_info !== cd.primary_market && (
               <Para label="Additional Marketing Notes" value={cd.marketing_info} />
             )}
+          </div>
         </Section>
       )}
 
@@ -1749,10 +1785,11 @@ function ProposalDetails({
               )}
             </>
           }
+          flush
         >
-          <ol className="divide-y divide-stone-100">
+          <ol className="divide-y divide-stone-200">
             {suggestedReviewers.map((r, idx) => (
-              <li key={idx} className="flex gap-4 py-3 first:pt-0">
+              <li key={idx} className="flex gap-4 px-7 py-4">
                 <span className="font-sans text-sm font-semibold text-stone-500">
                   {idx + 1}.
                 </span>
@@ -1767,7 +1804,8 @@ function ProposalDetails({
       {(cd.additional_notes ||
         cd.additional_info ||
         revisedText(revisionUpdates.permissions, cd.permissions_required)) && (
-        <Section title="Additional Comments & Permissions">
+        <Section title="Additional Comments & Permissions" flush>
+          <div className={STACKED_ROWS}>
           <Para label="Additional Notes from Author" value={cd.additional_notes} />
           {cd.additional_info && (
             <p className="mt-4 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-700 first:mt-0">
@@ -1779,15 +1817,16 @@ function ProposalDetails({
             value={revisedText(revisionUpdates.permissions, cd.permissions_required)}
             updated={revisionUpdates.permissions}
           />
+          </div>
         </Section>
       )}
 
       {/* Supporting Documents */}
       {allFiles.length > 0 && (
-        <Section title="Supporting Documents">
-          <ul className="divide-y divide-stone-100">
+        <Section title="Supporting Documents" flush>
+          <ul className="divide-y divide-stone-200">
             {allFiles.map((f, i) => (
-              <li key={i} className="flex items-center justify-between gap-3 py-3 first:pt-0">
+              <li key={i} className="flex items-center justify-between gap-3 px-7 py-4">
                 <div className="flex min-w-0 items-start gap-3">
                   <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-50 text-orange-600">
                     <FileText className="h-5 w-5" />
@@ -1846,8 +1885,8 @@ function ProposalDetails({
         );
         if (leftover.length === 0) return null;
         return (
-          <Section title="Other Revision Responses">
-            <div className="space-y-4">
+          <Section title="Other Revision Responses" flush>
+            <div className={STACKED_ROWS}>
               {leftover.map(([key, u]) => {
                 const label = REVISION_AREAS.find((a) => a.key === key)?.label || key;
                 return (
@@ -1881,8 +1920,8 @@ function ProposalDetails({
       })()}
 
       {/* Submission Info */}
-      <Section title="Submission Info">
-        <div className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
+      <Section title="Submission Info" flush>
+        <FieldRows cols={2}>
           <Field label="Ref" value={cd.website_reference_number || proposal.ticket} />
           <Field label="Type" value={cd.book_type || "—"} />
           <Field label="Submitted" value={formatDate(proposal.submittedAt)} />
@@ -1893,9 +1932,9 @@ function ProposalDetails({
               value={cd.source.charAt(0).toUpperCase() + cd.source.slice(1)}
             />
           )}
-        </div>
+        </FieldRows>
         {proposal.assignments && proposal.assignments.length > 0 && (
-          <div className="mt-5 space-y-3">
+          <div className="space-y-3 border-t border-stone-200 px-7 py-5">
             <div className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
               Assignment
             </div>

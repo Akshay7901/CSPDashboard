@@ -75,6 +75,7 @@ import { ContractQueries } from "@/components/contract-queries";
 import { ContributorsPanel } from "@/components/contributors-panel";
 import { CoAuthorsPanel } from "@/components/co-authors-panel";
 import { BookTypeEditor } from "@/components/book-type-editor";
+import { FieldRows, STACKED_ROWS } from "@/components/field-rows";
 import { SetTempPasswordButton, TempPasswordBanner } from "@/components/set-temp-password";
 import { DrInfoRequests } from "@/components/dr-info-requests";
 import {
@@ -3499,7 +3500,7 @@ function ProposalDetailPage() {
                             </p>
                           </div>
                         )}
-                        <div className="grid grid-cols-1 gap-6 px-7 py-6 md:grid-cols-3">
+                        <FieldRows cols={3}>
                           <DataField label="Name" value={cd.corresponding_author_name} />
                           <DataField label="Email" value={cd.email} />
                           <DataField label="Phone" value={cd.phone} />
@@ -3512,7 +3513,7 @@ function ProposalDetailPage() {
                             updated={revisionUpdates.author_credentials}
                             multiline
                           />
-                        </div>
+                        </FieldRows>
                         {(cd.address ||
                           cd.address_line_1 ||
                           cd.city ||
@@ -3599,8 +3600,8 @@ function ProposalDetailPage() {
                                   ? cvUrl.filename
                                   : undefined) || (cvHref ? filenameFromUrl(cvHref) : undefined);
                               return (
-                                <li key={i} className="px-7 py-5">
-                                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+                                <li key={i} className="divide-y divide-stone-200">
+                                  <FieldRows cols={4}>
                                     <DataField label="Role" value={(c.role as string) || "—"} />
                                     <DataField label="Name" value={name} />
                                     <DataField
@@ -3611,9 +3612,9 @@ function ProposalDetailPage() {
                                       label="Affiliation"
                                       value={(c.institution || c.affiliation) as string | undefined}
                                     />
-                                  </div>
-                                  {!!(c.academic_qualification || c.qualifications || c.biography) && (
-                                    <div className="mt-4 flex flex-col gap-4">
+                                  </FieldRows>
+                                  {!!(c.academic_qualification || c.qualifications) && (
+                                    <div className="px-7 py-5">
                                       <DataField
                                         label="Academic Qualification"
                                         value={
@@ -3623,6 +3624,10 @@ function ProposalDetailPage() {
                                         }
                                         multiline
                                       />
+                                    </div>
+                                  )}
+                                  {!!c.biography && (
+                                    <div className="px-7 py-5">
                                       <DataField
                                         label="Biography"
                                         value={(c.biography as string | undefined) || undefined}
@@ -3630,7 +3635,7 @@ function ProposalDetailPage() {
                                       />
                                     </div>
                                   )}
-                                  <div className="mt-4 min-w-0">
+                                  <div className="min-w-0 px-7 py-5">
                                     <SectionLabel>CV</SectionLabel>
                                     {cvHref ? (
                                       <div className="mt-1.5 flex items-center gap-2">
@@ -3707,7 +3712,7 @@ function ProposalDetailPage() {
                             </p>
                           </div>
                         )}
-                        <div className="grid grid-cols-2 gap-6 px-7 py-6 sm:grid-cols-3">
+                        <FieldRows cols={3}>
                           <Stat
                             label="Word Count"
                             value={
@@ -3739,12 +3744,12 @@ function ProposalDetailPage() {
                           {cd.estimated_pages && (
                             <Stat label="Est. Pages" value={formatNumber(cd.estimated_pages)} large />
                           )}
-                        </div>
+                        </FieldRows>
                         {(cd.intended_audience ||
                           cd.manuscript_stage ||
                           cd.under_review_elsewhere ||
                           revisionUpdates.audience?.text) && (
-                          <div className="flex flex-col gap-5 border-t border-stone-200 px-7 py-6">
+                          <div className={`border-t border-stone-200 ${STACKED_ROWS}`}>
                             <DataField
                               label="Intended Audience"
                               value={revisedText(revisionUpdates.audience, cd.intended_audience)}
@@ -3770,7 +3775,7 @@ function ProposalDetailPage() {
                             title="Summary & Description"
                             subtitle="Overview, key features and audience"
                           />
-                          <div className="space-y-6 px-7 py-6">
+                          <div className={STACKED_ROWS}>
                             {revisedText(revisionUpdates.overview, cd.short_description) && (
                               <div>
                                 <SectionLabel>
@@ -3797,7 +3802,7 @@ function ProposalDetailPage() {
                               </div>
                             )}
                             {cd.detailed_description && (
-                              <div className="-mx-7 border-t border-stone-300 px-7 pt-5">
+                              <div className="min-w-0">
                                 <SectionLabel>Key Features & Unique Contribution</SectionLabel>
                                 <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
                                   {cd.detailed_description}
@@ -3807,7 +3812,7 @@ function ProposalDetailPage() {
                             {revisedText(revisionUpdates.key_features, cd.key_features) &&
                               revisedText(revisionUpdates.key_features, cd.key_features) !==
                                 cd.detailed_description && (
-                                <div className="-mx-7 border-t border-stone-300 px-7 pt-5">
+                                <div className="min-w-0">
                                   <SectionLabel>
                                     Key Features / Selling Points
                                     {revisionUpdates.key_features?.text && (
@@ -3878,7 +3883,7 @@ function ProposalDetailPage() {
                               </p>
                             </div>
                           )}
-                          <div className="space-y-5 px-7 py-6">
+                          <div className={STACKED_ROWS}>
                             {revisedText(revisionUpdates.market_analysis, cd.primary_market) && (
                               <DataField
                                 label="Primary Market"
@@ -3966,7 +3971,7 @@ function ProposalDetailPage() {
                             title="Additional Comments & Permissions"
                             subtitle="Copyright, permissions, special considerations"
                           />
-                          <div className="space-y-4 px-7 py-6">
+                          <div className={STACKED_ROWS}>
                             {cd.additional_notes && (
                               <DataField
                                 label="Additional Notes from Author"
@@ -4107,7 +4112,7 @@ function ProposalDetailPage() {
                         title="Other Revision Responses"
                         subtitle="Author responses without a dedicated field above"
                       />
-                      <div className="space-y-4 px-7 py-6">
+                      <div className={STACKED_ROWS}>
                         {leftover.map(([key, u]) => {
                           const label = REVISION_AREAS.find((a) => a.key === key)?.label || key;
                           return (
@@ -4603,7 +4608,8 @@ function ProposalDetailPage() {
                       Submission Info
                     </h2>
                   </div>
-                  <dl className="divide-y divide-stone-100 px-6 pb-5 font-sans text-sm">
+                  <dl className="divide-y divide-stone-200 font-sans text-sm [&>*]:px-6">
+
                     <InfoRow label="Ref" value={data.ticket_number} />
                     {cd.website_reference_number && (
                       <InfoRow label="Website Ref" value={cd.website_reference_number} />
@@ -5657,7 +5663,7 @@ function Card({ children, className }: { children: React.ReactNode; className?: 
 }
 
 function Divider() {
-  return <hr className="border-stone-100" />;
+  return <hr className="border-stone-200" />;
 }
 
 function CardHeader({
@@ -6093,7 +6099,7 @@ function AdditionalProposalDetails({ rawCd }: { rawCd: Record<string, unknown> }
         title="Additional Proposal Information"
         subtitle="All other details submitted with this proposal"
       />
-      <div className="grid grid-cols-1 gap-5 px-7 py-6 sm:grid-cols-2">
+      <FieldRows cols={2}>
         {entries.map(([key, value]) => (
           <DataField
             key={key}
@@ -6102,7 +6108,7 @@ function AdditionalProposalDetails({ rawCd }: { rawCd: Record<string, unknown> }
             multiline={value.length > 80 || value.includes("\n")}
           />
         ))}
-      </div>
+      </FieldRows>
     </Card>
   );
 }
