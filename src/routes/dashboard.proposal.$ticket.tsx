@@ -3533,7 +3533,7 @@ function ProposalDetailPage() {
                                   />
                                 )}
                               </SectionLabel>
-                              <p className="mt-2 font-sans text-sm text-stone-800">
+                              <p className="mt-2 font-sans text-[13px] text-stone-800">
                                 {revisionUpdates.mailing_address?.text ||
                                   (() => {
                                     // Some submissions store a full address in
@@ -3572,7 +3572,7 @@ function ProposalDetailPage() {
                                   <UpdatedBadge date={revisionUpdates.biography.respondedAt} />
                                 )}
                               </SectionLabel>
-                              <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-800">
+                              <p className="mt-2 whitespace-pre-line font-sans text-[13px] leading-relaxed text-stone-800">
                                 {revisedText(revisionUpdates.biography, cd.biography)}
                               </p>
                             </div>
@@ -3645,7 +3645,7 @@ function ProposalDetailPage() {
                                           href={cvHref}
                                           target="_blank"
                                           rel="noreferrer"
-                                          className="truncate font-sans text-sm font-normal text-stone-900 hover:underline"
+                                          className="truncate font-sans text-[13px] font-normal text-stone-900 hover:underline"
                                           title={cvFilename}
                                         >
                                           {cvFilename || "View CV"}
@@ -3687,7 +3687,7 @@ function ProposalDetailPage() {
                             }
                           />
                           <div className="px-7 py-6">
-                            <p className="whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
+                            <p className="whitespace-pre-line font-sans text-[13px] leading-relaxed text-stone-700">
                               {revisedText(revisionUpdates.additional_authors, cd.co_authors_editors)}
                             </p>
                           </div>
@@ -3786,7 +3786,7 @@ function ProposalDetailPage() {
                                     <UpdatedBadge date={revisionUpdates.overview.respondedAt} />
                                   )}
                                 </SectionLabel>
-                                <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
+                                <p className="mt-2 whitespace-pre-line font-sans text-[13px] leading-relaxed text-stone-700">
                                   {revisedText(revisionUpdates.overview, cd.short_description)}
                                 </p>
                                 {keywords.length > 0 && (
@@ -3806,7 +3806,7 @@ function ProposalDetailPage() {
                             {cd.detailed_description && (
                               <div className="min-w-0">
                                 <SectionLabel>Key Features & Unique Contribution</SectionLabel>
-                                <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
+                                <p className="mt-2 whitespace-pre-line font-sans text-[13px] leading-relaxed text-stone-700">
                                   {cd.detailed_description}
                                 </p>
                               </div>
@@ -3823,7 +3823,7 @@ function ProposalDetailPage() {
                                       />
                                     )}
                                   </SectionLabel>
-                                  <p className="mt-2 whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
+                                  <p className="mt-2 whitespace-pre-line font-sans text-[13px] leading-relaxed text-stone-700">
                                     {revisedText(revisionUpdates.key_features, cd.key_features)}
                                   </p>
                                 </div>
@@ -3980,7 +3980,7 @@ function ProposalDetailPage() {
                               />
                             )}
                             {cd.additional_info && (
-                              <p className="whitespace-pre-line font-sans text-sm leading-relaxed text-stone-700">
+                              <p className="whitespace-pre-line font-sans text-[13px] leading-relaxed text-stone-700">
                                 {cd.additional_info}
                               </p>
                             )}
@@ -4622,14 +4622,14 @@ function ProposalDetailPage() {
                     )}
                     {(cd.book_type || canEditBookType) && (
                       <div className="flex items-center justify-between gap-4 py-2.5">
-                        <dt className="font-sans text-[15px] font-semibold text-black">Type</dt>
+                        <dt className="font-sans text-sm font-semibold text-black">Type</dt>
                         <dd>
                           <BookTypeEditor
                             ticket={ticket}
                             value={cd.book_type}
                             canEdit={canEditBookType}
                             onChanged={onBookTypeChanged}
-                            className="font-sans text-sm font-normal text-stone-900"
+                            className="font-sans text-[13px] font-normal text-stone-900"
                           />
                         </dd>
                       </div>
@@ -5688,7 +5688,7 @@ function CardHeader({
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
+    <p className="font-sans text-sm font-semibold uppercase tracking-wide text-black">
       {children}
     </p>
   );
@@ -5730,7 +5730,7 @@ function DataField({
         {updated?.text && <UpdatedBadge date={updated.respondedAt} />}
       </SectionLabel>
       <p
-        className={`mt-1.5 font-sans text-sm font-normal text-stone-900 break-words ${
+        className={`mt-1.5 font-sans text-[13px] font-normal text-stone-900 break-words ${
           multiline ? "whitespace-pre-line text-stone-800 leading-relaxed" : ""
         }`}
       >
@@ -5753,12 +5753,12 @@ function Stat({
 }) {
   return (
     <div className="min-w-0">
-      <p className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black break-words">
+      <p className="font-sans text-sm font-semibold uppercase tracking-wide text-black break-words">
         {label}
         {updated?.text && <UpdatedBadge date={updated.respondedAt} />}
       </p>
       <p
-        className={`mt-1 font-sans font-normal text-stone-900 text-sm`}
+        className={`mt-1 font-sans font-normal text-stone-900 text-[13px]`}
       >
         {value}
       </p>
@@ -5779,11 +5779,11 @@ function StatCard({
 }) {
   return (
     <div className="rounded-2xl border border-stone-200 bg-white px-4 py-4 text-center">
-      <p className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
+      <p className="font-sans text-sm font-semibold uppercase tracking-wide text-black">
         {label}
         {updated?.text && <UpdatedBadge date={updated.respondedAt} />}
       </p>
-      <div className="mt-1 font-sans text-sm font-normal text-stone-900">{children}</div>
+      <div className="mt-1 font-sans text-[13px] font-normal text-stone-900">{children}</div>
     </div>
   );
 }
@@ -5799,8 +5799,8 @@ function formatMonthYear(iso?: string): string {
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-4 py-2.5">
-      <dt className="font-sans text-[15px] font-semibold text-black">{label}</dt>
-      <dd className="font-sans text-sm font-normal text-stone-900">{value}</dd>
+      <dt className="font-sans text-sm font-semibold text-black">{label}</dt>
+      <dd className="font-sans text-[13px] font-normal text-stone-900">{value}</dd>
     </div>
   );
 }

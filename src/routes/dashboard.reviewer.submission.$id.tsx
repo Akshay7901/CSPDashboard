@@ -878,11 +878,11 @@ function Field({
 }) {
   return (
     <div className="min-w-0">
-      <div className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
+      <div className="font-sans text-sm font-semibold uppercase tracking-wide text-black">
         {label}
         {updated && <UpdatedBadge date={updated.respondedAt} />}
       </div>
-      <div className="mt-1.5 break-words font-sans text-sm font-normal text-stone-900">
+      <div className="mt-1.5 break-words font-sans text-[13px] font-normal text-stone-900">
         {value}
       </div>
     </div>
@@ -922,11 +922,11 @@ function StatCard({
 }) {
   return (
     <div className="rounded-2xl border border-stone-200 bg-white px-4 py-4 text-center">
-      <p className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
+      <p className="font-sans text-sm font-semibold uppercase tracking-wide text-black">
         {label}
         {updated?.text && <UpdatedBadge date={updated.respondedAt} />}
       </p>
-      <p className="mt-1 font-sans text-sm font-normal text-stone-900">{value}</p>
+      <p className="mt-1 font-sans text-[13px] font-normal text-stone-900">{value}</p>
     </div>
   );
 }
@@ -972,11 +972,11 @@ function Para({
   if (!value) return null;
   return (
     <div className="mt-4 first:mt-0">
-      <div className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
+      <div className="font-sans text-sm font-semibold uppercase tracking-wide text-black">
         {label}
         {updated && <UpdatedBadge date={updated.respondedAt} />}
       </div>
-      <p className="mt-2 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-800">
+      <p className="mt-2 whitespace-pre-wrap font-sans text-[13px] leading-relaxed text-stone-800">
         {value}
       </p>
     </div>
@@ -1054,10 +1054,10 @@ function AdditionalProposalDetails({ rawCd }: { rawCd: Record<string, unknown> }
       <FieldRows cols={2}>
         {entries.map(([key, value]) => (
           <div key={key}>
-            <div className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
+            <div className="font-sans text-sm font-semibold uppercase tracking-wide text-black">
               {humanizeKey(key)}
             </div>
-            <p className="mt-1.5 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-700">
+            <p className="mt-1.5 whitespace-pre-wrap font-sans text-[13px] leading-relaxed text-stone-700">
               {value}
             </p>
           </div>
@@ -1456,13 +1456,13 @@ function ProposalDetails({
           revisionUpdates.mailing_address?.text) && (
           <>
             <div className="px-7 py-5">
-              <div className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
+              <div className="font-sans text-sm font-semibold uppercase tracking-wide text-black">
                 Mailing Address
                 {revisionUpdates.mailing_address?.text && (
                   <UpdatedBadge date={revisionUpdates.mailing_address.respondedAt} />
                 )}
               </div>
-              <p className="mt-2 font-sans text-sm text-stone-800">
+              <p className="mt-2 font-sans text-[13px] text-stone-800">
                 {revisionUpdates.mailing_address?.text ||
                   (() => {
                     // Some submissions store a full address in `address`,
@@ -1542,7 +1542,7 @@ function ProposalDetails({
                   )}
                   {cvHref && (
                     <div className="px-7 py-5">
-                      <div className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
+                      <div className="font-sans text-sm font-semibold uppercase tracking-wide text-black">
                         CV
                       </div>
                       <div className="mt-1.5 flex items-center gap-2">
@@ -1550,7 +1550,7 @@ function ProposalDetails({
                           href={cvHref}
                           target="_blank"
                           rel="noreferrer"
-                          className="truncate font-sans text-sm font-normal text-stone-900 underline-offset-2 hover:underline"
+                          className="truncate font-sans text-[13px] font-normal text-stone-900 underline-offset-2 hover:underline"
                         >
                           {(typeof cv?.filename === "string" && cv.filename) || "View CV"}
                         </a>
@@ -1587,7 +1587,7 @@ function ProposalDetails({
             </>
           }
         >
-          <p className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-700">
+          <p className="whitespace-pre-wrap font-sans text-[13px] leading-relaxed text-stone-700">
             {revisedText(revisionUpdates.additional_authors, cd.co_authors_editors)}
           </p>
         </Section>
@@ -1664,13 +1664,13 @@ function ProposalDetails({
           <div className={STACKED_ROWS}>
           {revisedText(revisionUpdates.overview, cd.short_description) && (
             <div>
-              <div className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
+              <div className="font-sans text-sm font-semibold uppercase tracking-wide text-black">
                 Overview
                 {revisionUpdates.overview?.text && (
                   <UpdatedBadge date={revisionUpdates.overview.respondedAt} />
                 )}
               </div>
-              <p className="mt-1.5 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-700">
+              <p className="mt-1.5 whitespace-pre-wrap font-sans text-[13px] leading-relaxed text-stone-700">
                 {revisedText(revisionUpdates.overview, cd.short_description)}
               </p>
               {keywords.length > 0 && (
@@ -1815,7 +1815,7 @@ function ProposalDetails({
           <div className={STACKED_ROWS}>
           <Para label="Additional Notes from Author" value={cd.additional_notes} />
           {cd.additional_info && (
-            <p className="mt-4 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-700 first:mt-0">
+            <p className="mt-4 whitespace-pre-wrap font-sans text-[13px] leading-relaxed text-stone-700 first:mt-0">
               {cd.additional_info}
             </p>
           )}
@@ -1898,12 +1898,12 @@ function ProposalDetails({
                 const label = REVISION_AREAS.find((a) => a.key === key)?.label || key;
                 return (
                   <div key={key}>
-                    <div className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
+                    <div className="font-sans text-sm font-semibold uppercase tracking-wide text-black">
                       {label}
                       <UpdatedBadge date={u.respondedAt} />
                     </div>
                     {u.text && (
-                      <p className="mt-1.5 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-700">
+                      <p className="mt-1.5 whitespace-pre-wrap font-sans text-[13px] leading-relaxed text-stone-700">
                         {u.text}
                       </p>
                     )}
@@ -1942,7 +1942,7 @@ function ProposalDetails({
         </FieldRows>
         {proposal.assignments && proposal.assignments.length > 0 && (
           <div className="space-y-3 border-t border-stone-200 px-7 py-5">
-            <div className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
+            <div className="font-sans text-sm font-semibold uppercase tracking-wide text-black">
               Assignment
             </div>
             {proposal.assignments.map((a, i) => (

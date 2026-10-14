@@ -1330,14 +1330,14 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                 )}
                 {revisedText(revisionUpdates.mailing_address, cd.address) && (
                   <div className="px-7 py-5">
-                    <p className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
+                    <p className="font-sans text-sm font-semibold uppercase tracking-wide text-black">
                       Mailing Address
                       {revisionUpdates.mailing_address?.text && (
                         <UpdatedBadge date={revisionUpdates.mailing_address.respondedAt} />
                       )}
                     </p>
                     <p
-                      className="mt-1.5 font-sans text-sm font-normal text-stone-900"
+                      className="mt-1.5 font-sans text-[13px] font-normal text-stone-900"
                     >
                       {revisedText(revisionUpdates.mailing_address, cd.address)}
                     </p>
@@ -1345,14 +1345,14 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                 )}
                 {revisedText(revisionUpdates.biography, cd.biography) && (
                   <div className="px-7 py-5">
-                    <p className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
+                    <p className="font-sans text-sm font-semibold uppercase tracking-wide text-black">
                       Biography
                       {revisionUpdates.biography?.text && (
                         <UpdatedBadge date={revisionUpdates.biography.respondedAt} />
                       )}
                     </p>
                     <p
-                      className="mt-2 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-800"
+                      className="mt-2 whitespace-pre-wrap font-sans text-[13px] leading-relaxed text-stone-800"
                     >
                       {revisedText(revisionUpdates.biography, cd.biography)}
                     </p>
@@ -1420,12 +1420,12 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                           {ca.address ? (
                             <div className="px-7 py-5">
                               <p
-                                className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black"
+                                className="font-sans text-sm font-semibold uppercase tracking-wide text-black"
                               >
                                 Mailing Address
                               </p>
                               <p
-                                className="mt-1.5 font-sans text-sm font-normal text-stone-900"
+                                className="mt-1.5 font-sans text-[13px] font-normal text-stone-900"
                               >
                                 {String(ca.address)}
                               </p>
@@ -1434,12 +1434,12 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                           {ca.academic_qualification || ca.qualifications ? (
                             <div className="px-7 py-5">
                               <p
-                                className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black"
+                                className="font-sans text-sm font-semibold uppercase tracking-wide text-black"
                               >
                                 Academic Qualification
                               </p>
                               <p
-                                className="mt-2 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-800"
+                                className="mt-2 whitespace-pre-wrap font-sans text-[13px] leading-relaxed text-stone-800"
                               >
                                 {String(ca.academic_qualification || ca.qualifications)}
                               </p>
@@ -1448,12 +1448,12 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                           {ca.biography ? (
                             <div className="px-7 py-5">
                               <p
-                                className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black"
+                                className="font-sans text-sm font-semibold uppercase tracking-wide text-black"
                               >
                                 Biography
                               </p>
                               <p
-                                className="mt-2 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-800"
+                                className="mt-2 whitespace-pre-wrap font-sans text-[13px] leading-relaxed text-stone-800"
                               >
                                 {String(ca.biography)}
                               </p>
@@ -1462,14 +1462,14 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                           {cv ? (
                             <div className="min-w-0 px-7 py-5">
                               <p
-                                className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black"
+                                className="font-sans text-sm font-semibold uppercase tracking-wide text-black"
                               >
                                 CV
                               </p>
                               <div className="mt-1.5 flex items-center gap-2">
                                 <FileText className="h-4 w-4 shrink-0 text-amber-700" />
                                 <span
-                                  className="truncate font-sans text-sm font-normal text-stone-900"
+                                  className="truncate font-sans text-[13px] font-normal text-stone-900"
                                   title={cv.filename}
                                 >
                                   {cv.filename}
@@ -1879,11 +1879,11 @@ function StatCard({
 }) {
   return (
     <div className="rounded-2xl border border-stone-200 bg-white px-4 py-4 text-center">
-      <p className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
+      <p className="font-sans text-sm font-semibold uppercase tracking-wide text-black">
         {label}
         {updated?.text && <UpdatedBadge date={updated.respondedAt} />}
       </p>
-      <p className="mt-1 font-sans text-sm font-normal text-stone-900">
+      <p className="mt-1 font-sans text-[13px] font-normal text-stone-900">
         {value}
       </p>
     </div>
@@ -2036,10 +2036,10 @@ function DynamicProposalFields({ data }: { data: Record<string, unknown> }) {
       <FieldRows cols={2}>
         {entries.map(([k, v]) => (
           <div key={k}>
-            <p className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
+            <p className="font-sans text-sm font-semibold uppercase tracking-wide text-black">
               {humanizeKey(k)}
             </p>
-            <div className="mt-1.5 font-sans text-sm font-normal leading-relaxed text-stone-900">
+            <div className="mt-1.5 font-sans text-[13px] font-normal leading-relaxed text-stone-900">
               {renderDynamicValue(v)}
             </div>
           </div>
@@ -2077,11 +2077,11 @@ function MiniStat({
 }) {
   return (
     <div className="min-w-0">
-      <p className="break-words font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
+      <p className="break-words font-sans text-sm font-semibold uppercase tracking-wide text-black">
         {label}
         {updated?.text && <UpdatedBadge date={updated.respondedAt} />}
       </p>
-      <p className="mt-1 font-sans text-sm font-normal text-stone-900">{value}</p>
+      <p className="mt-1 font-sans text-[13px] font-normal text-stone-900">{value}</p>
     </div>
   );
 }
@@ -3307,11 +3307,11 @@ function SubCard({
   return (
     // Separators come from the parent (STACKED_ROWS) so they run edge to edge.
     <div className="min-w-0">
-      <p className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
+      <p className="font-sans text-sm font-semibold uppercase tracking-wide text-black">
         {label}
         {updated?.text && <UpdatedBadge date={updated.respondedAt} />}
       </p>
-      <div className="mt-2 [&_p]:font-normal [&_p]:text-stone-800 [&_p]:leading-relaxed">
+      <div className="mt-2 [&_p]:text-[13px] [&_p]:font-normal [&_p]:text-stone-800 [&_p]:leading-relaxed">
         {children}
       </div>
     </div>
@@ -3321,8 +3321,8 @@ function SubCard({
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">
-      <p className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">{label}</p>
-      <p className="mt-1.5 break-words font-sans text-sm font-normal text-stone-900">{value}</p>
+      <p className="font-sans text-sm font-semibold uppercase tracking-wide text-black">{label}</p>
+      <p className="mt-1.5 break-words font-sans text-[13px] font-normal text-stone-900">{value}</p>
     </div>
   );
 }
