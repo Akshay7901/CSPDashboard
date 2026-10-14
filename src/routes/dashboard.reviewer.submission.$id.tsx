@@ -877,7 +877,7 @@ function Field({
 }) {
   return (
     <div className="min-w-0">
-      <div className="font-sans text-xs font-semibold uppercase tracking-wide text-black">
+      <div className="font-sans text-base font-semibold uppercase tracking-wide text-black">
         {label}
         {updated && <UpdatedBadge date={updated.respondedAt} />}
       </div>
@@ -932,7 +932,7 @@ function Para({
   if (!value) return null;
   return (
     <div className="mt-4 first:mt-0">
-      <div className="font-sans text-xs font-semibold uppercase tracking-wide text-black">
+      <div className="font-sans text-base font-semibold uppercase tracking-wide text-black">
         {label}
         {updated && <UpdatedBadge date={updated.respondedAt} />}
       </div>
@@ -1014,7 +1014,7 @@ function AdditionalProposalDetails({ rawCd }: { rawCd: Record<string, unknown> }
       <div className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
         {entries.map(([key, value]) => (
           <div key={key}>
-            <div className="font-sans text-xs font-semibold uppercase tracking-wide text-black">
+            <div className="font-sans text-base font-semibold uppercase tracking-wide text-black">
               {humanizeKey(key)}
             </div>
             <p className="mt-1.5 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-700">
@@ -1410,7 +1410,7 @@ function ProposalDetails({
           <>
             <hr className="my-4 border-stone-100" />
             <div>
-              <div className="font-sans text-xs font-semibold uppercase tracking-wide text-black">
+              <div className="font-sans text-base font-semibold uppercase tracking-wide text-black">
                 Mailing Address
                 {revisionUpdates.mailing_address?.text && (
                   <UpdatedBadge date={revisionUpdates.mailing_address.respondedAt} />
@@ -1480,7 +1480,7 @@ function ProposalDetails({
                   />
                   {cvHref && (
                     <div className="mt-4">
-                      <div className="font-sans text-xs font-semibold uppercase tracking-wide text-black">
+                      <div className="font-sans text-base font-semibold uppercase tracking-wide text-black">
                         CV
                       </div>
                       <div className="mt-1.5 flex items-center gap-2">
@@ -1596,7 +1596,7 @@ function ProposalDetails({
         <Section title="Summary & Description">
           {revisedText(revisionUpdates.overview, cd.short_description) && (
             <div>
-              <div className="font-sans text-xs font-semibold uppercase tracking-wide text-black">
+              <div className="font-sans text-base font-semibold uppercase tracking-wide text-black">
                 Overview
                 {revisionUpdates.overview?.text && (
                   <UpdatedBadge date={revisionUpdates.overview.respondedAt} />
@@ -1818,7 +1818,7 @@ function ProposalDetails({
                 const label = REVISION_AREAS.find((a) => a.key === key)?.label || key;
                 return (
                   <div key={key}>
-                    <div className="font-sans text-xs font-semibold uppercase tracking-wide text-black">
+                    <div className="font-sans text-base font-semibold uppercase tracking-wide text-black">
                       {label}
                       <UpdatedBadge date={u.respondedAt} />
                     </div>
@@ -1862,7 +1862,7 @@ function ProposalDetails({
         </div>
         {proposal.assignments && proposal.assignments.length > 0 && (
           <div className="mt-5 space-y-3">
-            <div className="font-sans text-xs font-semibold uppercase tracking-wide text-black">
+            <div className="font-sans text-base font-semibold uppercase tracking-wide text-black">
               Assignment
             </div>
             {proposal.assignments.map((a, i) => (
