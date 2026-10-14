@@ -3531,7 +3531,7 @@ function ProposalDetailPage() {
                           <DataField label="Institution" value={cd.institution} />
                           <DataField label="Country" value={cd.country} />
                           <DataField
-                            label="Author Credentials"
+                            label="Academic Qualification"
                             value={revisedText(revisionUpdates.author_credentials, cd.qualifications)}
                             updated={revisionUpdates.author_credentials}
                             multiline
@@ -5975,6 +5975,7 @@ const ADDITIONAL_DETAILS_SKIP = new Set<string>([
   "phone",
   "phone_number",
   "qualifications",
+  "academic_qualification",
   "academic_qualifications",
   "professional_qualifications",
   "institution",
@@ -6059,6 +6060,8 @@ const ADDITIONAL_DETAILS_SKIP = new Set<string>([
   "attachments",
   "source",
   "website_reference_number",
+  "estimated_pages",
+  "previously_published",
   "author_cv",
   "author_cv_url",
   "cv",
