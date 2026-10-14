@@ -1473,6 +1473,11 @@ function ProposalDetails({
                       value={(c.institution as string) || (c.affiliation as string) || "—"}
                     />
                   </div>
+                  <Para label="Academic Qualification" value={qualification} />
+                  <Para
+                    label="Biography"
+                    value={(c.biography as string | undefined) || undefined}
+                  />
                   {cvHref && (
                     <div className="mt-4">
                       <div className="font-sans text-xs font-semibold uppercase tracking-wide text-black">
@@ -1504,11 +1509,6 @@ function ProposalDetails({
                       </div>
                     </div>
                   )}
-                  <Para label="Academic Qualification" value={qualification} />
-                  <Para
-                    label="Biography"
-                    value={(c.biography as string | undefined) || undefined}
-                  />
                 </li>
               );
             })}

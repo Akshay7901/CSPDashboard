@@ -1424,34 +1424,6 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                               </p>
                             </div>
                           ) : null}
-                          {cv ? (
-                            <div className="mt-4 min-w-0">
-                              <p
-                                className="font-sans text-xs font-semibold uppercase tracking-wide text-black"
-                              >
-                                CV
-                              </p>
-                              <div className="mt-0.5 flex items-center gap-2">
-                                <FileText className="h-4 w-4 shrink-0 text-amber-700" />
-                                <span
-                                  className="truncate font-sans text-sm font-medium"
-                                  style={{ color: "#2C1A0E" }}
-                                  title={cv.filename}
-                                >
-                                  {cv.filename}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => setPreviewFile(cv)}
-                                  title="Preview CV"
-                                  aria-label={`Preview CV for ${name}`}
-                                  className="shrink-0 rounded-md p-1.5 text-stone-500 hover:bg-stone-100 hover:text-stone-900"
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </button>
-                              </div>
-                            </div>
-                          ) : null}
                           {ca.academic_qualification || ca.qualifications ? (
                             <div className="mt-4">
                               <p
@@ -1478,6 +1450,33 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                               >
                                 {String(ca.biography)}
                               </p>
+                            </div>
+                          ) : null}
+                          {cv ? (
+                            <div className="mt-4 min-w-0">
+                              <p
+                                className="font-sans text-xs font-semibold uppercase tracking-wide text-black"
+                              >
+                                CV
+                              </p>
+                              <div className="mt-1.5 flex items-center gap-2">
+                                <FileText className="h-4 w-4 shrink-0 text-amber-700" />
+                                <span
+                                  className="truncate font-sans text-sm font-normal text-stone-900"
+                                  title={cv.filename}
+                                >
+                                  {cv.filename}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => setPreviewFile(cv)}
+                                  title="Preview CV"
+                                  aria-label={`Preview CV for ${name}`}
+                                  className="shrink-0 rounded-md p-1.5 text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </button>
+                              </div>
                             </div>
                           ) : null}
                         </div>

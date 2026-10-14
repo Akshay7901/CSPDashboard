@@ -3635,6 +3635,24 @@ function ProposalDetailPage() {
                                       value={(c.institution || c.affiliation) as string | undefined}
                                     />
                                   </div>
+                                  {!!(c.academic_qualification || c.qualifications || c.biography) && (
+                                    <div className="mt-4 flex flex-col gap-4">
+                                      <DataField
+                                        label="Academic Qualification"
+                                        value={
+                                          ((c.academic_qualification || c.qualifications) as
+                                            | string
+                                            | undefined) || undefined
+                                        }
+                                        multiline
+                                      />
+                                      <DataField
+                                        label="Biography"
+                                        value={(c.biography as string | undefined) || undefined}
+                                        multiline
+                                      />
+                                    </div>
+                                  )}
                                   <div className="mt-4 min-w-0">
                                     <SectionLabel>CV</SectionLabel>
                                     {cvHref ? (
@@ -3668,24 +3686,6 @@ function ProposalDetailPage() {
                                       </p>
                                     )}
                                   </div>
-                                  {!!(c.academic_qualification || c.qualifications || c.biography) && (
-                                    <div className="mt-4 flex flex-col gap-4">
-                                      <DataField
-                                        label="Academic Qualification"
-                                        value={
-                                          ((c.academic_qualification || c.qualifications) as
-                                            | string
-                                            | undefined) || undefined
-                                        }
-                                        multiline
-                                      />
-                                      <DataField
-                                        label="Biography"
-                                        value={(c.biography as string | undefined) || undefined}
-                                        multiline
-                                      />
-                                    </div>
-                                  )}
                                 </li>
                               );
                             })}
