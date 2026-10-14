@@ -876,12 +876,14 @@ function Field({
   updated?: RequestInfoUpdate;
 }) {
   return (
-    <div>
-      <div className="font-sans text-xs font-medium text-stone-500">
+    <div className="min-w-0">
+      <div className="font-sans text-xs uppercase tracking-wide text-stone-500">
         {label}
         {updated && <UpdatedBadge date={updated.respondedAt} />}
       </div>
-      <div className="mt-1 font-sans text-sm text-stone-800">{value}</div>
+      <div className="mt-1.5 break-words font-sans text-sm font-semibold text-stone-900">
+        {value}
+      </div>
     </div>
   );
 }
@@ -906,12 +908,15 @@ function formatBytes(n?: number) {
   return `${(n / 1024 / 1024).toFixed(1)} MB`;
 }
 
+// Card with a header strip — same look as the editor's proposal page.
 function Section({ title, children }: { title: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white p-6">
-      <h3 className="font-serif text-sm font-bold text-[#2C1A0E]">{title}</h3>
-      <div className="mt-4">{children}</div>
-    </div>
+    <section className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
+      <div className="border-b border-stone-200 bg-neutral-50/30 px-5 py-3.5">
+        <h3 className="font-serif text-base font-bold text-[#2C1A0E]">{title}</h3>
+      </div>
+      <div className="px-7 py-6">{children}</div>
+    </section>
   );
 }
 
@@ -927,11 +932,11 @@ function Para({
   if (!value) return null;
   return (
     <div className="mt-4 first:mt-0">
-      <div className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-500">
+      <div className="font-sans text-xs uppercase tracking-wide text-stone-500">
         {label}
         {updated && <UpdatedBadge date={updated.respondedAt} />}
       </div>
-      <p className="mt-1.5 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-700">
+      <p className="mt-2 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-800">
         {value}
       </p>
     </div>
@@ -1009,7 +1014,7 @@ function AdditionalProposalDetails({ rawCd }: { rawCd: Record<string, unknown> }
       <div className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
         {entries.map(([key, value]) => (
           <div key={key}>
-            <div className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-500">
+            <div className="font-sans text-xs uppercase tracking-wide text-stone-500">
               {humanizeKey(key)}
             </div>
             <p className="mt-1.5 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-700">
@@ -1470,7 +1475,7 @@ function ProposalDetails({
                   </div>
                   {cvHref && (
                     <div className="mt-4">
-                      <div className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-500">
+                      <div className="font-sans text-xs uppercase tracking-wide text-stone-500">
                         CV
                       </div>
                       <a
@@ -1575,7 +1580,7 @@ function ProposalDetails({
         <Section title="Summary & Description">
           {revisedText(revisionUpdates.overview, cd.short_description) && (
             <div>
-              <div className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-500">
+              <div className="font-sans text-xs uppercase tracking-wide text-stone-500">
                 Overview
                 {revisionUpdates.overview?.text && (
                   <UpdatedBadge date={revisionUpdates.overview.respondedAt} />
@@ -1797,7 +1802,7 @@ function ProposalDetails({
                 const label = REVISION_AREAS.find((a) => a.key === key)?.label || key;
                 return (
                   <div key={key}>
-                    <div className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-500">
+                    <div className="font-sans text-xs uppercase tracking-wide text-stone-500">
                       {label}
                       <UpdatedBadge date={u.respondedAt} />
                     </div>
@@ -1841,7 +1846,7 @@ function ProposalDetails({
         </div>
         {proposal.assignments && proposal.assignments.length > 0 && (
           <div className="mt-5 space-y-3">
-            <div className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-500">
+            <div className="font-sans text-xs uppercase tracking-wide text-stone-500">
               Assignment
             </div>
             {proposal.assignments.map((a, i) => (

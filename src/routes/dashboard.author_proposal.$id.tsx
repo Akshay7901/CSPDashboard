@@ -1324,15 +1324,14 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                 )}
                 {revisedText(revisionUpdates.mailing_address, cd.address) && (
                   <div className="mt-6 border-t border-stone-200 pt-5">
-                    <p className="font-sans text-xs font-medium" style={{ color: "#7A6A5A" }}>
+                    <p className="font-sans text-xs uppercase tracking-wide text-stone-500">
                       Mailing Address
                       {revisionUpdates.mailing_address?.text && (
                         <UpdatedBadge date={revisionUpdates.mailing_address.respondedAt} />
                       )}
                     </p>
                     <p
-                      className="mt-0.5 font-sans text-sm font-medium"
-                      style={{ color: "#2C1A0E" }}
+                      className="mt-1.5 font-sans text-sm font-semibold text-stone-900"
                     >
                       {revisedText(revisionUpdates.mailing_address, cd.address)}
                     </p>
@@ -1340,15 +1339,14 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                 )}
                 {revisedText(revisionUpdates.biography, cd.biography) && (
                   <div className="mt-5 border-t border-stone-200 pt-5">
-                    <p className="font-sans text-xs font-medium" style={{ color: "#7A6A5A" }}>
+                    <p className="font-sans text-xs uppercase tracking-wide text-stone-500">
                       Biography
                       {revisionUpdates.biography?.text && (
                         <UpdatedBadge date={revisionUpdates.biography.respondedAt} />
                       )}
                     </p>
                     <p
-                      className="mt-0.5 whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed"
-                      style={{ color: "#2C1A0E" }}
+                      className="mt-2 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-800"
                     >
                       {revisedText(revisionUpdates.biography, cd.biography)}
                     </p>
@@ -1413,14 +1411,12 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                           {ca.address ? (
                             <div className="mt-4">
                               <p
-                                className="font-sans text-xs font-medium"
-                                style={{ color: "#7A6A5A" }}
+                                className="font-sans text-xs uppercase tracking-wide text-stone-500"
                               >
                                 Mailing Address
                               </p>
                               <p
-                                className="mt-0.5 font-sans text-sm font-medium"
-                                style={{ color: "#2C1A0E" }}
+                                className="mt-1.5 font-sans text-sm font-semibold text-stone-900"
                               >
                                 {String(ca.address)}
                               </p>
@@ -1429,8 +1425,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                           {cv ? (
                             <div className="mt-4 min-w-0">
                               <p
-                                className="font-sans text-xs font-medium"
-                                style={{ color: "#7A6A5A" }}
+                                className="font-sans text-xs uppercase tracking-wide text-stone-500"
                               >
                                 CV
                               </p>
@@ -1458,14 +1453,12 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                           {ca.academic_qualification || ca.qualifications ? (
                             <div className="mt-4">
                               <p
-                                className="font-sans text-xs font-medium"
-                                style={{ color: "#7A6A5A" }}
+                                className="font-sans text-xs uppercase tracking-wide text-stone-500"
                               >
                                 Academic Qualification
                               </p>
                               <p
-                                className="mt-0.5 whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed"
-                                style={{ color: "#2C1A0E" }}
+                                className="mt-2 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-800"
                               >
                                 {String(ca.academic_qualification || ca.qualifications)}
                               </p>
@@ -1474,14 +1467,12 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                           {ca.biography ? (
                             <div className="mt-4">
                               <p
-                                className="font-sans text-xs font-medium"
-                                style={{ color: "#7A6A5A" }}
+                                className="font-sans text-xs uppercase tracking-wide text-stone-500"
                               >
                                 Biography
                               </p>
                               <p
-                                className="mt-0.5 whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed"
-                                style={{ color: "#2C1A0E" }}
+                                className="mt-2 whitespace-pre-wrap font-sans text-sm leading-relaxed text-stone-800"
                               >
                                 {String(ca.biography)}
                               </p>
@@ -1868,7 +1859,7 @@ function StatCard({
 }) {
   return (
     <div className="rounded-2xl border border-stone-200 bg-stone-50/60 px-4 py-4 text-center">
-      <p className="font-sans text-xs font-medium" style={{ color: "#7A6A5A" }}>
+      <p className="font-sans text-xs uppercase tracking-wide text-stone-500">
         {label}
         {updated?.text && <UpdatedBadge date={updated.respondedAt} />}
       </p>
@@ -2024,7 +2015,7 @@ function DynamicProposalFields({ data }: { data: Record<string, unknown> }) {
       <div className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
         {entries.map(([k, v]) => (
           <div key={k}>
-            <p className="font-sans text-xs font-medium" style={{ color: "#7A6A5A" }}>
+            <p className="font-sans text-xs uppercase tracking-wide text-stone-500">
               {humanizeKey(k)}
             </p>
             <div
@@ -2067,14 +2058,12 @@ function MiniStat({
   updated?: RequestInfoUpdate;
 }) {
   return (
-    <div className="rounded-xl border border-stone-200 bg-stone-50/60 px-4 py-3">
-      <p className="font-sans text-xs font-medium" style={{ color: "#7A6A5A" }}>
+    <div className="min-w-0">
+      <p className="break-words font-sans text-xs uppercase tracking-wide text-stone-500">
         {label}
         {updated?.text && <UpdatedBadge date={updated.respondedAt} />}
       </p>
-      <p className="mt-0.5 font-sans text-sm font-medium" style={{ color: "#2C1A0E" }}>
-        {value}
-      </p>
+      <p className="mt-1 font-sans text-base font-semibold text-stone-900">{value}</p>
     </div>
   );
 }
@@ -2093,22 +2082,19 @@ function Card({
   updated?: RequestInfoUpdate;
 }) {
   return (
+    // Card with a header strip — same look as the editor's proposal page.
     <section
       id={id}
-      className="scroll-mt-24 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm"
+      className="scroll-mt-24 overflow-hidden rounded-2xl border border-stone-200 bg-white"
     >
-      <div className="px-5 py-3.5 md:px-5">
-        <h2 className="font-serif text-base font-bold" style={{ color: "#2C1A0E" }}>
+      <div className="border-b border-stone-200 bg-neutral-50/30 px-5 py-3.5">
+        <h2 className="font-serif text-base font-bold text-[#2C1A0E]">
           {title}
           {updated?.text && <UpdatedBadge date={updated.respondedAt} />}
         </h2>
-        {subtitle && (
-          <p className="mt-1 font-sans text-xs font-medium" style={{ color: "#7A6A5A" }}>
-            {subtitle}
-          </p>
-        )}
+        {subtitle && <p className="mt-0.5 font-sans text-xs text-[#7A6A5A]">{subtitle}</p>}
       </div>
-      <div className="border-t border-stone-200 px-6 py-6 md:px-7">{children}</div>
+      <div className="px-7 py-6">{children}</div>
     </section>
   );
 }
@@ -3298,28 +3284,23 @@ function SubCard({
   updated?: RequestInfoUpdate;
 }) {
   return (
-    <div className="border-t border-stone-200 pt-5 first:border-t-0 first:pt-0">
-      <p
-        className="font-sans text-xs font-semibold uppercase tracking-wide"
-        style={{ color: "#7A6A5A" }}
-      >
+    <div className="-mx-7 border-t border-stone-200 px-7 pt-5 first:border-t-0 first:pt-0">
+      <p className="font-sans text-xs uppercase tracking-wide text-stone-500">
         {label}
         {updated?.text && <UpdatedBadge date={updated.respondedAt} />}
       </p>
-      <div className="mt-2">{children}</div>
+      <div className="mt-2 [&_p]:font-normal [&_p]:text-stone-800 [&_p]:leading-relaxed">
+        {children}
+      </div>
     </div>
   );
 }
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
-    <div>
-      <p className="font-sans text-xs font-medium" style={{ color: "#7A6A5A" }}>
-        {label}
-      </p>
-      <p className="mt-0.5 font-sans text-sm font-medium" style={{ color: "#2C1A0E" }}>
-        {value}
-      </p>
+    <div className="min-w-0">
+      <p className="font-sans text-xs uppercase tracking-wide text-stone-500">{label}</p>
+      <p className="mt-1.5 break-words font-sans text-sm font-semibold text-stone-900">{value}</p>
     </div>
   );
 }
