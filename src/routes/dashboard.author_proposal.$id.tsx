@@ -1512,13 +1512,20 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                         : "—"
                     }
                   />
-                  <MiniStat label="Languages" value={cd.language || "—"} />
                   <MiniStat
                     label="Est. Completion"
                     value={completionUpdate?.text || completionDate || "—"}
                     updated={completionUpdate}
                   />
-                  <MiniStat
+                  {cd.estimated_pages != null && (
+                    <MiniStat label="Est. Pages" value={String(cd.estimated_pages)} />
+                  )}
+                </div>
+                {/* Free-text answers read better full width than squeezed
+                    into the stat columns above. */}
+                <div className="-mx-7 mt-6 grid grid-cols-1 gap-5 border-t border-stone-200 px-7 pt-5 sm:grid-cols-2">
+                  <Field label="Languages" value={cd.language || "—"} />
+                  <Field
                     label="Subject"
                     value={
                       [cd.subject, cd.secondary_subjects?.join(" / ")]
@@ -1526,12 +1533,9 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                         .join(" · ") || "—"
                     }
                   />
-                  {cd.estimated_pages != null && (
-                    <MiniStat label="Est. Pages" value={String(cd.estimated_pages)} />
-                  )}
                 </div>
                 {audienceText && (
-                  <div className="mt-5">
+                  <div className="-mx-7 mt-5 border-t border-stone-200 px-7 pt-5">
                     <SubCard label="Intended Audience" updated={revisionUpdates.audience}>
                       <p
                         className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed"
