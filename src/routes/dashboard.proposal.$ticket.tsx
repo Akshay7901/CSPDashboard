@@ -3945,9 +3945,9 @@ function ProposalDetailPage() {
                               ) : undefined
                             }
                           />
-                          <ol className="divide-y divide-stone-100 px-2 py-2">
+                          <ol className="divide-y divide-stone-200">
                             {suggestedReviewers.map((r, i) => (
-                              <li key={`${i}-${r}`} className="flex gap-5 px-5 py-4">
+                              <li key={`${i}-${r}`} className="flex gap-5 px-7 py-4">
                                 <span className="font-sans text-sm font-medium text-stone-500">
                                   {i + 1}.
                                 </span>
@@ -4022,10 +4022,10 @@ function ProposalDetailPage() {
                         No supporting documents available.
                       </div>
                     ) : (
-                      <ul className="divide-y divide-stone-100 px-2 py-2">
+                      <ul className="divide-y divide-stone-200">
                         {proposalDocuments.map((doc, i) => {
                           return (
-                            <li key={`${doc.url || doc.filename}-${i}`} className="px-5 py-4">
+                            <li key={`${doc.url || doc.filename}-${i}`} className="px-5 py-3">
                               <div className="flex items-start gap-3 rounded-lg border border-transparent p-2 transition-colors hover:border-stone-200 hover:bg-stone-50">
                                 <FileText className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
                                 <div className="min-w-0 flex-1">
