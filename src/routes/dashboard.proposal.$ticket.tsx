@@ -3472,7 +3472,7 @@ function ProposalDetailPage() {
                           <div className="flex flex-wrap gap-x-6 gap-y-2 font-sans text-sm sm:gap-x-10">
                             {(cd.book_type || canEditBookType) && (
                               <div className="min-w-0">
-                                <p className="font-sans text-xs font-semibold uppercase tracking-wide text-stone-500 break-words">
+                                <p className="font-sans text-xs font-semibold uppercase tracking-wide text-black break-words">
                                   Type
                                 </p>
                                 <BookTypeEditor
@@ -4639,7 +4639,7 @@ function ProposalDetailPage() {
                     )}
                     {(cd.book_type || canEditBookType) && (
                       <div className="flex items-center justify-between gap-4 py-2.5">
-                        <dt className="font-sans text-sm font-semibold text-stone-500">Type</dt>
+                        <dt className="font-sans text-sm font-semibold text-black">Type</dt>
                         <dd>
                           <BookTypeEditor
                             ticket={ticket}
@@ -5705,7 +5705,7 @@ function CardHeader({
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="font-sans text-xs font-semibold uppercase tracking-wide text-stone-500">
+    <p className="font-sans text-xs font-semibold uppercase tracking-wide text-black">
       {children}
     </p>
   );
@@ -5770,7 +5770,7 @@ function Stat({
 }) {
   return (
     <div className="min-w-0">
-      <p className="font-sans text-xs font-semibold uppercase tracking-wide text-stone-500 break-words">
+      <p className="font-sans text-xs font-semibold uppercase tracking-wide text-black break-words">
         {label}
         {updated?.text && <UpdatedBadge date={updated.respondedAt} />}
       </p>
@@ -5786,7 +5786,7 @@ function Stat({
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-4 py-2.5">
-      <dt className="font-sans text-sm font-semibold text-stone-500">{label}</dt>
+      <dt className="font-sans text-sm font-semibold text-black">{label}</dt>
       <dd className="font-sans text-sm font-normal text-stone-900">{value}</dd>
     </div>
   );
