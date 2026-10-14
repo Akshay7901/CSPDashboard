@@ -998,7 +998,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
     revisionUpdates.audience,
     cd.target_audience || cd.marketing_info,
   );
-  const whyNeededText = cd.unique_selling_points || cd.marketing_info;
+  const uniqueContributionText = cd.unique_contribution || cd.unique_selling_points;
   const reviewersRaw = revisedText(
     revisionUpdates.suggested_reviewers,
     cd.recommended_reviewers || cd.referees_reviewers,
@@ -1297,13 +1297,13 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                 <div className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
                   <Field label="Name" value={authorFullName} />
                   <Field label="Email" value={cd.email || "—"} />
-                  {cd.institution && <Field label="Institution" value={cd.institution} />}
-                  {cd.country && <Field label="Country" value={cd.country} />}
-                  {cd.job_title && <Field label="Job Title" value={cd.job_title} />}
-                  {cd.phone && <Field label="Phone" value={cd.phone} />}
                   {cd.secondary_email && (
                     <Field label="Secondary Email" value={cd.secondary_email} />
                   )}
+                  {cd.phone && <Field label="Phone" value={cd.phone} />}
+                  {cd.job_title && <Field label="Job Title" value={cd.job_title} />}
+                  {cd.institution && <Field label="Institution" value={cd.institution} />}
+                  {cd.country && <Field label="Country" value={cd.country} />}
                   {revisedText(revisionUpdates.author_credentials, authorQualification) && (
                     <Field
                       label="Academic Qualification"
@@ -1356,10 +1356,14 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                 )}
               </Card>
 
-              {/* Additional Authors / Editors */}
+              {/* Co-authors / Editors — titled to match the editor's view */}
               {(coAuthorsList.length > 0 || revisionUpdates.additional_authors?.text) && (
                 <Card
-                  title="Additional Authors / Editors"
+                  title={
+                    Array.isArray(cd.co_authors) && cd.co_authors.length > 0
+                      ? "Co-authors / Editors / Contributors / Translators"
+                      : "Additional Authors / Editors"
+                  }
                   subtitle={
                     coAuthorsList.length > 0
                       ? `${coAuthorsList.length} co-author${coAuthorsList.length > 1 ? "s" : ""}`
@@ -1393,10 +1397,14 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                           className="border-t border-stone-200 pt-5 first:border-t-0 first:pt-0"
                         >
                           <div className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
+                            {ca.role ? <Field label="Role" value={String(ca.role)} /> : null}
                             <Field label="Name" value={String(name)} />
                             {ca.email ? <Field label="Email" value={String(ca.email)} /> : null}
-                            {ca.institution ? (
-                              <Field label="Institution" value={String(ca.institution)} />
+                            {ca.institution || ca.affiliation ? (
+                              <Field
+                                label="Affiliation"
+                                value={String(ca.institution || ca.affiliation)}
+                              />
                             ) : null}
                             {ca.country ? (
                               <Field label="Country" value={String(ca.country)} />
@@ -1416,6 +1424,35 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                               >
                                 {String(ca.address)}
                               </p>
+                            </div>
+                          ) : null}
+                          {cv ? (
+                            <div className="mt-4 min-w-0">
+                              <p
+                                className="font-sans text-xs font-medium"
+                                style={{ color: "#7A6A5A" }}
+                              >
+                                CV
+                              </p>
+                              <div className="mt-0.5 flex items-center gap-2">
+                                <FileText className="h-4 w-4 shrink-0 text-amber-700" />
+                                <span
+                                  className="truncate font-sans text-sm font-medium"
+                                  style={{ color: "#2C1A0E" }}
+                                  title={cv.filename}
+                                >
+                                  {cv.filename}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => setPreviewFile(cv)}
+                                  title="Preview CV"
+                                  aria-label={`Preview CV for ${name}`}
+                                  className="shrink-0 rounded-md p-1.5 text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </button>
+                              </div>
                             </div>
                           ) : null}
                           {ca.academic_qualification || ca.qualifications ? (
@@ -1450,35 +1487,6 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                               </p>
                             </div>
                           ) : null}
-                          {cv ? (
-                            <div className="mt-4 min-w-0">
-                              <p
-                                className="font-sans text-xs font-medium"
-                                style={{ color: "#7A6A5A" }}
-                              >
-                                CV
-                              </p>
-                              <div className="mt-0.5 flex items-center gap-2">
-                                <FileText className="h-4 w-4 shrink-0 text-amber-700" />
-                                <span
-                                  className="truncate font-sans text-sm font-medium"
-                                  style={{ color: "#2C1A0E" }}
-                                  title={cv.filename}
-                                >
-                                  {cv.filename}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => setPreviewFile(cv)}
-                                  title="Preview CV"
-                                  aria-label={`Preview CV for ${name}`}
-                                  className="shrink-0 rounded-md p-1.5 text-stone-500 hover:bg-stone-100 hover:text-stone-900"
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </button>
-                              </div>
-                            </div>
-                          ) : null}
                         </div>
                       );
                     })}
@@ -1486,14 +1494,69 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                 </Card>
               )}
 
+              {/* Manuscript Details — same fields and position as the editor's view */}
+              <Card title="Manuscript Details" id="section-manuscript">
+                {revisionUpdates.manuscript_details?.text && (
+                  <div className="mb-5 rounded-lg border border-emerald-200 bg-emerald-50/60 px-4 py-3">
+                    <p className="font-sans text-xs font-semibold text-emerald-800">
+                      Author's revision response
+                      <UpdatedBadge date={revisionUpdates.manuscript_details.respondedAt} />
+                    </p>
+                    <p className="mt-1 whitespace-pre-wrap font-sans text-sm text-emerald-900">
+                      {revisionUpdates.manuscript_details.text}
+                    </p>
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                  <MiniStat
+                    label="Word Count"
+                    value={wordCountDisplay || "—"}
+                    updated={wordCountUpdate}
+                  />
+                  <MiniStat
+                    label="illustrations/figures/tables"
+                    value={
+                      illustrationCount !== undefined && illustrationCount !== null
+                        ? String(illustrationCount)
+                        : "—"
+                    }
+                  />
+                  <MiniStat label="Languages" value={cd.language || "—"} />
+                  <MiniStat
+                    label="Est. Completion"
+                    value={completionUpdate?.text || completionDate || "—"}
+                    updated={completionUpdate}
+                  />
+                  <MiniStat
+                    label="Subject"
+                    value={
+                      [cd.subject, cd.secondary_subjects?.join(" / ")]
+                        .filter(Boolean)
+                        .join(" · ") || "—"
+                    }
+                  />
+                  {cd.estimated_pages != null && (
+                    <MiniStat label="Est. Pages" value={String(cd.estimated_pages)} />
+                  )}
+                </div>
+                {audienceText && (
+                  <div className="mt-5">
+                    <SubCard label="Intended Audience" updated={revisionUpdates.audience}>
+                      <p
+                        className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed"
+                        style={{ color: "#2C1A0E" }}
+                      >
+                        {audienceText}
+                      </p>
+                    </SubCard>
+                  </div>
+                )}
+              </Card>
+
               {/* Summary & Description */}
-              {(overviewText || keyFeaturesText || audienceText || keywordTags.length > 0) && (
+              {(overviewText || keyFeaturesText || keywordTags.length > 0) && (
                 <Card title="Summary & Description" id="section-summary">
-                  <p className="-mt-2 font-sans text-sm font-medium" style={{ color: "#A6814A" }}>
-                    {[cd.subject, cd.secondary_subjects?.join(" / ")].filter(Boolean).join(" · ") ||
-                      "—"}
-                  </p>
-                  <div className="mt-5 space-y-4">
+                  <div className="space-y-4">
                     {overviewText && (
                       <SubCard label="Overview" updated={revisionUpdates.overview}>
                         <p
@@ -1529,33 +1592,6 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                         </p>
                       </SubCard>
                     )}
-                    {cd.unique_selling_points && (
-                      <SubCard label="Unique Selling Points">
-                        <p
-                          className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed"
-                          style={{ color: "#2C1A0E" }}
-                        >
-                          {cd.unique_selling_points}
-                        </p>
-                      </SubCard>
-                    )}
-                    {audienceText && (
-                      <SubCard label="Intended Audience" updated={revisionUpdates.audience}>
-                        <p
-                          className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed"
-                          style={{ color: "#2C1A0E" }}
-                        >
-                          {audienceText}
-                        </p>
-                      </SubCard>
-                    )}
-                    {cd.language && (
-                      <SubCard label="Contains Non-English Content">
-                        <p className="font-sans text-sm font-medium" style={{ color: "#2C1A0E" }}>
-                          {cd.language.toLowerCase() === "english" ? "No" : `Yes (${cd.language})`}
-                        </p>
-                      </SubCard>
-                    )}
                   </div>
                 </Card>
               )}
@@ -1572,7 +1608,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
               )}
 
               {/* Marketing & Promotion */}
-              {(whyNeededText ||
+              {(uniqueContributionText ||
                 cd.competing_titles ||
                 cd.primary_market ||
                 cd.unique_contribution ||
@@ -1602,13 +1638,6 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                         </p>
                       </SubCard>
                     )}
-                    {whyNeededText && (
-                      <SubCard label="Why is this book needed?">
-                        <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
-                          {whyNeededText}
-                        </p>
-                      </SubCard>
-                    )}
                     {revisedText(revisionUpdates.competition, cd.competing_titles) && (
                       <SubCard label="Competing Titles" updated={revisionUpdates.competition}>
                         <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
@@ -1616,10 +1645,10 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                         </p>
                       </SubCard>
                     )}
-                    {cd.unique_contribution && (
+                    {uniqueContributionText && (
                       <SubCard label="Unique Contribution vs Competing Titles">
                         <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
-                          {cd.unique_contribution}
+                          {uniqueContributionText}
                         </p>
                       </SubCard>
                     )}
@@ -1640,7 +1669,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                     {cd.marketing_info &&
                       cd.marketing_info !== cd.competing_titles &&
                       cd.marketing_info !== cd.primary_market &&
-                      cd.marketing_info !== whyNeededText &&
+                      cd.marketing_info !== uniqueContributionText &&
                       cd.marketing_info !== audienceText && (
                         <SubCard label="Additional Marketing Notes">
                           <p className="whitespace-pre-wrap font-sans text-sm font-medium leading-relaxed text-[#2C1A0E]">
@@ -1655,60 +1684,14 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
               {/* Suggested reviewers */}
               {reviewersRaw && (
                 <Card
-                  title="Suggested Reviewers"
-                  subtitle="Nominated for consideration"
+                  title="Author-Suggested Reviewers"
+                  subtitle="Nominated by the author — for consideration only"
                   id="section-reviewers"
                   updated={revisionUpdates.suggested_reviewers}
                 >
                   <ReviewersList raw={reviewersRaw} />
                 </Card>
               )}
-
-              {/* Manuscript details / extras */}
-              <Card title="Manuscript Details" id="section-manuscript">
-                {revisionUpdates.manuscript_details?.text && (
-                  <div className="mb-5 rounded-lg border border-emerald-200 bg-emerald-50/60 px-4 py-3">
-                    <p className="font-sans text-xs font-semibold text-emerald-800">
-                      Author's revision response
-                      <UpdatedBadge date={revisionUpdates.manuscript_details.respondedAt} />
-                    </p>
-                    <p className="mt-1 whitespace-pre-wrap font-sans text-sm text-emerald-900">
-                      {revisionUpdates.manuscript_details.text}
-                    </p>
-                  </div>
-                )}
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                  <MiniStat
-                    label="Word Count"
-                    value={wordCountDisplay || "—"}
-                    updated={wordCountUpdate}
-                  />
-                  <MiniStat
-                    label="illustrations/figures/tables"
-                    value={
-                      illustrationCount !== undefined && illustrationCount !== null
-                        ? String(illustrationCount)
-                        : "—"
-                    }
-                  />
-                  <MiniStat label="Languages" value={cd.language || "—"} />
-
-                  <MiniStat
-                    label="Est. Completion"
-                    value={completionUpdate?.text || completionDate || "—"}
-                    updated={completionUpdate}
-                  />
-                  {cd.estimated_pages != null && (
-                    <MiniStat label="Est. Pages" value={String(cd.estimated_pages)} />
-                  )}
-                  {cd.permissions_required !== undefined && (
-                    <MiniStat
-                      label="Permissions Required"
-                      value={fmtBool(cd.permissions_required)}
-                    />
-                  )}
-                </div>
-              </Card>
 
               {/* Additional Comments & Permissions */}
               {hasNotes && (
