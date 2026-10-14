@@ -3458,57 +3458,39 @@ function ProposalDetailPage() {
                 {((!isReviewReturned && !isContractIssued) || originalOpen) && (
                   <>
                     <div className="space-y-6 rounded-3xl border border-stone-200 bg-white p-4 sm:p-5">
+                      {/* Type / Word Count / Completion — same cards as the author page */}
+                      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                        <StatCard label="Type">
+                          {cd.book_type || canEditBookType ? (
+                            <BookTypeEditor
+                              ticket={ticket}
+                              value={cd.book_type}
+                              canEdit={canEditBookType}
+                              onChanged={onBookTypeChanged}
+                            />
+                          ) : (
+                            "—"
+                          )}
+                        </StatCard>
+                        <StatCard label="Word Count" updated={revisionUpdates.word_count}>
+                          {formatNumber(revisedText(revisionUpdates.word_count, cd.word_count)) ||
+                            "—"}
+                        </StatCard>
+                        <StatCard label="Completion" updated={revisionUpdates.expected_completion}>
+                          {revisionUpdates.expected_completion?.text ||
+                            formatMonthYear(cd.expected_completion_date)}
+                        </StatCard>
+                      </div>
+
                       {/* Primary Author */}
                       <Card>
-                        <div className="flex flex-wrap items-start justify-between gap-6 px-7 pt-6">
-                          <div>
-                            <h2 className="font-serif text-xl font-bold text-stone-900">
-                              Primary Author / Editor
-                            </h2>
-                            <p className="mt-1 font-sans text-sm text-stone-500">
-                              Institutional affiliation and contact
-                            </p>
-                          </div>
-                          <div className="flex flex-wrap gap-x-6 gap-y-2 font-sans text-sm sm:gap-x-10">
-                            {(cd.book_type || canEditBookType) && (
-                              <div className="min-w-0">
-                                <p className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black break-words">
-                                  Type
-                                </p>
-                                <BookTypeEditor
-                                  ticket={ticket}
-                                  value={cd.book_type}
-                                  canEdit={canEditBookType}
-                                  onChanged={onBookTypeChanged}
-                                  className="mt-1 font-sans text-sm font-normal text-stone-900"
-                                />
-                              </div>
-                            )}
-                            {revisedText(revisionUpdates.word_count, cd.word_count) && (
-                              <Stat
-                                label="Words"
-                                value={formatNumber(
-                                  revisedText(revisionUpdates.word_count, cd.word_count)!,
-                                )}
-                                updated={revisionUpdates.word_count}
-                              />
-                            )}
-                            {revisedText(
-                              revisionUpdates.expected_completion,
-                              cd.expected_completion_date,
-                            ) && (
-                              <Stat
-                                label="Completion"
-                                value={
-                                  revisedText(
-                                    revisionUpdates.expected_completion,
-                                    cd.expected_completion_date,
-                                  )!
-                                }
-                                updated={revisionUpdates.expected_completion}
-                              />
-                            )}
-                          </div>
+                        <div className="px-7 pt-6">
+                          <h2 className="font-serif text-xl font-bold text-stone-900">
+                            Primary Author / Editor
+                          </h2>
+                          <p className="mt-1 font-sans text-sm text-stone-500">
+                            Institutional affiliation and contact
+                          </p>
                         </div>
                         <Divider />
                         {revisionUpdates.primary_author?.text && (
@@ -5781,6 +5763,36 @@ function Stat({
       </p>
     </div>
   );
+}
+
+// Bordered, centred stat card — matches the author page's Type / Word
+// Count / Completion row.
+function StatCard({
+  label,
+  updated,
+  children,
+}: {
+  label: string;
+  updated?: RequestInfoUpdate;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl border border-stone-200 bg-white px-4 py-4 text-center">
+      <p className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
+        {label}
+        {updated?.text && <UpdatedBadge date={updated.respondedAt} />}
+      </p>
+      <div className="mt-1 font-sans text-sm font-normal text-stone-900">{children}</div>
+    </div>
+  );
+}
+
+function formatMonthYear(iso?: string): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime())
+    ? iso
+    : d.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
 }
 
 function InfoRow({ label, value }: { label: string; value: string }) {

@@ -908,6 +908,36 @@ function formatBytes(n?: number) {
   return `${(n / 1024 / 1024).toFixed(1)} MB`;
 }
 
+// Bordered, centred stat card — matches the author page's Type / Word
+// Count / Completion row.
+function StatCard({
+  label,
+  value,
+  updated,
+}: {
+  label: string;
+  value: string;
+  updated?: RequestInfoUpdate;
+}) {
+  return (
+    <div className="rounded-2xl border border-stone-200 bg-white px-4 py-4 text-center">
+      <p className="font-sans text-[15px] font-semibold uppercase tracking-wide text-black">
+        {label}
+        {updated?.text && <UpdatedBadge date={updated.respondedAt} />}
+      </p>
+      <p className="mt-1 font-sans text-sm font-normal text-stone-900">{value}</p>
+    </div>
+  );
+}
+
+function formatMonthYear(iso?: string): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime())
+    ? iso
+    : d.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+}
+
 // Card with a header strip — same look as the editor's proposal page.
 function Section({ title, children }: { title: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -1358,21 +1388,26 @@ function ProposalDetails({
         })()}
       </div>
 
+      {/* Type / Word Count / Completion — same cards as the author page */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <StatCard label="Type" value={cd.book_type || "—"} />
+        <StatCard
+          label="Word Count"
+          value={formatNumber(revisedText(revisionUpdates.word_count, cd.word_count)) || "—"}
+          updated={revisionUpdates.word_count}
+        />
+        <StatCard
+          label="Completion"
+          value={
+            revisionUpdates.expected_completion?.text ||
+            formatMonthYear(cd.expected_completion_date)
+          }
+          updated={revisionUpdates.expected_completion}
+        />
+      </div>
+
       {/* Primary Author / Editor */}
       <Section title="Primary Author / Editor">
-        <div className="-mt-2 mb-4 flex flex-wrap gap-x-8 gap-y-2 font-sans text-sm">
-          <Field label="Type" value={cd.book_type || "—"} />
-          <Field
-            label="Words"
-            value={formatNumber(revisedText(revisionUpdates.word_count, cd.word_count)) || "—"}
-            updated={revisionUpdates.word_count}
-          />
-          <Field
-            label="Completion"
-            value={revisedText(revisionUpdates.expected_completion, cd.expected_completion_date) || "—"}
-            updated={revisionUpdates.expected_completion}
-          />
-        </div>
         {revisionUpdates.primary_author?.text && (
           <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2">
             <p className="font-sans text-xs font-semibold text-emerald-800">
@@ -1384,7 +1419,6 @@ function ProposalDetails({
             </p>
           </div>
         )}
-        <hr className="my-4 border-stone-100" />
         <div className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
           <Field label="Name" value={cd.corresponding_author_name || "—"} />
           <Field label="Email" value={cd.email || "—"} />
