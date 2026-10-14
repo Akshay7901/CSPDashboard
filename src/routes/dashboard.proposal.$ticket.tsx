@@ -3484,15 +3484,10 @@ function ProposalDetailPage() {
 
                       {/* Primary Author */}
                       <Card>
-                        <div className="px-7 pt-6">
-                          <h2 className="font-serif text-xl font-bold text-stone-900">
-                            Primary Author / Editor
-                          </h2>
-                          <p className="mt-1 font-sans text-sm text-stone-500">
-                            Institutional affiliation and contact
-                          </p>
-                        </div>
-                        <Divider />
+                        <CardHeader
+                          title="Primary Author / Editor"
+                          subtitle="Institutional affiliation and contact"
+                        />
                         {revisionUpdates.primary_author?.text && (
                           <div className="mx-7 mt-5 rounded-lg border border-emerald-200 bg-emerald-50/60 px-4 py-3">
                             <p className="font-sans text-xs font-semibold text-emerald-800">
