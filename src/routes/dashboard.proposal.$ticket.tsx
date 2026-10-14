@@ -3457,7 +3457,7 @@ function ProposalDetailPage() {
 
                 {((!isReviewReturned && !isContractIssued) || originalOpen) && (
                   <>
-                    <div className="space-y-6 rounded-3xl border border-stone-200 bg-white p-4 sm:p-5">
+                    <div className="space-y-6">
                       {/* Type / Word Count / Completion — same cards as the author page */}
                       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                         <StatCard label="Type">
