@@ -1245,7 +1245,9 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
 
             <aside
               id="section-documents"
-              className="row-span-2 scroll-mt-24 overflow-hidden rounded-2xl border border-stone-200 bg-white"
+              // self-start: size to the document list instead of stretching
+              // to the height of the whole content column beside it.
+              className="row-span-2 self-start scroll-mt-24 overflow-hidden rounded-2xl border border-stone-200 bg-white"
             >
               <h3
                 className="px-5 py-3.5 font-serif text-base font-bold"

@@ -3639,6 +3639,15 @@ function ProposalDetailPage() {
                                     <SectionLabel>CV</SectionLabel>
                                     {cvHref ? (
                                       <div className="mt-1.5 flex items-center gap-2">
+                                        <a
+                                          href={cvHref}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="truncate font-sans text-sm font-normal text-stone-900 hover:underline"
+                                          title={cvFilename}
+                                        >
+                                          {cvFilename || "View CV"}
+                                        </a>
                                         <button
                                           type="button"
                                           onClick={() =>
@@ -3652,15 +3661,6 @@ function ProposalDetailPage() {
                                         >
                                           <Eye className="h-4 w-4" />
                                         </button>
-                                        <a
-                                          href={cvHref}
-                                          target="_blank"
-                                          rel="noreferrer"
-                                          className="truncate font-sans text-sm font-normal text-stone-900 hover:underline"
-                                          title={cvFilename}
-                                        >
-                                          {cvFilename || "View CV"}
-                                        </a>
                                       </div>
                                     ) : (
                                       <p className="mt-1.5 font-sans text-sm text-stone-400">
@@ -4047,22 +4047,6 @@ function ProposalDetailPage() {
                           return (
                             <li key={`${doc.url || doc.filename}-${i}`} className="px-5 py-4">
                               <div className="flex items-start gap-3 rounded-lg border border-transparent p-2 transition-colors hover:border-stone-200 hover:bg-stone-50">
-                                {doc.url && (
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      setPreviewDoc({
-                                        url: doc.url!,
-                                        filename: doc.filename,
-                                        content_type: doc.content_type,
-                                      })
-                                    }
-                                    className="mt-0.5 shrink-0 rounded-md p-1 text-stone-500 hover:bg-stone-100 hover:text-stone-800"
-                                    title="Preview document"
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </button>
-                                )}
                                 <FileText className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
                                 <div className="min-w-0 flex-1">
                                   {doc.url ? (
@@ -4087,6 +4071,22 @@ function ProposalDetailPage() {
                                     </p>
                                   )}
                                 </div>
+                                {doc.url && (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setPreviewDoc({
+                                        url: doc.url!,
+                                        filename: doc.filename,
+                                        content_type: doc.content_type,
+                                      })
+                                    }
+                                    className="mt-0.5 shrink-0 rounded-md p-1 text-stone-500 hover:bg-stone-100 hover:text-stone-800"
+                                    title="Preview document"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </button>
+                                )}
                               </div>
                             </li>
                           );

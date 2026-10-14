@@ -1478,14 +1478,30 @@ function ProposalDetails({
                       <div className="font-sans text-xs font-semibold uppercase tracking-wide text-black">
                         CV
                       </div>
-                      <a
-                        href={cvHref}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="mt-1.5 inline-block font-sans text-sm font-medium text-stone-900 underline-offset-2 hover:underline"
-                      >
-                        {(typeof cv?.filename === "string" && cv.filename) || "View CV"}
-                      </a>
+                      <div className="mt-1.5 flex items-center gap-2">
+                        <a
+                          href={cvHref}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="truncate font-sans text-sm font-normal text-stone-900 underline-offset-2 hover:underline"
+                        >
+                          {(typeof cv?.filename === "string" && cv.filename) || "View CV"}
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setPreviewDoc({
+                              url: cvHref,
+                              filename:
+                                (typeof cv?.filename === "string" && cv.filename) || "CV",
+                            })
+                          }
+                          title="Preview CV"
+                          className="shrink-0 rounded-md p-1 text-stone-500 hover:bg-stone-100 hover:text-stone-800"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
                   )}
                   <Para label="Academic Qualification" value={qualification} />
