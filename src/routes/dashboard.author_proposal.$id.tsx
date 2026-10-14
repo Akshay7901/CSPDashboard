@@ -1245,7 +1245,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
 
             <aside
               id="section-documents"
-              className="row-span-2 scroll-mt-24 overflow-hidden rounded-2xl border border-stone-200 bg-stone-50/60"
+              className="row-span-2 scroll-mt-24 overflow-hidden rounded-2xl border border-stone-200 bg-white"
             >
               <h3
                 className="px-5 py-3.5 font-serif text-base font-bold"
@@ -1862,7 +1862,7 @@ function StatCard({
   updated?: RequestInfoUpdate;
 }) {
   return (
-    <div className="rounded-2xl border border-stone-200 bg-stone-50/60 px-4 py-4 text-center">
+    <div className="rounded-2xl border border-stone-200 bg-white px-4 py-4 text-center">
       <p className="font-sans text-xs font-semibold uppercase tracking-wide text-black">
         {label}
         {updated?.text && <UpdatedBadge date={updated.respondedAt} />}
@@ -2091,7 +2091,7 @@ function Card({
       id={id}
       className="scroll-mt-24 overflow-hidden rounded-2xl border border-stone-200 bg-white"
     >
-      <div className="border-b border-stone-200 bg-neutral-50/30 px-5 py-3.5">
+      <div className="border-b border-stone-200 bg-white px-5 py-3.5">
         <h2 className="font-serif text-base font-bold text-[#2C1A0E]">
           {title}
           {updated?.text && <UpdatedBadge date={updated.respondedAt} />}
@@ -2757,7 +2757,7 @@ function ContractIssuedView({
 
       {/* Step 1 — Feedback (hidden once contract is signed) */}
       <div>
-        <div className="flex items-center gap-3 border-b border-stone-200 bg-stone-50/60 px-6 py-3">
+        <div className="flex items-center gap-3 border-b border-stone-200 bg-white px-6 py-3">
           <span
             className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-sans text-xs font-bold text-white ${isSigned ? "bg-emerald-600" : "bg-violet-600"}`}
           >
