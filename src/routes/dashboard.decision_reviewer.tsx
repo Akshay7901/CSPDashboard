@@ -14,10 +14,11 @@ import {
   UserCog,
   Lock,
   Menu,
+  Download,
 } from "lucide-react";
 import cspLogo from "@/assets/csp-logo.png";
 import { portalLogout, getPortalSession, getPortalToken, isAdmin as checkIsAdmin } from "@/lib/auth";
-import { deleteProposal } from "@/lib/adminApi";
+import { deleteProposal, exportProposalsCsv } from "@/lib/adminApi";
 import { toast } from "sonner";
 import {
   STATUS_META,
@@ -366,6 +367,7 @@ function DecisionReviewerDashboard() {
   const [adding, setAdding] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [exporting, setExporting] = useState(false);
   const [confirmDeleteTicket, setConfirmDeleteTicket] = useState<string | null>(null);
   const [deletingTicket, setDeletingTicket] = useState<string | null>(null);
   const [deletedTickets, setDeletedTickets] = useState<Set<string>>(new Set());
@@ -1245,6 +1247,31 @@ function DecisionReviewerDashboard() {
     return list;
   }, [mergedProposals, activeFilter, search, field, sort]);
 
+  // Export matches what's on screen: the active status tab, selected
+  // subjects and sort order. (The free-text search box is client-side only
+  // and has no API equivalent, so it isn't applied.)
+  const onExportCsv = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const statuses =
+        activeFilter === "all"
+          ? []
+          : activeFilter === "awaiting_author_approval"
+            ? ["awaiting_author_approval", "contract_received"]
+            : [activeFilter];
+      await exportProposalsCsv({
+        statuses,
+        subjects: selectedSubjects,
+        sortOrder: sort === "newest" ? "desc" : "asc",
+      });
+    } catch {
+      toast.error("Export failed — please try again");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const onLogout = async () => {
     await portalLogout();
     navigate({ to: "/login" });
@@ -1461,6 +1488,18 @@ function DecisionReviewerDashboard() {
             </select>
             <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
           </div>
+
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={() => void onExportCsv()}
+              disabled={exporting}
+              className="inline-flex items-center gap-2 rounded-xl border border-stone-200 bg-white px-4 py-2.5 font-sans text-sm font-medium text-stone-700 transition-colors hover:border-stone-300 hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Download className="h-4 w-4" />
+              {exporting ? "Exporting…" : "Export CSV"}
+            </button>
+          )}
         </div>
 
         {/* Table */}
