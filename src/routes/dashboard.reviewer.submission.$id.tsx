@@ -1515,13 +1515,16 @@ function ProposalDetails({
                 ((c.academic_qualification || c.qualifications) as string | undefined) || undefined;
               return (
                 <li key={i} className="divide-y divide-stone-200">
+                  {/* Empty values are skipped by FieldRows, so a field the
+                      co-author form didn't collect (e.g. affiliation) is
+                      hidden instead of shown as "—". */}
                   <FieldRows cols={2}>
-                    <Field label="Role" value={(c.role as string) || "—"} />
+                    <Field label="Role" value={(c.role as string) || ""} />
                     <Field label="Name" value={name} />
-                    <Field label="Email" value={(c.email as string) || "—"} />
+                    <Field label="Email" value={(c.email as string) || ""} />
                     <Field
                       label="Affiliation"
-                      value={(c.institution as string) || (c.affiliation as string) || "—"}
+                      value={(c.institution as string) || (c.affiliation as string) || ""}
                     />
                   </FieldRows>
                   {qualification && (
@@ -1709,12 +1712,16 @@ function ProposalDetails({
               )}
             </>
           }
+          flush
         >
-          <ol className="space-y-2 rounded-xl bg-[#FAF6EE] p-5">
+          <ol className="divide-y divide-stone-200">
             {toc.map((chapter, idx) => (
-              <li key={idx} className="font-sans text-sm leading-relaxed text-stone-800">
-                <span className="mr-1.5 text-stone-500">{idx + 1}.</span>
-                {chapter}
+              <li
+                key={idx}
+                className="flex gap-3 px-7 py-4 font-sans text-sm leading-relaxed text-stone-800"
+              >
+                <span className="text-stone-500">{idx + 1}.</span>
+                <span>{chapter}</span>
               </li>
             ))}
           </ol>

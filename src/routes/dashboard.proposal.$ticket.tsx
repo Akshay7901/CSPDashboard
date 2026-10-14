@@ -3842,16 +3842,14 @@ function ProposalDetailPage() {
                               ) : undefined
                             }
                           />
-                          <div className="px-7 py-6">
-                            <ol className="space-y-3 rounded-xl bg-stone-50 px-6 py-5 font-sans text-sm text-stone-800">
-                              {tocItems.map((item, i) => (
-                                <li key={`${i}-${item}`} className="flex gap-3">
-                                  <span className="text-stone-500">{i + 1}.</span>
-                                  <span>{item}</span>
-                                </li>
-                              ))}
-                            </ol>
-                          </div>
+                          <ol className="divide-y divide-stone-200 font-sans text-sm leading-relaxed text-stone-800">
+                            {tocItems.map((item, i) => (
+                              <li key={`${i}-${item}`} className="flex gap-3 px-7 py-4">
+                                <span className="text-stone-500">{i + 1}.</span>
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ol>
                         </Card>
                       )}
 

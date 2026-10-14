@@ -1609,6 +1609,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                   title="Table of Contents"
                   id="section-toc"
                   updated={revisionUpdates.table_of_contents}
+                  flush
                 >
                   <TocList raw={revisedText(revisionUpdates.table_of_contents, cd.table_of_contents)!} />
                 </Card>
@@ -3346,10 +3347,10 @@ function TocList({ raw }: { raw: string }) {
     .filter(Boolean);
   if (items.length === 0) return null;
   return (
-    <ol className="space-y-3 text-[15px] text-stone-800">
+    <ol className="divide-y divide-stone-200 font-sans text-sm leading-relaxed text-stone-800">
       {items.map((item, i) => (
-        <li key={i} className="flex gap-2">
-          <span className="font-semibold text-amber-800/80">{i + 1}.</span>
+        <li key={i} className="flex gap-3 px-7 py-4">
+          <span className="text-stone-500">{i + 1}.</span>
           <span>{item}</span>
         </li>
       ))}
