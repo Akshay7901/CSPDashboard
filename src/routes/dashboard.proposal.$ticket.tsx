@@ -1571,7 +1571,9 @@ function ProposalDetailPage() {
     secondary_email: pick("secondary_email", "email_2"),
     phone: pick("phone", "phone_number"),
     institution: pick("institution"),
-    job_title: pick("job_title", "author_title"),
+    // author_title is the honorific from the form (Dr, Prof…), not a job title.
+    author_title: pick("author_title"),
+    job_title: pick("job_title"),
     qualifications: pick(
       "qualifications",
       "academic_qualification",
@@ -3507,6 +3509,7 @@ function ProposalDetailPage() {
                           </div>
                         )}
                         <FieldRows cols={3}>
+                          <DataField label="Title" value={cd.author_title} />
                           {/* Editable: this is the DocuSign signer name. */}
                           <LabeledField label="Name" value={cd.corresponding_author_name || "—"}>
                             <AuthorNameEditor
@@ -3617,6 +3620,10 @@ function ProposalDetailPage() {
                                 <li key={i} className="divide-y divide-stone-200">
                                   <FieldRows cols={4}>
                                     <DataField label="Role" value={(c.role as string) || "—"} />
+                                    <DataField
+                                      label="Title"
+                                      value={(c.title as string | undefined) || undefined}
+                                    />
                                     <DataField label="Name" value={name} />
                                     <DataField
                                       label="Email"

@@ -971,7 +971,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
       | undefined) || undefined;
   const authorFullName =
     cd.corresponding_author_name ||
-    [cd.author_title, cd.author_first_name, cd.author_last_name].filter(Boolean).join(" ") ||
+    [cd.author_first_name, cd.author_last_name].filter(Boolean).join(" ") ||
     "—";
 
   const wordCount = cd.estimated_word_count ?? cd.word_count;
@@ -1299,6 +1299,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
               <Card title="Primary Author / Editor" id="section-author" flush>
                 <div className="divide-y divide-stone-200">
                 <FieldRows cols={2}>
+                  {cd.author_title && <Field label="Title" value={cd.author_title} />}
                   <Field label="Name" value={authorFullName} />
                   <Field label="Email" value={cd.email || "—"} />
                   {cd.secondary_email && (
@@ -1405,6 +1406,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                         <div key={i} className="divide-y divide-stone-200">
                           <FieldRows cols={2}>
                             {ca.role ? <Field label="Role" value={String(ca.role)} /> : null}
+                            {ca.title ? <Field label="Title" value={String(ca.title)} /> : null}
                             <Field label="Name" value={String(name)} />
                             {ca.email ? <Field label="Email" value={String(ca.email)} /> : null}
                             {ca.institution || ca.affiliation ? (

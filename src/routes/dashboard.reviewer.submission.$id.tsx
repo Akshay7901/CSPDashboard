@@ -1135,7 +1135,9 @@ function ProposalDetails({
       undefined,
     email: pick("email"),
     phone: pick("phone", "phone_number"),
-    job_title: pick("job_title", "author_title"),
+    // author_title is the honorific from the form (Dr, Prof…), not a job title.
+    author_title: pick("author_title"),
+    job_title: pick("job_title"),
     qualifications: pick(
       "qualifications",
       "academic_qualification",
@@ -1433,6 +1435,7 @@ function ProposalDetails({
           </div>
         )}
         <FieldRows cols={2}>
+          <Field label="Title" value={cd.author_title || ""} />
           <Field label="Name" value={cd.corresponding_author_name || "—"} />
           <Field label="Email" value={cd.email || "—"} />
           {cd.phone && <Field label="Phone" value={cd.phone} />}
@@ -1520,6 +1523,7 @@ function ProposalDetails({
                       hidden instead of shown as "—". */}
                   <FieldRows cols={2}>
                     <Field label="Role" value={(c.role as string) || ""} />
+                    <Field label="Title" value={(c.title as string) || ""} />
                     <Field label="Name" value={name} />
                     <Field label="Email" value={(c.email as string) || ""} />
                     <Field
