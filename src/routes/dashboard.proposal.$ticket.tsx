@@ -75,6 +75,7 @@ import { ContractQueries } from "@/components/contract-queries";
 import { ContributorsPanel } from "@/components/contributors-panel";
 import { CoAuthorsPanel } from "@/components/co-authors-panel";
 import { BookTypeEditor } from "@/components/book-type-editor";
+import { AuthorNameEditor } from "@/components/author-name-editor";
 import { FieldRows, STACKED_ROWS } from "@/components/field-rows";
 import { SetTempPasswordButton, TempPasswordBanner } from "@/components/set-temp-password";
 import { DrInfoRequests } from "@/components/dr-info-requests";
@@ -1514,15 +1515,18 @@ function ProposalDetailPage() {
     return r === "admin" || r === "decision_reviewer";
   })();
 
-  // Reflect a book-type change locally (and in the page cache) without a refetch.
-  const onBookTypeChanged = (newType: string) => {
+  // Reflect an inline edit locally (and in the page cache) without a refetch.
+  const patchCurrentData = (patch: Record<string, unknown>) => {
     setData((prev) => {
       if (!prev) return prev;
-      const next = { ...prev, current_data: { ...prev.current_data, book_type: newType } };
+      const next = { ...prev, current_data: { ...prev.current_data, ...patch } };
       setCached(`proposal:${ticket}`, next);
       return next;
     });
   };
+  const onBookTypeChanged = (newType: string) => patchCurrentData({ book_type: newType });
+  const onAuthorNameChanged = (name: string) =>
+    patchCurrentData({ corresponding_author_name: name });
 
   const rawCd = normalizeProposalData((data?.current_data ?? {}) as Record<string, unknown>);
   const asStr = (v: unknown): string | undefined => {
@@ -3503,7 +3507,15 @@ function ProposalDetailPage() {
                           </div>
                         )}
                         <FieldRows cols={3}>
-                          <DataField label="Name" value={cd.corresponding_author_name} />
+                          {/* Editable: this is the DocuSign signer name. */}
+                          <LabeledField label="Name" value={cd.corresponding_author_name || "—"}>
+                            <AuthorNameEditor
+                              ticket={ticket}
+                              value={cd.corresponding_author_name}
+                              canEdit={canEditBookType}
+                              onChanged={onAuthorNameChanged}
+                            />
+                          </LabeledField>
                           <DataField label="Email" value={cd.email} />
                           <DataField label="Phone" value={cd.phone} />
                           <DataField label="Job Title" value={cd.job_title} />
@@ -5762,6 +5774,26 @@ function Stat({
       >
         {value}
       </p>
+    </div>
+  );
+}
+
+// DataField-style label with custom content (e.g. an inline editor).
+// `value` is only read by FieldRows to decide whether to show the cell.
+function LabeledField({
+  label,
+  children,
+}: {
+  label: string;
+  value?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="min-w-0">
+      <SectionLabel>{label}</SectionLabel>
+      <div className="mt-1.5 break-words font-sans text-[13px] font-normal text-stone-900">
+        {children}
+      </div>
     </div>
   );
 }

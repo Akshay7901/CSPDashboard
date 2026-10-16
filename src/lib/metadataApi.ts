@@ -96,6 +96,26 @@ export async function getMetadata(
   return { ok: true, status: res.status, data: body as ProposalMetadata };
 }
 
+/**
+ * Corrects the primary author's name (also the DocuSign signer name) via
+ * the metadata endpoint. Admin / decision reviewer only. Throws with the
+ * backend's message on failure.
+ */
+export async function updateAuthorName(ticket: string, name: string) {
+  const res = await proposalApiFetch(`/${encodeURIComponent(ticket)}/metadata`, {
+    method: "PUT",
+    headers: authHeaders(),
+    body: JSON.stringify({ corresponding_author_name: name }),
+  });
+  const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+  if (!res.ok) {
+    throw new Error(
+      (body.error as string) || (body.message as string) || `Failed to update name (${res.status}).`,
+    );
+  }
+  return body;
+}
+
 export async function approveMetadata(ticket: string, notes?: string) {
   const res = await proposalApiFetch(
     `/${encodeURIComponent(ticket)}/metadata/approve`,
