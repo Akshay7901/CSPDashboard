@@ -1,7 +1,14 @@
 import { proposalApiFetch } from "./proposalApi";
 import { getPortalToken } from "./auth";
 
-export type CoAuthorRole = "author" | "editor";
+export type CoAuthorRole = "author" | "editor" | "contributor" | "translator";
+
+export const CO_AUTHOR_ROLES: { value: CoAuthorRole; label: string }[] = [
+  { value: "author", label: "Author" },
+  { value: "editor", label: "Editor" },
+  { value: "contributor", label: "Contributor" },
+  { value: "translator", label: "Translator" },
+];
 
 export type CoAuthor = {
   index: number;
@@ -9,6 +16,8 @@ export type CoAuthor = {
   last_name: string;
   email?: string | null;
   role?: CoAuthorRole | string;
+  /** Honorific from the proposal form, e.g. "Dr", "Mr". */
+  title?: string | null;
 };
 
 export type CoAuthorsResponse = {

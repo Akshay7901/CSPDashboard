@@ -6,6 +6,7 @@ import {
   addCoAuthor,
   removeCoAuthor,
   updateCoAuthor,
+  CO_AUTHOR_ROLES,
   type CoAuthor,
   type CoAuthorRole,
 } from "@/lib/coAuthorsApi";
@@ -13,20 +14,32 @@ import {
 const inputCls =
   "w-full rounded-lg border border-stone-300 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-900 placeholder:text-stone-400 outline-none focus:border-[#0E3D2F]";
 
+const ROLE_BADGE_CLASS: Record<string, string> = {
+  editor: "border-indigo-200 bg-indigo-50 text-indigo-800",
+  contributor: "border-amber-200 bg-amber-50 text-amber-800",
+  translator: "border-emerald-200 bg-emerald-50 text-emerald-800",
+};
+
+// Shows whatever role the API returns (author / editor / contributor /
+// translator …) rather than collapsing everything non-editor to "Author".
 function RoleBadge({ role }: { role?: string | null }) {
-  const isEditor = (role || "").toLowerCase() === "editor";
+  const key = (role || "author").toLowerCase();
+  const label =
+    CO_AUTHOR_ROLES.find((r) => r.value === key)?.label ||
+    key.charAt(0).toUpperCase() + key.slice(1);
   return (
     <span
       className={`inline-flex items-center rounded-full border px-2.5 py-0.5 font-sans text-[11px] font-semibold ${
-        isEditor
-          ? "border-indigo-200 bg-indigo-50 text-indigo-800"
-          : "border-stone-200 bg-stone-50 text-stone-700"
+        ROLE_BADGE_CLASS[key] || "border-stone-200 bg-stone-50 text-stone-700"
       }`}
     >
-      {isEditor ? "Editor" : "Author"}
+      {label}
     </span>
   );
 }
+
+const isKnownRole = (role?: string | null): role is CoAuthorRole =>
+  CO_AUTHOR_ROLES.some((r) => r.value === (role || "").toLowerCase());
 
 export function CoAuthorsPanel({ ticket }: { ticket: string }) {
   const [rows, setRows] = useState<CoAuthor[]>([]);
@@ -122,7 +135,7 @@ export function CoAuthorsPanel({ ticket }: { ticket: string }) {
       first_name: row.first_name || "",
       last_name: row.last_name || "",
       email: row.email || "",
-      role: ((row.role as CoAuthorRole) || "author"),
+      role: isKnownRole(row.role) ? (row.role.toLowerCase() as CoAuthorRole) : "author",
     });
   };
 
@@ -211,8 +224,11 @@ export function CoAuthorsPanel({ ticket }: { ticket: string }) {
               }
               className={inputCls}
             >
-              <option value="author">Author</option>
-              <option value="editor">Editor</option>
+              {CO_AUTHOR_ROLES.map((r) => (
+                <option key={r.value} value={r.value}>
+                  {r.label}
+                </option>
+              ))}
             </select>
           </div>
           <div className="mt-3.5 flex justify-end">
@@ -259,9 +275,10 @@ export function CoAuthorsPanel({ ticket }: { ticket: string }) {
                     }
                     className={inputCls}
                   />
+                  {/* Not required here: proposals from the website form often
+                      have an empty last_name, which would block any edit. */}
                   <input
-                    required
-                    placeholder="Last name *"
+                    placeholder="Last name"
                     value={editForm.last_name}
                     onChange={(e) =>
                       setEditForm((f) => ({ ...f, last_name: e.target.value }))
@@ -283,8 +300,11 @@ export function CoAuthorsPanel({ ticket }: { ticket: string }) {
                     }
                     className={inputCls}
                   >
-                    <option value="author">Author</option>
-                    <option value="editor">Editor</option>
+                    {CO_AUTHOR_ROLES.map((r) => (
+                      <option key={r.value} value={r.value}>
+                        {r.label}
+                      </option>
+                    ))}
                   </select>
                   <div className="flex items-center gap-2 sm:col-span-2 sm:justify-end">
                     <button
@@ -317,7 +337,7 @@ export function CoAuthorsPanel({ ticket }: { ticket: string }) {
               >
                 <div className="min-w-0">
                   <p className="font-sans text-[15px] font-semibold text-stone-900">
-                    {[c.first_name, c.last_name].filter(Boolean).join(" ") || "—"}
+                    {[c.title, c.first_name, c.last_name].filter(Boolean).join(" ") || "—"}
                   </p>
                   {c.email ? (
                     <p className="mt-0.5 truncate font-sans text-sm text-stone-500">
