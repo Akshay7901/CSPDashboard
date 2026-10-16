@@ -77,6 +77,7 @@ import { CoAuthorsPanel } from "@/components/co-authors-panel";
 import { BookTypeEditor } from "@/components/book-type-editor";
 import { AuthorNameEditor } from "@/components/author-name-editor";
 import { FieldRows, STACKED_ROWS } from "@/components/field-rows";
+import { formatPersonTitle } from "@/lib/personTitle";
 import { SetTempPasswordButton, TempPasswordBanner } from "@/components/set-temp-password";
 import { DrInfoRequests } from "@/components/dr-info-requests";
 import {
@@ -3509,7 +3510,7 @@ function ProposalDetailPage() {
                           </div>
                         )}
                         <FieldRows cols={3}>
-                          <DataField label="Title" value={cd.author_title} />
+                          <DataField label="Title" value={formatPersonTitle(cd.author_title)} />
                           {/* Editable: this is the DocuSign signer name. */}
                           <LabeledField label="Name" value={cd.corresponding_author_name || "—"}>
                             <AuthorNameEditor
@@ -3622,7 +3623,7 @@ function ProposalDetailPage() {
                                     <DataField label="Role" value={(c.role as string) || "—"} />
                                     <DataField
                                       label="Title"
-                                      value={(c.title as string | undefined) || undefined}
+                                      value={formatPersonTitle(c.title) || undefined}
                                     />
                                     <DataField label="Name" value={name} />
                                     <DataField

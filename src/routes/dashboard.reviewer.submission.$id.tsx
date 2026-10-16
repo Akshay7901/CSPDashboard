@@ -19,6 +19,7 @@ import {
   type RequestInfoUpdate,
 } from "@/lib/requestInfoUpdates";
 import { FieldRows, STACKED_ROWS } from "@/components/field-rows";
+import { formatPersonTitle } from "@/lib/personTitle";
 
 export const Route = createFileRoute("/dashboard/reviewer/submission/$id")({
   head: () => ({ meta: [{ title: "Review Submission — Reviewer Portal" }] }),
@@ -1435,7 +1436,7 @@ function ProposalDetails({
           </div>
         )}
         <FieldRows cols={2}>
-          <Field label="Title" value={cd.author_title || ""} />
+          <Field label="Title" value={formatPersonTitle(cd.author_title)} />
           <Field label="Name" value={cd.corresponding_author_name || "—"} />
           <Field label="Email" value={cd.email || "—"} />
           {cd.phone && <Field label="Phone" value={cd.phone} />}
@@ -1523,7 +1524,7 @@ function ProposalDetails({
                       hidden instead of shown as "—". */}
                   <FieldRows cols={2}>
                     <Field label="Role" value={(c.role as string) || ""} />
-                    <Field label="Title" value={(c.title as string) || ""} />
+                    <Field label="Title" value={formatPersonTitle(c.title)} />
                     <Field label="Name" value={name} />
                     <Field label="Email" value={(c.email as string) || ""} />
                     <Field

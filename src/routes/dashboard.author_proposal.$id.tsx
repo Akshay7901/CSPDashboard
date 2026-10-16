@@ -40,6 +40,7 @@ import { AuthorMetadataPanel } from "@/components/author-metadata-panel";
 import { ContributorsPanel } from "@/components/contributors-panel";
 import { DrInfoRequests } from "@/components/dr-info-requests";
 import { FieldRows, STACKED_ROWS } from "@/components/field-rows";
+import { formatPersonTitle } from "@/lib/personTitle";
 import {
   fetchRequestInfoUpdates,
   REVISION_AREAS,
@@ -1299,7 +1300,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
               <Card title="Primary Author / Editor" id="section-author" flush>
                 <div className="divide-y divide-stone-200">
                 <FieldRows cols={2}>
-                  {cd.author_title && <Field label="Title" value={cd.author_title} />}
+                  {cd.author_title && <Field label="Title" value={formatPersonTitle(cd.author_title)} />}
                   <Field label="Name" value={authorFullName} />
                   <Field label="Email" value={cd.email || "—"} />
                   {cd.secondary_email && (
@@ -1406,7 +1407,7 @@ function ProposalBody({ proposal }: { proposal: ProposalState }) {
                         <div key={i} className="divide-y divide-stone-200">
                           <FieldRows cols={2}>
                             {ca.role ? <Field label="Role" value={String(ca.role)} /> : null}
-                            {ca.title ? <Field label="Title" value={String(ca.title)} /> : null}
+                            {formatPersonTitle(ca.title) ? <Field label="Title" value={formatPersonTitle(ca.title)} /> : null}
                             <Field label="Name" value={String(name)} />
                             {ca.email ? <Field label="Email" value={String(ca.email)} /> : null}
                             {ca.institution || ca.affiliation ? (

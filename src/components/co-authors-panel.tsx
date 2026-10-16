@@ -10,6 +10,7 @@ import {
   type CoAuthor,
   type CoAuthorRole,
 } from "@/lib/coAuthorsApi";
+import { formatPersonTitle } from "@/lib/personTitle";
 
 const inputCls =
   "w-full rounded-lg border border-stone-300 bg-white px-3.5 py-2.5 font-sans text-sm text-stone-900 placeholder:text-stone-400 outline-none focus:border-[#0E3D2F]";
@@ -337,7 +338,7 @@ export function CoAuthorsPanel({ ticket }: { ticket: string }) {
               >
                 <div className="min-w-0">
                   <p className="font-sans text-[15px] font-semibold text-stone-900">
-                    {[c.title, c.first_name, c.last_name].filter(Boolean).join(" ") || "—"}
+                    {[formatPersonTitle(c.title), c.first_name, c.last_name].filter(Boolean).join(" ") || "—"}
                   </p>
                   {c.email ? (
                     <p className="mt-0.5 truncate font-sans text-sm text-stone-500">
