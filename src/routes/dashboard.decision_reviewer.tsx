@@ -37,6 +37,7 @@ import {
   type ProofreaderQueueTab,
 } from "@/lib/proofreaderApi";
 import { ChangePasswordButton } from "@/components/change-password-dialog";
+import { BatchJacketDialog, BatchJacketTrigger } from "@/components/batch-jacket-dialog";
 import { getDefaultReviewerEmail, setDefaultReviewerEmail } from "@/lib/defaultReviewer";
 import { fetchAiScores, type AiScoreResult } from "@/lib/aiReviewApi";
 import { getCached, setCached } from "@/lib/pageCache";
@@ -368,6 +369,7 @@ function DecisionReviewerDashboard() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [exporting, setExporting] = useState(false);
+  const [jacketOpen, setJacketOpen] = useState(false);
   const [confirmDeleteTicket, setConfirmDeleteTicket] = useState<string | null>(null);
   const [deletingTicket, setDeletingTicket] = useState<string | null>(null);
   const [deletedTickets, setDeletedTickets] = useState<Set<string>>(new Set());
@@ -1307,6 +1309,15 @@ function DecisionReviewerDashboard() {
               {initialsFromName(displayName)}
             </div>
             <span className="font-sans text-sm text-[#2C1A0E]">{displayName}</span>
+            {isAdmin && (
+              <>
+                <span className="h-5 w-px bg-stone-300" />
+                <BatchJacketTrigger
+                  onClick={() => setJacketOpen(true)}
+                  className="inline-flex items-center gap-1.5 font-sans text-sm text-[#7A6A5A] hover:text-[#2C1A0E]"
+                />
+              </>
+            )}
             <span className="h-5 w-px bg-stone-300" />
             <ChangePasswordButton
               triggerClassName="inline-flex items-center gap-1.5 font-sans text-sm text-[#7A6A5A] hover:text-[#2C1A0E]"
@@ -1348,6 +1359,12 @@ function DecisionReviewerDashboard() {
                     <span className="font-sans text-sm text-[#2C1A0E]">{displayName}</span>
                   </div>
                   <div className="border-t border-stone-100 pt-2" onClick={() => setUserMenuOpen(false)}>
+                    {isAdmin && (
+                      <BatchJacketTrigger
+                        onClick={() => setJacketOpen(true)}
+                        className="flex w-full items-center gap-1.5 rounded-lg px-2 py-2 font-sans text-sm text-[#7A6A5A] hover:bg-stone-50 hover:text-[#2C1A0E]"
+                      />
+                    )}
                     <ChangePasswordButton
                       triggerClassName="flex w-full items-center gap-1.5 rounded-lg px-2 py-2 font-sans text-sm text-[#7A6A5A] hover:bg-stone-50 hover:text-[#2C1A0E]"
                     />
@@ -1371,6 +1388,10 @@ function DecisionReviewerDashboard() {
         </div>
         </div>
       </header>
+
+      {/* One shared instance, outside the mobile menu (which unmounts its
+          contents), so a running job keeps being tracked while closed. */}
+      {isAdmin && <BatchJacketDialog open={jacketOpen} onClose={() => setJacketOpen(false)} />}
 
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-8">
         <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
