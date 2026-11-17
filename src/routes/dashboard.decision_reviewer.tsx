@@ -38,6 +38,7 @@ import {
 } from "@/lib/proofreaderApi";
 import { ChangePasswordButton } from "@/components/change-password-dialog";
 import { BatchJacketDialog, BatchJacketTrigger } from "@/components/batch-jacket-dialog";
+import { UploadFilesDialog, UploadFilesTrigger } from "@/components/upload-files-dialog";
 import { getDefaultReviewerEmail, setDefaultReviewerEmail } from "@/lib/defaultReviewer";
 import { fetchAiScores, type AiScoreResult } from "@/lib/aiReviewApi";
 import { getCached, setCached } from "@/lib/pageCache";
@@ -370,6 +371,7 @@ function DecisionReviewerDashboard() {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [exporting, setExporting] = useState(false);
   const [jacketOpen, setJacketOpen] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
   const [confirmDeleteTicket, setConfirmDeleteTicket] = useState<string | null>(null);
   const [deletingTicket, setDeletingTicket] = useState<string | null>(null);
   const [deletedTickets, setDeletedTickets] = useState<Set<string>>(new Set());
@@ -1316,6 +1318,11 @@ function DecisionReviewerDashboard() {
                   onClick={() => setJacketOpen(true)}
                   className="inline-flex items-center gap-1.5 font-sans text-sm text-[#7A6A5A] hover:text-[#2C1A0E]"
                 />
+                <span className="h-5 w-px bg-stone-300" />
+                <UploadFilesTrigger
+                  onClick={() => setUploadOpen(true)}
+                  className="inline-flex items-center gap-1.5 font-sans text-sm text-[#7A6A5A] hover:text-[#2C1A0E]"
+                />
               </>
             )}
             <span className="h-5 w-px bg-stone-300" />
@@ -1360,10 +1367,16 @@ function DecisionReviewerDashboard() {
                   </div>
                   <div className="border-t border-stone-100 pt-2" onClick={() => setUserMenuOpen(false)}>
                     {isAdmin && (
-                      <BatchJacketTrigger
-                        onClick={() => setJacketOpen(true)}
-                        className="flex w-full items-center gap-1.5 rounded-lg px-2 py-2 font-sans text-sm text-[#7A6A5A] hover:bg-stone-50 hover:text-[#2C1A0E]"
-                      />
+                      <>
+                        <BatchJacketTrigger
+                          onClick={() => setJacketOpen(true)}
+                          className="flex w-full items-center gap-1.5 rounded-lg px-2 py-2 font-sans text-sm text-[#7A6A5A] hover:bg-stone-50 hover:text-[#2C1A0E]"
+                        />
+                        <UploadFilesTrigger
+                          onClick={() => setUploadOpen(true)}
+                          className="flex w-full items-center gap-1.5 rounded-lg px-2 py-2 font-sans text-sm text-[#7A6A5A] hover:bg-stone-50 hover:text-[#2C1A0E]"
+                        />
+                      </>
                     )}
                     <ChangePasswordButton
                       triggerClassName="flex w-full items-center gap-1.5 rounded-lg px-2 py-2 font-sans text-sm text-[#7A6A5A] hover:bg-stone-50 hover:text-[#2C1A0E]"
@@ -1392,6 +1405,7 @@ function DecisionReviewerDashboard() {
       {/* One shared instance, outside the mobile menu (which unmounts its
           contents), so a running job keeps being tracked while closed. */}
       {isAdmin && <BatchJacketDialog open={jacketOpen} onClose={() => setJacketOpen(false)} />}
+      {isAdmin && <UploadFilesDialog open={uploadOpen} onClose={() => setUploadOpen(false)} />}
 
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-8">
         <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
