@@ -85,29 +85,36 @@ export async function listJacketJobs(limit = 20): Promise<JacketJobSummary[]> {
   return body.jobs || [];
 }
 
-/** Downloads a finished job's ZIP (needs the auth header, so not a plain link). */
+/**
+ * Downloads a finished job's ZIP. The backend accepts the JWT as ?token=,
+ * so this is a plain link the browser streams straight to disk (with its
+ * native progress bar) instead of buffering the whole ZIP — often hundreds
+ * of MB — in JS memory first.
+ *
+ * Opened in a new tab: a ZIP just downloads (and the tab closes itself),
+ * while an error response shows there instead of replacing the dashboard.
+ * Must be called directly from the click handler so it isn't blocked as a
+ * pop-up.
+ */
 export async function downloadJacketZip(jobId: string, downloadUrl?: string | null) {
-  const url = downloadUrl
+  const token = getPortalToken();
+  if (!token) throw new Error("Your session has expired — please log in again.");
+
+  const base = downloadUrl
     ? /^https?:\/\//i.test(downloadUrl)
       ? downloadUrl
       : `${API_BASE_URL}${downloadUrl.startsWith("/") ? "" : "/"}${downloadUrl}`
     : `${BASE}/${encodeURIComponent(jobId)}/download`;
-  const res = await fetch(url, { headers: authHeaders(false) });
-  if (!res.ok) {
-    const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
-    throw new Error((body.error as string) || `Download failed (${res.status}).`);
-  }
-  const blob = await res.blob();
-  const disposition = res.headers.get("Content-Disposition") || "";
-  const match = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(disposition);
-  const filename = match ? decodeURIComponent(match[1]) : `jackets-${jobId.slice(0, 8)}.zip`;
+  const url = `${base}${base.includes("?") ? "&" : "?"}token=${encodeURIComponent(token)}`;
 
-  const objectUrl = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = objectUrl;
-  a.download = filename;
+  a.href = url;
+  a.target = "_blank";
+  a.rel = "noopener noreferrer";
+  // Ignored for cross-origin links (the server's Content-Disposition names
+  // the file), but kept as a hint for same-origin setups.
+  a.download = `jacket_gen_${jobId}.zip`;
   document.body.appendChild(a);
   a.click();
   a.remove();
-  setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
 }
